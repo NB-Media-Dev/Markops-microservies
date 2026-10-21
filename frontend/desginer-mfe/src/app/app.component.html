@@ -1,0 +1,108 @@
+<div class="designer-microservice-layout">
+  <!-- Top Global Navigation Bar -->
+  <header class="designer-topbar">
+    <div class="topbar-left">
+      <div class="brand-container">
+        <div class="brand-icon">
+          <span class="material-symbols-outlined">palette</span>
+        </div>
+        <div class="brand-meta">
+          <div class="brand-title">
+            <span class="brand-name">MarkOps</span>
+            <span class="service-pill">DESIGNER SERVICE</span>
+          </div>
+          <span class="service-subtitle">Microservice & Studio Architecture</span>
+        </div>
+      </div>
+
+      <nav class="topbar-nav">
+        <a routerLink="/designer-tasks" routerLinkActive="active" [routerLinkActiveOptions]="{exact: false}" class="nav-item">
+          <span class="material-symbols-outlined">dashboard</span>
+          <span>Workspace</span>
+        </a>
+        <a routerLink="/submissions" routerLinkActive="active" class="nav-item">
+          <span class="material-symbols-outlined">upload_file</span>
+          <span>Submissions</span>
+        </a>
+        <a routerLink="/revisions" routerLinkActive="active" class="nav-item">
+          <span class="material-symbols-outlined">edit_note</span>
+          <span>Revisions</span>
+        </a>
+        <a routerLink="/designers" routerLinkActive="active" class="nav-item">
+          <span class="material-symbols-outlined">group</span>
+          <span>Team Directory</span>
+        </a>
+      </nav>
+    </div>
+
+    <div class="topbar-right">
+      <!-- Realtime Status Indicator -->
+      <div class="status-indicator" title="Connected to Designer Microservice API & Socket.io">
+        <span class="pulse-dot"></span>
+        <span class="status-text">SVC : 4002 ACTIVE</span>
+      </div>
+
+      <!-- Quick Role Simulator -->
+      <div class="role-selector">
+        <span class="role-label">Active Role:</span>
+        <button 
+          type="button" 
+          class="role-badge-btn" 
+          [class.active]="activeUser()?.role === 'DESIGNER'" 
+          (click)="switchRole('DESIGNER')">
+          Designer
+        </button>
+        <button 
+          type="button" 
+          class="role-badge-btn" 
+          [class.active]="activeUser()?.role === 'BDM'" 
+          (click)="switchRole('BDM')">
+          BDM / Reviewer
+        </button>
+        <button 
+          type="button" 
+          class="role-badge-btn" 
+          [class.active]="activeUser()?.role === 'ADMINISTRATOR'" 
+          (click)="switchRole('ADMINISTRATOR')">
+          Admin
+        </button>
+      </div>
+
+      <!-- User Profile Widget -->
+      <div class="user-chip">
+        <div class="user-avatar">
+          {{ (activeUser()?.fullName || 'Designer').charAt(0) }}
+        </div>
+        <div class="user-info">
+          <div class="user-name">{{ activeUser()?.fullName || 'Visual Designer' }}</div>
+          <div class="user-role">{{ activeUser()?.role }}</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Active Toast Notification -->
+  @if (notifService.activeToast(); as toast) {
+    <div class="designer-toast-banner" [ngClass]="'toast-' + (toast.type || 'info').toLowerCase()">
+      <div class="toast-content">
+        <span class="material-symbols-outlined toast-icon">
+          @if (toast.type === 'SUCCESS') { check_circle }
+          @else if (toast.type === 'ALERT') { error }
+          @else if (toast.type === 'WARNING') { warning }
+          @else { notifications }
+        </span>
+        <div class="toast-text">
+          <strong>{{ toast.title }}</strong>: {{ toast.message }}
+        </div>
+      </div>
+      <button class="toast-close" (click)="dismissToast()" aria-label="Close notification">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+  }
+
+  <!-- Main Content Area -->
+  <main class="designer-main-stage">
+    <router-outlet></router-outlet>
+  </main>
+</div>

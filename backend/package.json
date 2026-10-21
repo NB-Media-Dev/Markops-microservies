@@ -1,0 +1,43 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "api-gateway",
+    "auth-service",
+    "campaign-service",
+    "creative-task-service",
+    "lead-service",
+    "realtime-service",
+    "reporting-service",
+    "shared"
+  ],
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:gateway": "npm start --workspace=api-gateway",
+    "start:auth": "npm start --workspace=auth-service",
+    "start:campaign": "npm start --workspace=campaign-service",
+    "start:creative": "npm start --workspace=creative-task-service",
+    "start:lead": "npm start --workspace=lead-service",
+    "start:realtime": "npm start --workspace=realtime-service",
+    "start:reporting": "npm start --workspace=reporting-service",
+    "dev:gateway": "npm --workspace=api-gateway run dev",
+    "dev:auth": "npm --workspace=auth-service run dev",
+    "dev": "concurrently -n \"gateway,auth\" -c \"cyan,magenta\" \"npm run start:gateway\" \"npm run start:auth\"",
+    "dev:all": "concurrently \"npm run start:gateway\" \"npm run start:auth\" \"npm run start:campaign\" \"npm run start:creative\" \"npm run start:lead\" \"npm run start:realtime\" \"npm run start:reporting\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "concurrently": "^8.2.2"
+  }
+}

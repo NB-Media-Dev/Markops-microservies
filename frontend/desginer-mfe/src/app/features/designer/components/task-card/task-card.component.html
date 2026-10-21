@@ -1,0 +1,185 @@
+<div
+  class="task-card"
+  [class.selected]="isSelected"
+  (click)="onView($event)"
+>
+
+  <!-- Top Header: Designer Avatar & Role matching Image 1 + Priority & Status Badges -->
+  <div class="card-designer-header">
+    <div class="designer-profile-left">
+      <div class="designer-avatar-ring">
+        @if (getAssigneeAvatarUrl()) {
+          <img [src]="getAssigneeAvatarUrl()" [alt]="getAssigneeDisplayName()" class="designer-avatar-img" />
+        } @else {
+          <div
+            class="designer-avatar-initials"
+            [style.backgroundColor]="getAssigneeAvatarColor()"
+          >
+            {{ getAssigneeInitials() }}
+          </div>
+        }
+      </div>
+      <div class="designer-info-meta">
+        <h4 class="designer-name">{{ getAssigneeDisplayName() }}</h4>
+      </div>
+    </div>
+
+    <div class="card-badges-right">
+      <span class="priority-pill" [ngClass]="getPriorityBadgeClass(task.priority)">
+        {{ task.priority }}
+      </span>
+  
+       @if (canDeleteTask()) {
+        <button
+          type="button"
+          class="btn-icon-trash"
+          (click)="onDelete($event)"
+          title="Delete Task"
+        >
+          <span class="material-symbols-outlined icon-xs">delete</span>
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Category & Task Squircle Badge Row (from Image 2) -->
+  <div class="task-category-row">
+    @if (getTaskTypeLabel()) {
+      <span class="task-type-pill">
+        <span class="material-symbols-outlined icon-type">{{ getTaskTypeIcon() }}</span>
+        <span>{{ getTaskTypeLabel() }}</span>
+      </span>
+    }
+    <span class="status-badge" [ngClass]="getStatusBadgeClass(task.status)">{{ task.status }}</span>
+  </div>
+
+  <!-- Task Title & Created by Creator Name -->
+  <div class="task-title-section">
+    <h3 class="task-title" [title]="task.title">{{ task.title }}</h3>
+    <div class="task-creator-line">
+      <span class="creator-label">Created by :</span>
+      <span class="creator-name">{{ getCreatorDisplayName() }}</span>
+    </div>
+  </div>
+
+  <!-- Revision Feedback Alert (if applicable) -->
+  <!-- @if ((task.status === 'REVISION_REQUIRED' || task.status === 'REDESIGN_REQUIRED') && task.reviewerFeedback) {
+    <div class="revision-feedback-alert">
+      <span class="material-symbols-outlined alert-icon">rate_review</span>
+      <span class="alert-body">"{{ task.reviewerFeedback }}"</span>
+    </div>
+  } -->
+
+  <!-- Over All Task Status & Progress Bar (matching Image 1) -->
+  <div class="task-progress-block">
+    <div class="progress-title-row">
+      <span class="progress-title-text">Task Status</span>
+      <span class="progress-pct-text">{{ getTaskProgress() }}%</span>
+    </div>
+    <div class="progress-bar-container">
+      <div class="progress-bar-bg">
+        <div class="progress-fill" [style.width.%]="getTaskProgress()"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Row: Due Date, Version, Preview & Action Buttons (matching Image 1) -->
+  <div class="task-card-footer">
+    <div class="footer-meta-left">
+      <span class="meta-due-date">
+        <span class="material-symbols-outlined icon-xs">calendar_today</span>
+        {{ task.dueDate | date: 'mediumDate' }}
+      </span>
+      @if (task.versions && task.versions.length > 0) {
+        <span class="version-chip"> v{{ task.versions[0].versionNumber }}.0 </span>
+      }
+    </div>
+
+    <div class="task-card-actions" (click)="$event.stopPropagation()">
+      <!-- Image 1 Style: Soft Green Pill for Preview / View Detail -->
+      <button
+        type="button"
+        class="btn-card-action btn-card-download"
+        (click)="onView($event)"
+        title="Preview Task Details"
+      >
+        <span class="material-symbols-outlined icon-xs">menu_book</span>
+        <span>Preview</span>
+      </button>
+
+      <!-- Image 1 Style: Solid Green Pill for Download if Attachment -->
+      <!-- @if (task.attachmentUrl) {
+        <a
+          [href]="task.attachmentUrl"
+          target="_blank"
+          download
+          class="btn-card-action btn-card-download"
+          (click)="$event.stopPropagation()"
+          title="Download Creative"
+        >
+          <span>Download</span>
+          <span class="material-symbols-outlined icon-xs">arrow_downward</span>
+        </a>
+      } -->
+
+      @if (canStartWork()) {
+        <button
+          type="button"
+          class="btn-card-action btn-card-solid-action"
+          (click)="onStartWork()"
+          title="Start Canvas Work"
+        >
+          <span class="material-symbols-outlined icon-xs">play_arrow</span>
+          <span>Start Work</span>
+        </button>
+      }
+
+      @if (canUploadDesign()) {
+        <button
+          type="button"
+          class="btn-card-action btn-card-solid-action"
+          (click)="onUploadDesign()"
+          title="Upload Design Creative + Message"
+        >
+          <span class="material-symbols-outlined icon-xs">upload_file</span>
+          <span>Upload Design</span>
+        </button>
+      }
+
+      @if (canStartRedesign()) {
+        <button
+          type="button"
+          class="btn-card-action btn-card-solid-action"
+          (click)="onStartRedesign()"
+          title="Start Working on Requested Redesign"
+        >
+          <span class="material-symbols-outlined icon-xs">refresh</span>
+          <span>Start Redesign</span>
+        </button>
+      }
+
+      @if (canReview()) {
+        <button
+          type="button"
+          class="btn-card-action btn-card-solid-action"
+          (click)="onApprove()"
+          title="Approve Design Creative"
+        >
+          <span class="material-symbols-outlined icon-xs">check_circle</span>
+          <span>Approve</span>
+        </button>
+        <button
+          type="button"
+          class="btn-card-action btn-card-review-action"
+          (click)="onOpenRedesign()"
+          title="Request Redesign with Feedback"
+        >
+          <span class="material-symbols-outlined icon-xs">rate_review</span>
+          <span>Redesign</span>
+        </button>
+      }
+
+
+    </div>
+  </div>
+</div>
