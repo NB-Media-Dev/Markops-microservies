@@ -1,4 +1,4 @@
-import { dbPool, dbNotificationsStore, type NotificationStoreItem } from "../config/db.js";
+import { type NotificationStoreItem } from "../config/db.js";
 import { emitRealtimeEvent } from "../events/socket.events.js";
 
 export function stripEmojis(str?: string | null): string {
@@ -37,27 +37,7 @@ export async function dispatchNotification({
     createdAt: new Date().toISOString()
   };
 
-  if (dbPool.isConnected()) {
-    try {
-      const [res] = await dbPool.query(
-        `INSERT INTO notifications (user_id, title, message, type, is_read, target_route, created_at)
-         VALUES (?, ?, ?, ?, 0, ?, NOW())`,
-        [notifItem.userId, cleanTitle, cleanMessage, type, targetRoute]
-      );
-      if (res && res.insertId) {
-        notifItem.id = res.insertId;
-      }
-    } catch (e: any) {
-      console.warn("[Notification DB Notice]:", e?.message || e);
-    }
-  }
-
-  dbNotificationsStore.unshift(notifItem);
-  if (dbNotificationsStore.length > 200) {
-    dbNotificationsStore.pop();
-  }
-
-  emitRealtimeEvent("notification:new", notifItem);
+  // Broadcast notification event to realtime-service
+  emitRealtimeEvent("notification:new", notifItem, `user:${notifItem.userId}`);
   return notifItem;
 }
-

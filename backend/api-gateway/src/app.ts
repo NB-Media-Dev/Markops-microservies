@@ -14,6 +14,10 @@ import leadsRoutes from "./routes/leads.routes.js";
 import conversionsRoutes from "./routes/conversions.routes.js";
 import packagesRoutes from "./routes/packages.routes.js";
 import reportsRoutes from "./routes/reports.routes.js";
+import productsRoutes from "./routes/products.routes.js";
+import designersRoutes from "./routes/designers.routes.js";
+import commentsRoutes from "./routes/comments.routes.js";
+import versionsRoutes from "./routes/versions.routes.js";
 
 const app = express();
 
@@ -23,7 +27,19 @@ app.use(
     origin: (_origin, callback) => callback(null, true),
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Request-Id"]
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Request-Id",
+      "x-user-id",
+      "x-user-email",
+      "x-user-role",
+      "x-user-name",
+      "x-role-code",
+      "x-requested-with",
+      "Cache-Control",
+      "Pragma"
+    ]
   })
 );
 
@@ -63,6 +79,11 @@ const routeList = [
   { path: "/leads", handler: leadsRoutes },
   { path: "/conversions", handler: conversionsRoutes },
   { path: "/packages", handler: packagesRoutes },
+  { path: "/products", handler: productsRoutes },
+  { path: "/designers", handler: designersRoutes },
+  { path: "/designer", handler: designersRoutes },
+  { path: "/comments", handler: commentsRoutes },
+  { path: "/versions", handler: versionsRoutes },
   { path: "/reports", handler: reportsRoutes }
 ];
 

@@ -11,11 +11,11 @@ const authProxy = createServiceProxy({
   serviceName: "Auth Service"
 });
 
-// Protect sensitive endpoints with strict rate limiting
+
 router.use("/login", authLimiter);
 router.use("/register", authLimiter);
 
-// Forward all /auth requests to auth-service
+
 router.use("/", authProxy);
 
 export default router;

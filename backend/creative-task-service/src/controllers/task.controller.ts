@@ -1,11 +1,9 @@
 import type { Request, Response } from "express";
 import {
   dbPool,
-  dbTasksStore,
-  type TaskStoreItem,
-  type VersionItem,
-  type StatusHistoryItem,
-  type CommentItem
+  type TaskItem,
+  type DeliverableItem,
+  type ActivityItem
 } from "../config/db.js";
 import { emitRealtimeEvent } from "../events/socket.events.js";
 import { dispatchNotification } from "../services/notification.service.js";
@@ -15,142 +13,113 @@ import {
   computeTaskProgress
 } from "../middleware/upload.middleware.js";
 
-export async function findTask(taskId: any): Promise<TaskStoreItem | null> {
-  if (taskId === undefined || taskId === null) return null;
+function normalizeTaskType(type?: string): "BANNER" | "POSTER" | "VIDEO" {
+  const upper = String(type || "").toUpperCase().trim();
+  if (upper.includes("VIDEO")) return "VIDEO";
+  if (upper.includes("POSTER")) return "POSTER";
+  return "BANNER";
+}
 
-  if (dbPool.isConnected()) {
-    try {
-      const [rows] = await dbPool.query(
-        `SELECT t.*, u.full_name as assignee_full_name, c.full_name as creator_full_name, c.email as creator_email, COALESCE(cr.code, 'BDM') as creator_role
-         FROM tasks t
-         LEFT JOIN users u ON t.assigned_to = u.id
-         LEFT JOIN users c ON t.created_by = c.id
-         LEFT JOIN roles cr ON c.role_id = cr.id
-         WHERE t.id = ?
-         LIMIT 1`,
-        [taskId]
-      );
+export async function findTask(taskId: any): Promise<TaskItem | null> {
+  const numericId = parseInt(String(taskId), 10);
+  if (isNaN(numericId)) return null;
 
-      if (Array.isArray(rows) && rows.length > 0) {
-        const row = rows[0];
-        const safeDueDate = formatDueDate(row.due_date);
+  try {
+    const [rows]: any = await dbPool.query(
+      `SELECT t.*, p.name as resolved_product_name, pkg.name as resolved_package_name
+       FROM tasks t
+       LEFT JOIN ourproducts p ON t.product_id = p.id
+       LEFT JOIN product_packages pkg ON t.package_id = pkg.id
+       WHERE t.id = ?
+       LIMIT 1`,
+      [numericId]
+    );
 
-        let versions: VersionItem[] = [];
-        try {
-          const [verRows] = await dbPool.query(
-            `SELECT v.*, u.full_name as author_name
-             FROM task_versions v
-             LEFT JOIN users u ON v.submitted_by = u.id
-             WHERE v.task_id = ?
-             ORDER BY v.version_number DESC`,
-            [taskId]
-          );
-          if (Array.isArray(verRows)) {
-            versions = verRows.map((v: any) => ({
-              id: v.id,
-              taskId: v.task_id,
-              versionNumber: v.version_number,
-              submittedBy: v.submitted_by,
-              submittedByName: v.author_name || "Designer",
-              fileName: v.file_name,
-              filePath: v.file_path,
-              fileSize: v.file_size,
-              mimeType: v.mime_type,
-              changelog: v.changelog,
-              createdAt: v.created_at ? new Date(v.created_at).toISOString() : new Date().toISOString()
-            }));
-          }
-        } catch {}
+    if (Array.isArray(rows) && rows.length > 0) {
+      const row: any = rows[0];
 
-        let statusHistory: StatusHistoryItem[] = [];
-        try {
-          const [histRows] = await dbPool.query(
-            `SELECT h.*, u.full_name as actor_name
-             FROM task_status_history h
-             LEFT JOIN users u ON h.actor_id = u.id
-             WHERE h.task_id = ?
-             ORDER BY h.created_at DESC`,
-            [taskId]
-          );
-          if (Array.isArray(histRows)) {
-            statusHistory = histRows.map((h: any) => ({
-              id: h.id,
-              taskId: h.task_id,
-              actorId: h.actor_id,
-              actorName: h.actor_name || "System",
-              previousStatus: h.previous_status,
-              newStatus: h.new_status,
-              remark: h.remark,
-              createdAt: h.created_at ? new Date(h.created_at).toISOString() : new Date().toISOString()
-            }));
-          }
-        } catch {}
-
-        let comments: CommentItem[] = [];
-        try {
-          const [commRows] = await dbPool.query(
-            `SELECT c.*, u.full_name as user_name, r.code as user_role
-             FROM task_comments c
-             LEFT JOIN users u ON c.user_id = u.id
-             LEFT JOIN roles r ON u.role_id = r.id
-             WHERE c.task_id = ?
-             ORDER BY c.created_at ASC`,
-            [taskId]
-          );
-          if (Array.isArray(commRows)) {
-            comments = commRows.map((c: any) => ({
-              id: c.id,
-              taskId: c.task_id,
-              userId: c.user_id,
-              userName: c.user_name || "User",
-              userRole: c.user_role || "ADMINISTRATOR",
-              comment: c.comment,
-              createdAt: c.created_at ? new Date(c.created_at).toISOString() : new Date().toISOString()
-            }));
-          }
-        } catch {}
-
-        return {
-          id: row.id,
-          title: row.title || "Untitled Task",
-          taskType: row.task_type || "BANNER_DESIGN",
-          packageName: row.package_name || "",
-          productId: row.product_id || "",
-          productName: row.product_name || "",
-          description: row.description || "",
-          content: row.content || "",
-          attachmentUrl: row.attachment_url || "",
-          attachmentName: row.attachment_name || "",
-          reviewerFeedback: row.reviewer_feedback || "",
-          status: row.status || "ASSIGNED",
-          priority: row.priority || "MEDIUM",
-          createdBy: row.created_by,
-          creatorName: row.creator_full_name || "Manager",
-          creatorEmail: row.creator_email || "",
-          creatorRole: row.creator_role || "BDM",
-          assignedTo: row.assigned_to,
-          assigneeName: row.assignee_full_name || "Designer",
-          dueDate: safeDueDate,
-          progressPercent: computeTaskProgress(row.status, row.progress_percent),
-          createdAt: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString(),
-          updatedAt: row.updated_at ? new Date(row.updated_at).toISOString() : new Date().toISOString(),
-          versions,
-          statusHistory,
-          comments
-        };
+      // 1. Fetch Deliverables (Briefs & Versions)
+      let deliverables: DeliverableItem[] = [];
+      try {
+        const [dRows]: any = await dbPool.query(
+          `SELECT id, task_id as taskId, user_id as userId, asset_type as assetType, version_number as versionNumber, file_name as fileName, file_path as filePath, storage_key as storageKey, file_size as fileSize, mime_type as mimeType, changelog, created_at as createdAt
+           FROM task_deliverables
+           WHERE task_id = ?
+           ORDER BY version_number DESC, id DESC`,
+          [numericId]
+        );
+        if (Array.isArray(dRows)) {
+          deliverables = dRows.map((d: any) => ({
+            ...d,
+            submittedBy: d.userId,
+            createdAt: d.createdAt ? new Date(d.createdAt).toISOString() : new Date().toISOString()
+          }));
+        }
+      } catch (e: any) {
+        console.warn("[findTask deliverables Warning]:", e?.message || e);
       }
-    } catch (e: any) {
-      console.warn("[findTask DB Notice]:", e?.message || e);
+
+      // 2. Fetch Activities (Status changes & Comments)
+      let activities: ActivityItem[] = [];
+      try {
+        const [aRows]: any = await dbPool.query(
+          `SELECT id, task_id as taskId, previous_status as previousStatus, new_status as newStatus, changed_by as changedBy, comment, duration_seconds as durationSeconds, created_at as createdAt
+           FROM task_activities
+           WHERE task_id = ?
+           ORDER BY created_at DESC`,
+          [numericId]
+        );
+        if (Array.isArray(aRows)) {
+          activities = aRows.map((a: any) => ({
+            ...a,
+            actorId: a.changedBy,
+            userId: a.changedBy,
+            remark: a.comment,
+            createdAt: a.createdAt ? new Date(a.createdAt).toISOString() : new Date().toISOString()
+          }));
+        }
+      } catch (e: any) {
+        console.warn("[findTask activities Warning]:", e?.message || e);
+      }
+
+      const mappedTask: TaskItem = {
+        id: row.id,
+        title: row.title || "Untitled Task",
+        taskType: row.task_type || "BANNER",
+        packageId: row.package_id || null,
+        packageName: row.resolved_package_name || row.package_id || "",
+        productId: row.product_id || null,
+        productName: row.product_name || row.resolved_product_name || "",
+        description: row.description || "",
+        attachmentUrl: row.attachment_url || "",
+        attachmentName: row.attachment_name || "",
+        reviewerFeedback: row.reviewer_feedback || "",
+        status: row.status || "ASSIGNED",
+        priority: row.priority || "MEDIUM",
+        createdBy: row.created_by,
+        assignedTo: row.assigned_to,
+        dueDate: formatDueDate(row.due_date),
+        progressPercent: computeTaskProgress(row.status, row.progress_percent),
+        createdAt: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString(),
+        updatedAt: row.updated_at ? new Date(row.updated_at).toISOString() : new Date().toISOString(),
+        deliverables,
+        activities,
+        versions: deliverables,
+        comments: activities.filter((a) => a.comment),
+        statusHistory: activities
+      };
+
+      return mappedTask;
     }
+  } catch (e: any) {
+    console.error("[findTask DB Error]:", e?.message || e);
   }
 
-  const targetIdStr = String(taskId).trim();
-  const memTask = dbTasksStore.find((t) => String(t.id).trim() === targetIdStr);
-  return memTask || null;
+  return null;
 }
 
 export async function getTasks(req: Request, res: Response): Promise<Response> {
-  const { status, assignedTo, createdBy, view } = req.query;
+  const { status, assignedTo, createdBy, view, productId, packageId, campaignId } = req.query;
   const user = (req as any).user;
   const currentUserId = user?.id ? String(user.id) : null;
   const currentUserRole = user?.role;
@@ -166,85 +135,81 @@ export async function getTasks(req: Request, res: Response): Promise<Response> {
     }
   }
 
-  if (dbPool.isConnected()) {
-    try {
-      let query = `
-        SELECT t.*, u.full_name as assignee_full_name, c.full_name as creator_full_name, c.email as creator_email, COALESCE(cr.code, 'BDM') as creator_role
-        FROM tasks t
-        LEFT JOIN users u ON t.assigned_to = u.id
-        LEFT JOIN users c ON t.created_by = c.id
-        LEFT JOIN roles cr ON c.role_id = cr.id
-      `;
-      const conditions: string[] = [];
-      const params: any[] = [];
+  try {
+    let query = `
+      SELECT t.*, p.name as resolved_product_name, pkg.name as resolved_package_name
+      FROM tasks t
+      LEFT JOIN ourproducts p ON t.product_id = p.id
+      LEFT JOIN product_packages pkg ON t.package_id = pkg.id
+    `;
+    const conditions: string[] = [];
+    const params: any[] = [];
 
-      if (status && status !== "ALL") {
-        conditions.push("t.status = ?");
-        params.push(status);
-      }
-      if (targetAssignedTo) {
-        conditions.push("t.assigned_to = ?");
-        params.push(targetAssignedTo);
-      }
-      if (targetCreatedBy) {
-        conditions.push("t.created_by = ?");
-        params.push(targetCreatedBy);
-      }
-
-      if (conditions.length > 0) {
-        query += " WHERE " + conditions.join(" AND ");
-      }
-      query += " ORDER BY t.created_at DESC";
-
-      const [rows] = await dbPool.query(query, params);
-      if (Array.isArray(rows)) {
-        const tasks: TaskStoreItem[] = rows.map((row: any) => ({
-          id: row.id,
-          title: row.title,
-          taskType: row.task_type || "BANNER_DESIGN",
-          packageName: row.package_name || "",
-          productId: row.product_id || "",
-          productName: row.product_name || "",
-          description: row.description || "",
-          content: row.content || "",
-          attachmentUrl: row.attachment_url || "",
-          attachmentName: row.attachment_name || "",
-          reviewerFeedback: row.reviewer_feedback || "",
-          status: row.status,
-          priority: row.priority,
-          createdBy: row.created_by,
-          creatorName: row.creator_full_name || "Manager",
-          creatorEmail: row.creator_email || "",
-          creatorRole: row.creator_role || "BDM",
-          assignedTo: row.assigned_to,
-          assigneeName: row.assignee_full_name || "Designer",
-          dueDate: formatDueDate(row.due_date),
-          progressPercent: computeTaskProgress(row.status, row.progress_percent),
-          createdAt: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString(),
-          updatedAt: row.updated_at ? new Date(row.updated_at).toISOString() : new Date().toISOString(),
-          versions: [],
-          statusHistory: [],
-          comments: []
-        }));
-        return res.json(tasks);
-      }
-    } catch (e: any) {
-      console.warn("[getTasks DB Notice]:", e?.message || e);
+    if (status && status !== "ALL") {
+      conditions.push("t.status = ?");
+      params.push(status);
     }
-  }
+    if (targetAssignedTo) {
+      conditions.push("t.assigned_to = ?");
+      params.push(targetAssignedTo);
+    }
+    if (targetCreatedBy) {
+      conditions.push("t.created_by = ?");
+      params.push(targetCreatedBy);
+    }
+    if (productId) {
+      conditions.push("t.product_id = ?");
+      params.push(productId);
+    }
+    if (packageId) {
+      conditions.push("t.package_id = ?");
+      params.push(packageId);
+    }
+    if (campaignId) {
+      conditions.push("t.campaign_id = ?");
+      params.push(campaignId);
+    }
 
-  // Fallback to in-memory store
-  let filtered = [...dbTasksStore];
-  if (status && status !== "ALL") {
-    filtered = filtered.filter((t) => t.status === status);
+    if (conditions.length > 0) {
+      query += " WHERE " + conditions.join(" AND ");
+    }
+    query += " ORDER BY t.created_at DESC";
+
+    const [rows]: any = await dbPool.query(query, params);
+    if (Array.isArray(rows)) {
+      const tasks: TaskItem[] = rows.map((row: any) => ({
+        id: row.id,
+        title: row.title,
+        taskType: row.task_type || "BANNER",
+        packageId: row.package_id || null,
+        packageName: row.resolved_package_name || row.package_id || "",
+        productId: row.product_id || null,
+        productName: row.product_name || row.resolved_product_name || "",
+        description: row.description || "",
+        attachmentUrl: row.attachment_url || "",
+        attachmentName: row.attachment_name || "",
+        reviewerFeedback: row.reviewer_feedback || "",
+        status: row.status,
+        priority: row.priority,
+        createdBy: row.created_by,
+        assignedTo: row.assigned_to,
+        dueDate: formatDueDate(row.due_date),
+        progressPercent: computeTaskProgress(row.status, row.progress_percent),
+        createdAt: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString(),
+        updatedAt: row.updated_at ? new Date(row.updated_at).toISOString() : new Date().toISOString(),
+        deliverables: [],
+        activities: [],
+        versions: [],
+        comments: [],
+        statusHistory: []
+      }));
+      return res.json(tasks);
+    }
+    return res.json([]);
+  } catch (e: any) {
+    console.error("[getTasks DB Error]:", e?.message || e);
+    return res.status(500).json({ error: "Failed to fetch tasks" });
   }
-  if (targetAssignedTo) {
-    filtered = filtered.filter((t) => String(t.assignedTo) === String(targetAssignedTo));
-  }
-  if (targetCreatedBy) {
-    filtered = filtered.filter((t) => String(t.createdBy) === String(targetCreatedBy));
-  }
-  return res.json(filtered);
 }
 
 export async function getMyTasks(req: Request, res: Response): Promise<Response> {
@@ -263,154 +228,157 @@ export async function getTaskById(req: Request, res: Response): Promise<Response
 export async function createTask(req: Request, res: Response): Promise<Response> {
   const {
     title,
+    taskType,
+    task_type,
+    packageId,
+    package_id,
+    packageName,
+    package_name,
+    productId,
+    product_id,
+    productName,
+    product_name,
     description,
-    taskType = "BANNER_DESIGN",
-    packageName = "",
-    productId = "",
-    productName = "",
-    content = "",
-    attachmentUrl = "",
-    attachmentName = "",
+    attachmentUrl,
+    attachment_url,
+    attachmentName,
+    attachment_name,
     priority = "MEDIUM",
-    assignedTo = null,
-    dueDate = null
+    assignedTo,
+    assigned_to,
+    dueDate,
+    due_date
   } = req.body;
 
-  if (!title) {
+  if (!title || typeof title !== "string" || !title.trim()) {
     return res.status(400).json({ error: "Task title is required" });
   }
 
   const user = (req as any).user;
-  const creatorId = user?.id || 1;
-  const creatorName = user?.fullName || "Manager";
-  const creatorRole = user?.role || "BDM";
-  const savedAttachmentUrl = saveBase64Attachment(attachmentUrl, attachmentName, "briefs") || "";
-  const safeDueDate = formatDueDate(dueDate);
+  const creatorId = parseInt(String(user?.id || 1), 10);
+  const normalizedType = normalizeTaskType(taskType || task_type);
+  const targetPackageId = packageId || package_id || null;
+  const targetProductId = productId || product_id || null;
+  const targetProductName = productName || product_name || packageName || package_name || null;
+  const targetAssignedTo = assignedTo || assigned_to ? parseInt(String(assignedTo || assigned_to), 10) : 2;
 
-  const newTask: TaskStoreItem = {
-    id: Date.now(),
-    title,
-    taskType,
-    packageName,
-    productId,
-    productName: productName || packageName,
+  const rawAttachmentUrl = attachmentUrl || attachment_url || "";
+  const rawAttachmentName = attachmentName || attachment_name || "";
+  const savedAttachmentUrl = saveBase64Attachment(rawAttachmentUrl, rawAttachmentName, "briefs") || "";
+  const safeDueDate = formatDueDate(dueDate || due_date);
+
+  let taskId = Date.now();
+
+  try {
+    // 1. Insert Task into tasks table
+    const [insertRes]: any = await dbPool.query(
+      `INSERT INTO tasks ( title, task_type, package_id, product_id, product_name, description,attachment_url, attachment_name, status, priority, created_by, assigned_to, due_date, progress_percent, created_at, updated_at)
+       VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, 'ASSIGNED', ?, ?, ?, ?, 10, NOW(), NOW())`,
+      [
+        title.trim(),
+        normalizedType,
+        targetPackageId,
+        targetProductId,
+        targetProductName,
+        description || "",
+        savedAttachmentUrl,
+        rawAttachmentName,
+        String(priority).toUpperCase(),
+        creatorId,
+        targetAssignedTo,
+        safeDueDate || null
+      ]
+    );
+
+    if (insertRes && insertRes.insertId) {
+      taskId = insertRes.insertId;
+
+      // 2. Insert initial entry into task_activities
+      try {
+        await dbPool.query(
+          `INSERT INTO task_activities (task_id, previous_status, new_status, changed_by, comment, created_at)
+           VALUES (?, 'DRAFT', 'ASSIGNED', ?, 'Task created and assigned to Designer.', NOW())`,
+          [taskId, creatorId]
+        );
+      } catch (e: any) {
+        console.warn("[createTask activity Warning]:", e?.message || e);
+      }
+
+      // 3. If brief attachment uploaded, insert deliverable
+      if (savedAttachmentUrl) {
+        try {
+          await dbPool.query(
+            `INSERT INTO task_deliverables (task_id, user_id, asset_type, version_number, file_name, file_path, file_size, mime_type, changelog, created_at)
+             VALUES (?, ?, 'BRIEF_ATTACHMENT', 1, ?, ?, 0, 'application/pdf', 'Initial Brief Attachment', NOW())`,
+            [taskId, creatorId, rawAttachmentName || "brief.pdf", savedAttachmentUrl]
+          );
+        } catch (e: any) {
+          console.warn("[createTask deliverable Warning]:", e?.message || e);
+        }
+      }
+    }
+  } catch (e: any) {
+    console.error("[createTask DB Error]:", e?.message || e);
+    return res.status(500).json({ error: "Failed to create task in database" });
+  }
+
+  const createdTask = await findTask(taskId);
+  const responseData = createdTask || {
+    id: taskId,
+    title: title.trim(),
+    taskType: normalizedType,
+    packageId: targetPackageId,
+    packageName: packageName || package_name || "",
+    productId: targetProductId,
+    productName: targetProductName,
     description: description || "",
-    content: content || "",
     attachmentUrl: savedAttachmentUrl,
-    attachmentName,
+    attachmentName: rawAttachmentName,
     reviewerFeedback: "",
     status: "ASSIGNED",
-    priority,
+    priority: String(priority).toUpperCase(),
     createdBy: creatorId,
-    creatorName,
-    creatorRole,
-    creatorEmail: user?.email || "",
-    assignedTo: assignedTo || 2,
-    assigneeName: "Creative Designer",
+    assignedTo: targetAssignedTo,
     dueDate: safeDueDate,
     progressPercent: 10,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    versions: [],
-    statusHistory: [
-      {
-        id: Date.now() + 1,
-        taskId: 0,
-        actorId: creatorId,
-        actorName: creatorName,
-        previousStatus: "DRAFT",
-        newStatus: "ASSIGNED",
-        remark: "Task created and assigned to Designer.",
-        createdAt: new Date().toISOString()
-      }
-    ],
-    comments: []
+    updatedAt: new Date().toISOString()
   };
 
-  if (dbPool.isConnected()) {
-    try {
-      const [insertRes] = await dbPool.query(
-        `INSERT INTO tasks (title, task_type, package_name, product_id, product_name, description, content, attachment_url, attachment_name, status, priority, created_by, assigned_to, due_date, progress_percent, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
-        [
-          title,
-          taskType,
-          packageName,
-          productId,
-          productName || packageName,
-          description || "",
-          content || "",
-          savedAttachmentUrl,
-          attachmentName,
-          "ASSIGNED",
-          priority,
-          creatorId,
-          assignedTo || 2,
-          safeDueDate || null,
-          10
-        ]
-      );
-      if (insertRes && insertRes.insertId) {
-        newTask.id = insertRes.insertId;
-        if (newTask.statusHistory && newTask.statusHistory[0]) {
-          newTask.statusHistory[0].taskId = insertRes.insertId;
-        }
-        try {
-          await dbPool.query(
-            `INSERT INTO task_status_history (task_id, actor_id, previous_status, new_status, remark, created_at)
-             VALUES (?, ?, 'DRAFT', 'ASSIGNED', 'Task created and assigned', NOW())`,
-            [insertRes.insertId, creatorId]
-          );
-        } catch {}
-      }
-    } catch (e: any) {
-      console.warn("[createTask DB Notice]:", e?.message || e);
-    }
-  }
-
-  dbTasksStore.unshift(newTask);
-
-  // Dispatch realtime event & notification
-  emitRealtimeEvent("task:created", newTask);
-  emitRealtimeEvent("task:assigned", newTask);
+  // Dispatch realtime event to central realtime-service
+  emitRealtimeEvent("task:created", responseData);
+  emitRealtimeEvent("task:assigned", responseData);
 
   await dispatchNotification({
-    userId: newTask.assignedTo,
+    userId: targetAssignedTo || 2,
     title: "New Design Task Assigned",
-    message: `You have been assigned "${newTask.title}" (${newTask.priority} Priority). Due: ${newTask.dueDate || "Flexible"}.`,
+    message: `You have been assigned "${title.trim()}" (${String(priority).toUpperCase()} Priority). Due: ${safeDueDate || "Flexible"}.`,
     type: "INFO",
-    targetRoute: `/designer-tasks/${newTask.id}`
+    targetRoute: `/designer-tasks/${taskId}`
   });
 
-  return res.status(201).json(newTask);
+  return res.status(201).json(responseData);
 }
 
 export async function deleteTask(req: Request, res: Response): Promise<Response> {
-  const taskId = req.params.id;
-  if (dbPool.isConnected()) {
-    try {
-      await dbPool.query("DELETE FROM tasks WHERE id = ?", [taskId]);
-    } catch (e: any) {
-      console.warn("[deleteTask DB Notice]:", e?.message || e);
-    }
-  }
-
-  const idx = dbTasksStore.findIndex((t) => String(t.id) === String(taskId));
-  if (idx !== -1) {
-    dbTasksStore.splice(idx, 1);
+  const taskId = parseInt(String(req.params.id), 10);
+  try {
+    await dbPool.query("DELETE FROM tasks WHERE id = ?", [taskId]);
+  } catch (e: any) {
+    console.error("[deleteTask DB Error]:", e?.message || e);
+    return res.status(500).json({ error: "Failed to delete task from database" });
   }
 
   emitRealtimeEvent("task:deleted", { taskId });
   return res.json({ success: true, message: `Task #${taskId} deleted successfully` });
 }
 
-// State Transition Handlers
+// State Transition Handlers (Records into task_activities table)
 export async function handleStatusTransition(req: Request, res: Response): Promise<Response> {
-  const taskId = req.params.id;
-  const { status, remark, reviewerFeedback, notes } = req.body;
+  const taskId = parseInt(String(req.params.id), 10);
+  const { status, remark, reviewerFeedback, reviewer_feedback, notes, durationSeconds, duration_seconds } = req.body;
   const user = (req as any).user;
-  const actorId = user?.id || 1;
-  const actorName = user?.fullName || "User";
+  const actorId = parseInt(String(user?.id || 1), 10);
 
   const task = await findTask(taskId);
   if (!task) {
@@ -420,44 +388,28 @@ export async function handleStatusTransition(req: Request, res: Response): Promi
   const previousStatus = task.status;
   const newStatus = (status || previousStatus).toUpperCase();
   const progressPercent = computeTaskProgress(newStatus);
-  const updatedFeedback = reviewerFeedback !== undefined ? reviewerFeedback : (task.reviewerFeedback || "");
+  const updatedFeedback = reviewerFeedback !== undefined ? reviewerFeedback : (reviewer_feedback !== undefined ? reviewer_feedback : (task.reviewerFeedback || ""));
+  const duration = durationSeconds || duration_seconds ? parseInt(String(durationSeconds || duration_seconds), 10) : null;
+  const commentText = remark || notes || `Transitioned from ${previousStatus} to ${newStatus}`;
 
-  if (dbPool.isConnected()) {
-    try {
-      await dbPool.query(
-        `UPDATE tasks
-         SET status = ?, progress_percent = ?, reviewer_feedback = ?, updated_at = NOW()
-         WHERE id = ?`,
-        [newStatus, progressPercent, updatedFeedback, taskId]
-      );
-      await dbPool.query(
-        `INSERT INTO task_status_history (task_id, actor_id, previous_status, new_status, remark, created_at)
-         VALUES (?, ?, ?, ?, ?, NOW())`,
-        [taskId, actorId, previousStatus, newStatus, remark || notes || `Transitioned to ${newStatus}`]
-      );
-    } catch (e: any) {
-      console.warn("[handleStatusTransition DB Notice]:", e?.message || e);
-    }
-  }
+  try {
+    // 1. Update tasks table
+    await dbPool.query(
+      `UPDATE tasks
+       SET status = ?, progress_percent = ?, reviewer_feedback = ?, updated_at = NOW()
+       WHERE id = ?`,
+      [newStatus, progressPercent, updatedFeedback, taskId]
+    );
 
-  // Update in-memory task
-  const mem = dbTasksStore.find((t) => String(t.id) === String(taskId));
-  if (mem) {
-    mem.status = newStatus;
-    mem.progressPercent = progressPercent;
-    if (reviewerFeedback !== undefined) mem.reviewerFeedback = reviewerFeedback;
-    mem.updatedAt = new Date().toISOString();
-    if (!mem.statusHistory) mem.statusHistory = [];
-    mem.statusHistory.unshift({
-      id: Date.now(),
-      taskId: Number(taskId),
-      actorId,
-      actorName,
-      previousStatus,
-      newStatus,
-      remark: remark || `Transitioned to ${newStatus}`,
-      createdAt: new Date().toISOString()
-    });
+    // 2. Insert into task_activities table
+    await dbPool.query(
+      `INSERT INTO task_activities (task_id, previous_status, new_status, changed_by, comment, duration_seconds, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, NOW())`,
+      [taskId, previousStatus, newStatus, actorId, commentText, duration]
+    );
+  } catch (e: any) {
+    console.error("[handleStatusTransition DB Error]:", e?.message || e);
+    return res.status(500).json({ error: "Failed to update task status in database" });
   }
 
   const updatedTask = await findTask(taskId);
@@ -479,7 +431,7 @@ export async function handleStatusTransition(req: Request, res: Response): Promi
     });
   } else if (newStatus === "APPROVED") {
     await dispatchNotification({
-      userId: updatedTask.assignedTo,
+      userId: updatedTask.assignedTo || 2,
       title: "Design Approved!",
       message: `Congratulations! Your design for "${updatedTask.title}" has been approved.`,
       type: "SUCCESS",
@@ -487,7 +439,7 @@ export async function handleStatusTransition(req: Request, res: Response): Promi
     });
   } else if (newStatus === "REVISION_REQUIRED" || newStatus === "REDESIGN_REQUIRED") {
     await dispatchNotification({
-      userId: updatedTask.assignedTo,
+      userId: updatedTask.assignedTo || 2,
       title: "Redesign / Revision Requested",
       message: `Feedback received on "${updatedTask.title}": ${updatedFeedback || "Review notes provided."}`,
       type: "WARNING",
@@ -529,4 +481,3 @@ export async function startRedesignTask(req: Request, res: Response): Promise<Re
   req.body.remark = req.body.remark || "Designer started working on requested redesign.";
   return handleStatusTransition(req, res);
 }
-
