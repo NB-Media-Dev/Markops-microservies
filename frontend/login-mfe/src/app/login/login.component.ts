@@ -49,14 +49,14 @@ export class LoginComponent {
 
   const password = String(this.loginForm.value.password || '');
 
-  if (email === 'admin@markops.io' && password === 'admin123') {
+  
+  const success = await this.authService.login({ email, password });
+
+  if (success) {
     this.demoMessage.set('Login successfully!');
-    return;
+    const role = this.authService.currentUser()?.role;
   }
 
-  this.demoError.set(
-    '401 Unauthorized â€” Invalid email or password.'
-  );
 }
 }
 

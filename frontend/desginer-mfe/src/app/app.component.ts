@@ -1,9 +1,8 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService } from './core/services/auth.service';
 import { NotificationService } from './core/services/notification.service';
-import { TaskManagementService } from './core/services/task-management.service';
 
 @Component({
   selector: 'app-root',
@@ -15,71 +14,94 @@ import { TaskManagementService } from './core/services/task-management.service';
 export class AppComponent implements OnInit {
   readonly authService = inject(AuthService);
   readonly notifService = inject(NotificationService);
-  readonly taskService = inject(TaskManagementService);
   private readonly router = inject(Router);
 
-  readonly isMicroserviceConnected = signal<boolean>(true);
-  readonly activeUser = computed(() => this.authService.currentUser());
+  readonly isNotificationFlyoutOpen = signal<boolean>(false);
+  readonly notifFlyoutFilter = signal<'ALL' | 'UNREAD'>('ALL');
+  readonly isProfileModalOpen = signal<boolean>(false);
+
+  // Active User & Roles (Preethi Designer)
+  readonly activeRole = computed<string>(() => {
+    return this.authService.currentUser()?.role || 'DESIGNER';
+  });
+
+  readonly roleDisplayLabel = computed<string>(() => {
+    return 'Designer';
+  });
+
+  readonly roleAction = computed(() => {
+    return {
+      link: '/package-works',
+      label: 'Package Works',
+      icon: 'inventory_2',
+    };
+  });
+
+  readonly userInitials = computed<string>(() => {
+    const user = this.authService.currentUser();
+    if (!user?.fullName) return 'PR';
+    const parts = user.fullName.trim().split(' ').filter(Boolean);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return (user.fullName.slice(0, 2) || 'PR').toUpperCase();
+  });
 
   ngOnInit(): void {
-    // Ensure default designer session if not logged in
     if (!this.authService.currentUser()) {
-      const demoDesigner = {
+      const defaultUser = {
         id: 'usr_designer_01',
-        email: 'designer@markops.io',
-        fullName: 'Creative Designer',
+        email: 'preethi@markops.io',
+        fullName: 'preethi',
         role: 'DESIGNER' as const,
-        department: 'Creative Design Studio',
+        department: 'Designer',
         isActive: true,
       };
-      (this.authService as any)._currentUser?.set(demoDesigner);
-      (this.authService as any)._accessToken?.set('mo_jwt_designer_microservice');
-      try {
-        localStorage.setItem('markops_user', JSON.stringify(demoDesigner));
-        localStorage.setItem('markops_token', 'mo_jwt_designer_microservice');
-      } catch {}
+      (this.authService as any)._currentUser?.set(defaultUser);
     }
   }
 
-  switchRole(role: 'DESIGNER' | 'ADMINISTRATOR' | 'BDM'): void {
-    let mockUser;
-    if (role === 'DESIGNER') {
-      mockUser = {
-        id: 'usr_designer_01',
-        email: 'designer@markops.io',
-        fullName: 'Creative Designer',
-        role: 'DESIGNER' as const,
-        department: 'Creative Design Studio',
-        isActive: true,
-      };
-    } else if (role === 'BDM') {
-      mockUser = {
-        id: 'usr_bdm_01',
-        email: 'bdm@markops.io',
-        fullName: 'Business Development Manager',
-        role: 'BDM' as const,
-        department: 'Sales & BD',
-        isActive: true,
-      };
-    } else {
-      mockUser = {
-        id: '1',
-        email: 'admin@markops.io',
-        fullName: 'System Administrator',
-        role: 'ADMINISTRATOR' as const,
-        department: 'Operations',
-        isActive: true,
-      };
-    }
-    (this.authService as any)._currentUser?.set(mockUser);
-    try {
-      localStorage.setItem('markops_user', JSON.stringify(mockUser));
-    } catch {}
-    this.taskService.loadTasks();
-    this.taskService.loadDesignerMetrics();
+  toggleNotificationFlyout(): void {
+    this.isNotificationFlyoutOpen.update((v) => !v);
   }
 
-  dismissToast(): void {
+  closeNotificationFlyout(): void {
+    this.isNotificationFlyoutOpen.set(false);
+  }
+
+  setFlyoutFilter(filter: 'ALL' | 'UNREAD'): void {
+    this.notifFlyoutFilter.set(filter);
+  }
+
+  openProfileModal(): void {
+    this.isProfileModalOpen.set(true);
+  }
+
+  closeProfileModal(): void {
+    this.isProfileModalOpen.set(false);
+  }
+
+  getAvatarUrl(url?: string): string {
+    return url || '';
+  }
+
+  cleanTitle(text?: string): string {
+    return text || '';
+  }
+
+  onToastClick(toast: any): void {
+    if (toast.route) {
+      this.router.navigate([toast.route]);
+    }
+  }
+
+   onToastClose(event: Event): void {
+    event.stopPropagation();
     this.notifService.activeToast.set(null);
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 }

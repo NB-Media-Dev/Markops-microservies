@@ -49,14 +49,14 @@ export class AuthService {
     if (this.isBrowser) {
       this.initAuth();
     } else {
-  
+
       this._currentUser.set(DEMO_ACCOUNTS['ADMINISTRATOR'].user);
       this._accessToken.set('mo_jwt_default');
       this._isInitialized.set(true);
     }
   }
 
- 
+
   readonly currentUser = computed(() => this._currentUser());
   readonly accessToken = computed(() => this._accessToken());
   readonly isAuthenticated = computed(() => !!this._currentUser() && !!this._accessToken());
@@ -64,7 +64,7 @@ export class AuthService {
   readonly isLoading = computed(() => this._isLoading());
   readonly authError = computed(() => this._authError());
 
-  
+
   readonly PRIMARY_ADMIN: User = DEMO_ACCOUNTS['ADMINISTRATOR'].user;
 
 
@@ -108,7 +108,7 @@ export class AuthService {
           if (userJson) {
             cachedUser = JSON.parse(userJson);
           }
-        } catch {}
+        } catch { }
 
         if (!cachedUser) {
           cachedUser = this.parseUserFromJwt(token);
@@ -119,7 +119,7 @@ export class AuthService {
         }
 
         try {
-          const res = await safeFetch('/api/auth/me', {
+          const res = await safeFetch('/auth/me', {
             method: 'GET',
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -157,7 +157,7 @@ export class AuthService {
           console.log('[Auth] Backend /me verification offline notice, relying on local session:', apiErr);
         }
 
- 
+
         if (cachedUser) {
           this._currentUser.set(cachedUser);
           this._accessToken.set(token);
@@ -221,7 +221,7 @@ export class AuthService {
           isActive: payload.isActive !== false,
         };
       }
-    } catch {}
+    } catch { }
     return null;
   }
 
@@ -236,7 +236,7 @@ export class AuthService {
         throw new Error('Please enter both email address and password.');
       }
 
-      const response = await safeFetch('/api/auth/login', {
+      const response = await safeFetch('/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -249,14 +249,26 @@ export class AuthService {
         throw new Error(data.error || 'Account is inactive. Access denied.');
       }
 
-      if (response.ok && data.user) {
-        if (data.user.isActive === false) {
+      // if (response.ok && data.user) {
+      //   if (data.user.isActive === false) {
+      //     throw new Error('Account is inactive. Access denied by authentication policy.');
+      //   }
+      //   this.setSession(data.user, data.accessToken);
+      //   this._isLoading.set(false);
+      //   return true;
+      // }
+      const user = data.data?.user || data.user;
+      const token = data.data?.tokens?.accessToken || data.accessToken;
+
+      if (response.ok && user) {
+        if (user.isActive === false) {
           throw new Error('Account is inactive. Access denied by authentication policy.');
         }
-        this.setSession(data.user, data.accessToken);
+        this.setSession(user, token);
         this._isLoading.set(false);
         return true;
       }
+
 
       throw new Error(data.error || 'Invalid credentials. Please check email address and password.');
     } catch (err: any) {
@@ -296,7 +308,7 @@ export class AuthService {
         localStorage.removeItem('markops_user');
         sessionStorage.removeItem('markops_token');
         sessionStorage.removeItem('markops_user');
-      } catch {}
+      } catch { }
     }
     this._currentUser.set(null);
     this._accessToken.set(null);
@@ -408,7 +420,7 @@ export class AuthService {
       try {
         localStorage.setItem('markops_token', activeToken);
         localStorage.setItem('markops_user', JSON.stringify(activeUser));
-      } catch {}
+      } catch { }
       this.setCookie('markops_token', activeToken, 7);
     }
   }

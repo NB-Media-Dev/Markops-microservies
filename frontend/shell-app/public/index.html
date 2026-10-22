@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MarkOps Micro Frontend Host Container (Port 4200)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <style>
+    :root {
+      --bg-dark: #070913;
+      --panel-bg: rgba(15, 23, 42, 0.75);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --primary: #6366f1;
+      --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+      --designer-accent: #ec4899;
+      --login-accent: #10b981;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --sidebar-width: 260px;
+      --header-height: 64px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Bar */
+    .shell-header {
+      height: var(--header-height);
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.5rem;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: white;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--primary-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+    }
+
+    .brand-title {
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-tag {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #a5b4fc;
+      margin-left: 0.25rem;
+      font-weight: 700;
+    }
+
+    .ports-monitor {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: rgba(0, 0, 0, 0.35);
+      padding: 0.4rem 0.85rem;
+      border-radius: 9999px;
+      border: 1px solid var(--border-color);
+    }
+
+    .port-chip {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      transition: all 0.3s ease;
+    }
+
+    .dot.active {
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+    }
+
+    .dot.checking {
+      background: #f59e0b;
+      animation: pulse 1s infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { opacity: 0.5; }
+      to { opacity: 1; }
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .btn-inspect {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 0.4rem 0.85rem;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .btn-inspect:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    /* Main Container */
+    .shell-body {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - var(--header-height));
+      overflow: hidden;
+    }
+
+    /* Sidebar */
+    .shell-sidebar {
+      width: var(--sidebar-width);
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 1.25rem 0.85rem;
+    }
+
+    .nav-group-title {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      padding: 0 0.75rem;
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+    }
+
+    .nav-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .nav-item-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      padding: 0.7rem 0.85rem;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+    }
+
+    .nav-item-btn:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: white;
+    }
+
+    .nav-item-btn.active {
+      background: rgba(99, 102, 241, 0.12);
+      border-color: rgba(99, 102, 241, 0.35);
+      color: white;
+    }
+
+    .nav-item-btn.active .material-symbols-outlined {
+      color: var(--primary);
+    }
+
+    .nav-port-pill {
+      margin-left: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border-color);
+      color: #94a3b8;
+    }
+
+    .sidebar-footer {
+      border-top: 1px solid var(--border-color);
+      padding-top: 1rem;
+    }
+
+    .user-card {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.25);
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--primary-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+
+    .user-info {
+      font-size: 0.8rem;
+      overflow: hidden;
+    }
+
+    .user-name {
+      font-weight: 700;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .user-role {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    /* MFE Viewport */
+    .shell-viewport {
+      flex: 1;
+      height: 100%;
+      background: #020617;
+      position: relative;
+    }
+
+    .mfe-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+      background: transparent;
+    }
+
+    .loading-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(7, 9, 19, 0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 1rem;
+      z-index: 20;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(99, 102, 241, 0.2);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="shell-header">
+    <a href="#" class="brand">
+      <div class="brand-icon">
+        <span class="material-symbols-outlined" style="font-size: 22px;">space_dashboard</span>
+      </div>
+      <div>
+        <span class="brand-title">MarkOps Portal</span>
+        <span class="brand-tag">Port 4200 Host</span>
+      </div>
+    </a>
+
+    <!-- Active Microfrontend Port Monitor -->
+    <div class="ports-monitor">
+      <div class="port-chip" title="Shell Container">
+        <span class="dot active"></span> Shell :4200
+      </div>
+      <div class="port-chip" id="chip-4202" title="Designer Studio Microfrontend">
+        <span class="dot active" id="dot-4202"></span> Designer :4202
+      </div>
+      <div class="port-chip" id="chip-4201" title="Auth / Login Microfrontend">
+        <span class="dot active" id="dot-4201"></span> Login :4201
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="header-actions">
+      <a href="http://localhost:4202" target="_blank" class="btn-inspect" title="Open Designer Studio in standalone tab">
+        <span class="material-symbols-outlined" style="font-size: 16px;">open_in_new</span>
+        <span>Open :4202 Tab</span>
+      </a>
+      <a href="http://localhost:4201" target="_blank" class="btn-inspect" title="Open Login MFE in standalone tab">
+        <span class="material-symbols-outlined" style="font-size: 16px;">login</span>
+        <span>Open :4201 Tab</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Body -->
+  <div class="shell-body">
+    <!-- Sidebar -->
+    <aside class="shell-sidebar">
+      <div>
+        <div class="nav-group-title">Microfrontends</div>
+        <ul class="nav-list">
+          <li>
+            <button class="nav-item-btn active" id="btn-designer" onclick="switchMfe('designer', 'http://localhost:4202')">
+              <span class="material-symbols-outlined">palette</span>
+              <span>Designer Studio</span>
+              <span class="nav-port-pill">:4202</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" id="btn-login" onclick="switchMfe('login', 'http://localhost:4201')">
+              <span class="material-symbols-outlined">lock</span>
+              <span>Authentication</span>
+              <span class="nav-port-pill">:4201</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Footer User Info -->
+      <div class="sidebar-footer">
+        <div class="user-card">
+          <div class="avatar">MO</div>
+          <div class="user-info">
+            <div class="user-name">Creative Lead</div>
+            <div class="user-role">Single Entry Active</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Microfrontend Frame Viewport -->
+    <main class="shell-viewport">
+      <div class="loading-overlay" id="loading-overlay">
+        <div class="spinner"></div>
+        <p style="font-size: 0.85rem; color: #94a3b8;">Connecting to Remote Microfrontend...</p>
+      </div>
+      <iframe id="mfe-frame" class="mfe-frame" src="http://localhost:4202" allow="clipboard-read; clipboard-write"></iframe>
+    </main>
+  </div>
+
+  <script>
+    // Switch between Microfrontends
+    function switchMfe(target, url) {
+      document.querySelectorAll('.nav-item-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById(`btn-${target}`);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const frame = document.getElementById('mfe-frame');
+      const loader = document.getElementById('loading-overlay');
+      loader.style.display = 'flex';
+
+      frame.src = url;
+      frame.onload = () => {
+        loader.style.display = 'none';
+      };
+    }
+
+    // Microfrontend Cross-Port Auth Sync Bridge
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'MARKOPS_AUTH_UPDATE') {
+        console.log('[Shell 4200] Auth event received from Remote MFE:', event.data);
+        if (event.data.token) {
+          localStorage.setItem('token', event.data.token);
+          localStorage.setItem('user', JSON.stringify(event.data.user || {}));
+        }
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,9 +1,11 @@
+declare const process: any;
+
 export function getBackendBaseUrl(): string {
   if (typeof window !== 'undefined' && window.location) {
     let savedApiUrl: string | null = null;
     try {
       savedApiUrl = localStorage.getItem('designer_backend_url') || localStorage.getItem('markops_backend_url');
-    } catch {}
+    } catch { }
 
     const injectedUrl = (window as any).__DESIGNER_API_URL__ || (window as any).__API_URL__ || (window as any).process?.env?.DESIGNER_BACKEND_URL || savedApiUrl;
     if (injectedUrl) return injectedUrl.replace(/\/$/, '');
@@ -24,8 +26,8 @@ export function getBackendBaseUrl(): string {
       /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hostname) ||
       hostname.endsWith('.local');
 
-    if (port !== '4002' && (isDevPort || isLocalHost || isLanIp)) {
-      return `${protocol}//${hostname}:4002`;
+    if (port !== '4202' && (isDevPort || isLocalHost || isLanIp)) {
+      return `${protocol}//${hostname}:4202`;
     }
 
     return window.location.origin;
@@ -63,7 +65,7 @@ export function getAuthToken(): string | null {
     if (localToken && localToken.trim()) {
       return localToken.trim();
     }
-  } catch {}
+  } catch { }
 
   if (typeof document !== 'undefined') {
     const nameEQ = 'markops_token=';

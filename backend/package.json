@@ -29,8 +29,8 @@
     "start:reporting": "npm start --workspace=reporting-service",
     "dev:gateway": "npm --workspace=api-gateway run dev",
     "dev:auth": "npm --workspace=auth-service run dev",
-    "dev": "concurrently -n \"gateway,auth\" -c \"cyan,magenta\" \"npm run start:gateway\" \"npm run start:auth\"",
-    "dev:all": "concurrently \"npm run start:gateway\" \"npm run start:auth\" \"npm run start:campaign\" \"npm run start:creative\" \"npm run start:lead\" \"npm run start:realtime\" \"npm run start:reporting\""
+    "dev": "concurrently -n \"gateway,auth\" -c \"cyan,magenta\" \"npm run dev:gateway\" \"npm run dev:auth\"",
+    "dev:all": "concurrently -n \"gateway,auth,campaign,creative,lead,realtime,reporting\" \"npm run dev:gateway\" \"npm run dev:auth\" \"npm --workspace=campaign-service run dev\" \"npm --workspace=creative-task-service run dev\" \"npm --workspace=lead-service run dev\" \"npm --workspace=realtime-service run dev\" \"npm --workspace=reporting-service run dev\""
   },
   "keywords": [],
   "author": "",
@@ -39,5 +39,8 @@
   "devDependencies": {
     "@types/node": "^26.6.5",
     "concurrently": "^8.2.2"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true
   }
 }
