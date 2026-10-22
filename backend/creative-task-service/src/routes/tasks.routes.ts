@@ -12,13 +12,17 @@ import {
   redesignTask,
   startRedesignTask
 } from "../controllers/task.controller.js";
+import {
+  validateCreateTask,
+  validateStatusTransition
+} from "../middleware/task-validation.middleware.js";
 
 const router = Router();
 
-// Task Collection Endpoints
+
 router.get("/tasks", getTasks);
 router.get("/tasks/my", getMyTasks);
-router.post("/tasks", createTask);
+router.post("/tasks", validateCreateTask, createTask);
 
 // Single Task Endpoints
 router.get("/tasks/:id", getTaskById);
@@ -32,9 +36,8 @@ router.post("/tasks/:id/redesign", redesignTask);
 router.post("/tasks/:id/start-redesign", startRedesignTask);
 
 // State Transition Generic Endpoints
-router.post("/tasks/:id/status", handleStatusTransition);
-router.put("/tasks/:id/status", handleStatusTransition);
-router.patch("/tasks/:id/status", handleStatusTransition);
+router.post("/tasks/:id/status", validateStatusTransition, handleStatusTransition);
+router.put("/tasks/:id/status", validateStatusTransition, handleStatusTransition);
+router.patch("/tasks/:id/status", validateStatusTransition, handleStatusTransition);
 
 export default router;
-

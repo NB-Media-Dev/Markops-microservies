@@ -10,12 +10,12 @@ import { errorHandler, notFoundHandler } from "./middleware/error.middleware.js"
 
 // Routes
 import healthRoutes from "./routes/health.routes.js";
-import designerRoutes from "./routes/designer.routes.js";
+import productsRoutes from "./routes/products.routes.js";
+import packagesRoutes from "./routes/packages.routes.js";
 import tasksRoutes from "./routes/tasks.routes.js";
 import versionsRoutes from "./routes/versions.routes.js";
 import commentsRoutes from "./routes/comments.routes.js";
-import usersRoutes from "./routes/users.routes.js";
-import packagesRoutes from "./routes/packages.routes.js";
+import designerRoutes from "./routes/designer.routes.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const app = express();
@@ -35,7 +35,7 @@ app.use(
       if (!origin || allowedOrigins.includes(origin) || origin.includes("localhost") || origin.includes("127.0.0.1")) {
         callback(null, true);
       } else {
-        callback(null, true); // Permissive for local dev
+        callback(null, true);
       }
     },
     credentials: true,
@@ -113,22 +113,22 @@ app.use("/uploads", (req, res) => {
   `);
 });
 
-// Mount Microservice API Endpoints
+// 1. Public Root Health Check (Called directly by API Gateway at http://localhost:4003/health)
+app.use(healthRoutes);
+
+// 2. Mount Microservice API Endpoints (supports both /api/products and /products)
 const apiRouter = express.Router();
-
-// Public Health Route
 apiRouter.use(healthRoutes);
-
-// Protected routes (with JWT or dev authentication)
 apiRouter.use(authenticateJwt(dbPool));
-apiRouter.use(designerRoutes);
+apiRouter.use(productsRoutes);
+apiRouter.use(packagesRoutes);
 apiRouter.use(tasksRoutes);
 apiRouter.use(versionsRoutes);
 apiRouter.use(commentsRoutes);
-apiRouter.use(usersRoutes);
-apiRouter.use(packagesRoutes);
+apiRouter.use(designerRoutes);
 
 app.use("/api", apiRouter);
+app.use(apiRouter);
 
 // 404 & Global Error Middleware
 app.use(notFoundHandler);

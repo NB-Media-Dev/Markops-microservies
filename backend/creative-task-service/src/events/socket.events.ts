@@ -1,25 +1,23 @@
-import type { Server as SocketIOServer } from "socket.io";
+import { config } from "../config/env.config.js";
 
-let ioInstance: SocketIOServer | null = null;
 
-export function setSocketIO(io: SocketIOServer): void {
-  ioInstance = io;
-  console.log("[Designer Socket] Socket.io real-time server registered.");
-}
 
-export function getSocketIO(): SocketIOServer | null {
-  return ioInstance;
-}
-
-export function emitRealtimeEvent(event: string, data: any): void {
-  if (!ioInstance) {
-    return;
-  }
+export async function emitRealtimeEvent(event: string, data: any, room?: string): Promise<void> {
   try {
-    ioInstance.emit(event, data);
-    console.log(`[Designer Socket] Emitted event: ${event}`, data?.id || "");
+    const url = `${config.realtimeServiceUrl}/api/broadcast`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ event, data, room })
+    });
+
+    if (res.ok) {
+      console.log(`[Realtime Gateway] Dispatched '${event}' to realtime-service (port 4006)`);
+    } else {
+      console.warn(`[Realtime Gateway Notice] realtime-service returned status ${res.status}`);
+    }
   } catch (err: any) {
-    console.error(`[Designer Socket Error] Failed to emit event ${event}:`, err?.message || err);
+  
+    console.warn(`[Realtime Gateway Notice] realtime-service unavailable: ${err?.message || err}`);
   }
 }
-

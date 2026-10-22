@@ -3,8 +3,12 @@ import { getDesignerDashboardMetrics, getDesignersDirectory } from "../controlle
 
 const router = Router();
 
+// Metrics (support both singular and plural)
 router.get("/designer/dashboard-metrics", getDesignerDashboardMetrics);
+router.get("/designers/dashboard-metrics", getDesignerDashboardMetrics);
+
+// Directory (support both plural and singular)
 router.get("/designers", getDesignersDirectory);
+router.get("/designer", getDesignersDirectory);
 
 export default router;
-
