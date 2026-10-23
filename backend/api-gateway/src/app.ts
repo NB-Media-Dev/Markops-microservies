@@ -18,6 +18,7 @@ import productsRoutes from "./routes/products.routes.js";
 import designersRoutes from "./routes/designers.routes.js";
 import commentsRoutes from "./routes/comments.routes.js";
 import versionsRoutes from "./routes/versions.routes.js";
+import adsRoutes from "./routes/ads.routes.js";
 
 const app = express();
 
@@ -43,13 +44,13 @@ app.use(
   })
 );
 
-// Assign unique tracking ID to every request
+
 app.use(requestIdMiddleware);
 
-// Apply general rate limiting
+
 app.use(generalLimiter);
 
-// 1. Gateway Health Check
+
 app.get("/health", (_req, res) => {
   res.status(200).json({
     service: "api-gateway",
@@ -59,7 +60,7 @@ app.get("/health", (_req, res) => {
   });
 });
 
-// 2. Downstream Microservices Health Check
+
 app.get("/health/services", async (_req, res) => {
   const statuses = await checkAllServicesHealth();
   const allUp = Object.values(statuses).every((s) => s.status === "UP");
@@ -75,9 +76,9 @@ const routeList = [
   { path: "/auth", handler: authRoutes },
   { path: "/users", handler: usersRoutes },
   { path: "/campaigns", handler: campaignsRoutes },
+  { path: "/ads", handler: adsRoutes },
   { path: "/tasks", handler: tasksRoutes },
   { path: "/leads", handler: leadsRoutes },
-  { path: "/conversions", handler: conversionsRoutes },
   { path: "/packages", handler: packagesRoutes },
   { path: "/products", handler: productsRoutes },
   { path: "/designers", handler: designersRoutes },

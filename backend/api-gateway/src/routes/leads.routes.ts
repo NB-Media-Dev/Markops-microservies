@@ -6,9 +6,9 @@ import { optionalGatewayToken } from "../middleware/auth.middleware.js";
 const router = Router();
 
 const leadsProxy = createServiceProxy({
-  target: servicesConfig.services.leads,
+  target: servicesConfig.services.campaigns || "http://localhost:4002",
   routePrefix: "/leads",
-  serviceName: "Lead Service"
+  serviceName: "Leads (Campaign Service)"
 });
 
 router.use("/", optionalGatewayToken, leadsProxy);
