@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "bundler",
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": "",
+    "paths": {
+      "@login/*": ["../login-mfe/src/app/*"],
+      "@designer/*": ["../desginer-mfe/src/app/*"]
+    }
+  },
+  "include": ["src/**/*"]
+}

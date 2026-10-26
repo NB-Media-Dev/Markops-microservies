@@ -1,0 +1,30 @@
+{
+  "name": "markops-frontend-microservices",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MarkOps Frontend Microservices Orchestration Monorepo",
+  "workspaces": [
+    "shell-app",
+    "login-mfe",
+    "desginer-mfe"
+  ],
+  "scripts": {
+    "start:shell": "npm --prefix shell-app start",
+    "start:login": "npm --prefix login-mfe start",
+    "start:designer": "npm --prefix desginer-mfe start",
+    "dev:designer": "npm --prefix desginer-mfe run dev",
+    "dev:login": "npm --prefix login-mfe run dev",
+    "dev:all": "npx concurrently -n \"SHELL(4200),LOGIN(4201),DESIGNER(4202)\" -c \"blue,green,magenta\" \"npm run start:shell\" \"npm run start:login\" \"npm run start:designer\"",
+    "dev:mfes": "npx concurrently -n \"LOGIN(4201),DESIGNER(4202)\" -c \"green,magenta\" \"npm run start:login\" \"npm run start:designer\"",
+    "build:all": "npm --prefix shell-app run build && npm --prefix login-mfe run build && npm --prefix desginer-mfe run build"
+  },
+  "keywords": [
+    "microfrontends",
+    "angular",
+    "markops",
+    "designer-mfe"
+  ],
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

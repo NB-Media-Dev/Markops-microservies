@@ -5,6 +5,8 @@ import { requestIdMiddleware } from "./middleware/request-id.middleware.js";
 import { generalLimiter } from "./middleware/rate-limit.middleware.js";
 import { errorMiddleware } from "./middleware/error.middleware.js";
 import { checkAllServicesHealth } from "./utils/health.js";
+import { createServiceProxy } from "./services/proxy.service.js";
+import { createProxyMiddleware } from "http-proxy-middleware";
 
 import authRoutes from "./routes/auth.routes.js";
 import usersRoutes from "./routes/users.routes.js";
@@ -43,13 +45,10 @@ app.use(
   })
 );
 
-
 app.use(requestIdMiddleware);
-
-
 app.use(generalLimiter);
 
-
+// Health endpoints
 app.get("/health", (_req, res) => {
   res.status(200).json({
     service: "api-gateway",
@@ -58,7 +57,6 @@ app.get("/health", (_req, res) => {
     timestamp: new Date().toISOString()
   });
 });
-
 
 app.get("/health/services", async (_req, res) => {
   const statuses = await checkAllServicesHealth();
@@ -70,7 +68,24 @@ app.get("/health/services", async (_req, res) => {
   });
 });
 
-// Mount Routes (supporting direct path and /api/v1/ prefix)
+// Uploads Proxy (routes to Creative Task Service uploads)
+const uploadsProxy = createServiceProxy({
+  target: servicesConfig.services.tasks,
+  routePrefix: "/uploads",
+  serviceName: "Uploads (Creative Task Service)"
+});
+app.use("/uploads", uploadsProxy);
+app.use("/api/uploads", uploadsProxy);
+
+// Socket.IO WebSocket Proxy (routes to Realtime Service on port 4006)
+const socketIoProxy = createProxyMiddleware({
+  target: servicesConfig.services.realtime,
+  ws: true,
+  changeOrigin: true
+});
+app.use("/socket.io", socketIoProxy);
+
+// Mount Routes (supporting direct path: /auth, /api/auth, and /api/v1/auth prefixes)
 const routeList = [
   { path: "/auth", handler: authRoutes },
   { path: "/users", handler: usersRoutes },
@@ -93,8 +108,8 @@ const routeList = [
 
 for (const route of routeList) {
   app.use(route.path, route.handler);
-  app.use(`/api/v1${route.path}`, route.handler);
   app.use(`/api${route.path}`, route.handler);
+  app.use(`/api/v1${route.path}`, route.handler);
 }
 
 // 404 Catch-all for undefined routes

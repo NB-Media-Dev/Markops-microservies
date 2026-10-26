@@ -1,0 +1,9 @@
+{
+  "name": "markops-shell-host",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "ng serve --port 4200 --host 0.0.0.0",
+    "dev": "ng serve --port 4200 --host 0.0.0.0 --open"
+  }
+}

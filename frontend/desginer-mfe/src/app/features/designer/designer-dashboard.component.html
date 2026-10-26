@@ -1,0 +1,394 @@
+<div class="designer-dashboard" [class.embedded-mode]="embedded">
+
+  @if (!embedded) {
+    <header class="page-clean-branding-header mb-3">
+      <div class="header-titles-block">
+        <h1 class="page-main-orange-title">{{ pageHeaderTitle() }}</h1>
+        <div class="page-breadcrumb-subrow">
+          <a
+            routerLink="/package-works"
+            [queryParams]="{ package: activeProductName() }"
+            class="bc-link"
+          >{{ activeProductName() }}</a>
+          <span class="bc-sep">&gt;</span>
+          <a
+            routerLink="/package-works"
+            [queryParams]="{ package: activeProductName() }"
+            class="bc-link"
+          >Available Package</a>
+          <span class="bc-sep">&gt;</span>
+
+          <a
+            routerLink="/package-works"
+            [queryParams]="packageFilter ? { package: activeProductName(), workspace: packageFilter } : { package: activeProductName(), workspace: 'Test' }"
+            class="bc-link"
+          >Department Operations</a>
+          <span class="bc-sep">&gt;</span>
+
+          @if (selectedDesigner()) {
+            <a
+              type="button"
+              class="bc-link"
+              (click)="clearDesignerFilter()"
+            >Designer</a>
+            <span class="bc-sep">&gt;</span>
+            <span class="bc-current">{{ selectedDesigner()?.name }}</span>
+          } @else {
+            <span class="bc-current">Designer</span>
+          }
+        </div>
+      </div>
+    </header>
+  }
+
+  @if (!isDesigner()) {
+    <!-- 5 KPI Cards: Active Designers, Assigned Tasks, Pending Tasks, In-Progress Tasks, Completed Tasks -->
+    <app-designer-kpis
+      [totalDesigners]="totalAllDesigners()"
+      [totalTasks]="totalAllTasks()"
+      [totalPending]="totalAllPending()"
+      [totalInProgress]="totalAllInProgress()"
+      [totalCompleted]="totalAllCompleted()"
+    ></app-designer-kpis>
+
+    <!-- Mid Toolbar: Search on Left, (Date Filter + Tabs + Assign Task) in ONE SINGLE ROW on Right -->
+    <div class="designer-mid-toolbar">
+      <!-- 1. Search Box on Left (Dynamic for Designers or Tasks) -->
+      <div class="designer-search-wrapper">
+        <span class="material-symbols-outlined search-icon">search</span>
+        @if (showDesignersDirectory()) {
+          <input
+            type="text"
+            class="designer-search-input"
+            placeholder="Search designers by name, email, or department..."
+            [ngModel]="designerSearchQuery()"
+            (ngModelChange)="designerSearchQuery.set($event)"
+          />
+          @if (designerSearchQuery()) {
+            <button type="button" class="btn-clear-search" (click)="designerSearchQuery.set('')" title="Clear search">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          }
+        } @else {
+          <input
+            type="text"
+            class="designer-search-input"
+            placeholder="Search {{ activeTaskView() === 'my' ? 'my' : 'all' }} tasks..."
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+          />
+          @if (searchQuery()) {
+            <button type="button" class="btn-clear-search" (click)="searchQuery.set('')" title="Clear search">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          }
+        }
+      </div>
+
+      <!-- 2. Controls Cluster on Right: Single Row Alignment matching screenshot -->
+      <div class="designer-toolbar-right-cluster">
+        <!-- Date Filter Group -->
+        <div class="pkg-date-filter-group">
+          <div class="calendar-input-wrapper">
+            <span class="material-symbols-outlined cal-icon">calendar_month</span>
+            <input
+              id="taskDateFilter"
+              type="date"
+              class="cal-date-input"
+              [max]="todayDate"
+              [ngModel]="selectedDateFilter()"
+              (ngModelChange)="setDateFilter($event)"
+              title="Filter by date"
+            />
+          </div>
+         
+        </div>
+
+        <!-- Segmented View Tabs: [ Designers ] [ My Task ] [ All Task ] -->
+        <div class="segmented-view-tabs" role="tablist">
+          <button
+            type="button"
+            role="tab"
+            class="seg-tab-btn"
+            [class.active]="showDesignersDirectory()"
+            (click)="showDesignersDirectory.set(true); selectedDesignerId.set(null)"
+          >
+            Designers
+          </button>
+          <button
+            type="button"
+            role="tab"
+            class="seg-tab-btn"
+            [class.active]="!showDesignersDirectory() && activeTaskView() === 'my'"
+            (click)="switchTaskView('my'); clearDesignerFilter()"
+          >
+            My Task
+          </button>
+          <button
+            type="button"
+            role="tab"
+            class="seg-tab-btn"
+            [class.active]="!showDesignersDirectory() && activeTaskView() === 'all'"
+            (click)="switchTaskView('all'); clearDesignerFilter()"
+          >
+            All Task
+          </button>
+        </div>
+
+        <!-- Assign Task Button -->
+        @if (canCreateTask()) {
+          <button type="button" class="btn-assign-task" (click)="openCreateTaskModal()">
+            <span class="material-symbols-outlined fs-18">add</span>
+            <span>Assign Task</span>
+          </button>
+        }
+      </div>
+    </div>
+  }
+
+  @if (showDesignersDirectory() && !isDesigner()) {
+    <!-- Table Card matching Image 1 -->
+    <app-designers-table
+      [designers]="filteredDesigners()"
+      [searchQuery]="designerSearchQuery()"
+      (searchChange)="designerSearchQuery.set($event)"
+      (selectDesigner)="viewDesignerTasks($event)"
+      (deleteDesigner)="handleDeleteDesigner($event)"
+      (editDesigner)="handleEditDesigner($event)"
+    ></app-designers-table>
+  }
+
+  @if (!showDesignersDirectory() || isDesigner()) {
+
+    @if (!isDesigner() && selectedDesigner()) {
+      <div class="designer-view-header">
+     
+        <app-designer-profile-banner [designer]="selectedDesigner()"></app-designer-profile-banner>
+      </div>
+    }
+
+    <!-- In task view (My Task / All Task), show Priority and Status filters -->
+    @if (!isDesigner()) {
+      <div class="task-view-filter-bar">
+        <div class="filter-dropdown-wrapper priority-filter-wrapper">
+          <span class="material-symbols-outlined filter-icon">flag</span>
+          <select
+            class="filter-dropdown-select"
+            [ngModel]="priorityFilter()"
+            (change)="onPriorityFilterChange($event)"
+          >
+            <option value="ALL">All Priorities</option>
+            <option value="URGENT">Urgent</option>
+            <option value="HIGH">High</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="LOW">Low</option>
+          </select>
+          <span class="material-symbols-outlined arrow-icon">expand_more</span>
+        </div>
+
+        <div class="filter-dropdown-wrapper">
+          <span class="material-symbols-outlined filter-icon">filter_list</span>
+          <select
+            class="filter-dropdown-select"
+            [ngModel]="statusFilter()"
+            (change)="onFilterChange($event)"
+          >
+            <option value="ALL">All Statuses</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="REVISION_REQUIRED">Revisions</option>
+            <option value="SUBMITTED">Under Review</option>
+            <option value="COMPLETED">Approved</option>
+            <option value="BDM_FLOW">BDM Tasks Flow</option>
+          </select>
+          <span class="material-symbols-outlined arrow-icon">expand_more</span>
+        </div>
+      </div>
+    }
+
+    <div class="dashboard-split" [class.panel-open]="!!taskService.selectedTask()">
+      <main class="main-board">
+        @if (isDesigner()) {
+          <div class="board-toolbar">
+            <div class="search-box">
+              <span class="material-symbols-outlined search-icon">search</span>
+              <input
+                type="text"
+                placeholder="Search all tasks..."
+                (input)="onSearch($event)"
+              />
+            </div>
+            <div class="toolbar-controls">
+              <div class="date-filter-inline">
+                <span class="material-symbols-outlined cal-icon-sm">calendar_month</span>
+                <input
+                  type="date"
+                  class="filter-date-select-sm"
+                  [max]="todayDate"
+                  [ngModel]="selectedDateFilter()"
+                  (ngModelChange)="setDateFilter($event)"
+                  title="Filter by assignment, due, or creation date"
+                />
+                @if (selectedDateFilter()) {
+                  <button
+                    type="button"
+                    class="btn-clear-date-sm"
+                    (click)="clearDateFilter()"
+                    title="Clear date"
+                  >
+                    <span class="material-symbols-outlined">close</span>
+                  </button>
+                }
+              </div>
+
+              <div class="filter-dropdown-wrapper priority-filter-wrapper">
+                <span class="material-symbols-outlined filter-icon">flag</span>
+                <select
+                  class="filter-dropdown-select"
+                  [ngModel]="priorityFilter()"
+                  (change)="onPriorityFilterChange($event)"
+                >
+                  <option value="ALL">All Priorities</option>
+                  <option value="URGENT">Urgent</option>
+                  <option value="HIGH">High</option>
+                  <option value="MEDIUM">Medium</option>
+                  <option value="LOW">Low</option>
+                </select>
+                <span class="material-symbols-outlined arrow-icon">expand_more</span>
+              </div>
+
+              <div class="filter-dropdown-wrapper">
+                <span class="material-symbols-outlined filter-icon">filter_list</span>
+                <select
+                  class="filter-dropdown-select"
+                  [ngModel]="statusFilter()"
+                  (change)="onFilterChange($event)"
+                >
+                  <option value="ALL">All Statuses</option>
+                  <option value="IN_PROGRESS">In Progress</option>
+                  <option value="REVISION_REQUIRED">Revisions</option>
+                  <option value="SUBMITTED">Under Review</option>
+                  <option value="COMPLETED">Approved</option>
+                  <option value="BDM_FLOW">BDM Tasks Flow</option>
+                </select>
+                <span class="material-symbols-outlined arrow-icon">expand_more</span>
+              </div>
+            </div>
+          </div>
+        }
+
+        <div class="task-list">
+          @if (taskService.isLoading()) {
+            <div class="loading-state-container">
+              <div class="loading-spinner"></div>
+              <p class="loading-text">Loading creative tasks from database...</p>
+            </div>
+          }
+          @if (!taskService.isLoading() && taskService.error()) {
+            <div class="error-state-box">
+              <span class="material-symbols-outlined error-icon">error</span>
+              <div class="error-content">
+                <h4>Failed to Load Tasks</h4>
+                <p>{{ taskService.error() }}</p>
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-retry"
+                  (click)="taskService.loadTasks()"
+                >
+                  <span class="material-symbols-outlined icon-xs">refresh</span>
+                  Retry
+                </button>
+              </div>
+            </div>
+          }
+          @if (!taskService.isLoading() && !taskService.error()) {
+            @for (task of filteredTasks(); track task.id) {
+              <app-task-card
+                [task]="task"
+                [isSelected]="taskService.selectedTask()?.id === task.id"
+                [currentUser]="authService.currentUser()"
+                (view)="viewTask($event.event, $event.task)"
+                (startWork)="startWork($event)"
+                (uploadDesign)="openUploadModal($event)"
+                (startRedesign)="startRedesign($event)"
+                (approve)="onApproveQuick($event)"
+                (requestRedesign)="openRedesignModal($event)"
+                (delete)="deleteTask($event.event, $event.task)"
+                (openDoc)="openDocViewer($event.event, $event.url, $event.name, $event.content)"
+              ></app-task-card>
+            }
+            @if (filteredTasks().length === 0) {
+              <div class="empty-state">
+                <span class="material-symbols-outlined empty-icon">assignment_late</span>
+                @if (activeTaskView() === 'my') {
+                  <h4 class="empty-title">
+                    {{
+                      selectedDesigner()
+                        ? 'No tasks created by you assigned to ' + selectedDesigner()?.name + '.'
+                        : 'No tasks created by you.'
+                    }}
+                  </h4>
+                }
+                @if (activeTaskView() === 'all') {
+                  <h4 class="empty-title">
+                    {{
+                      selectedDesigner()
+                        ? 'No tasks assigned to ' + selectedDesigner()?.name + '.'
+                        : 'No tasks available.'
+                    }}
+                  </h4>
+                }
+                @if (
+                  searchQuery() ||
+                  statusFilter() !== 'ALL' ||
+                  priorityFilter() !== 'ALL' ||
+                  selectedDateFilter()
+                ) {
+                  <p>Try adjusting your search query or filters.</p>
+                }
+              </div>
+            }
+          }
+        </div>
+      </main>
+    </div>
+  }
+
+  <app-upload-design-modal
+    [isOpen]="isUploadModalOpen()"
+    [task]="getActiveUploadTask()"
+    (closeModal)="closeUploadModal()"
+    (submitUpload)="onHandleSubmitUpload($event)"
+  ></app-upload-design-modal>
+
+  <app-redesign-modal
+    [isOpen]="isRedesignModalOpen()"
+    [task]="getActiveRedesignTask()"
+    (closeModal)="closeRedesignModal()"
+    (submitRedesign)="onHandleSubmitRedesign($event)"
+  ></app-redesign-modal>
+
+  <app-create-task-modal
+    [isOpen]="isCreateTaskModalOpen()"
+    [availablePackages]="availablePackagesList()"
+    [designers]="realDesignersList()"
+    [defaultPackage]="''"
+    [preselectedDesignerId]="''"
+    (closeModal)="closeCreateTaskModal()"
+    (submitCreateTask)="onHandleSubmitCreateTask($event)"
+  ></app-create-task-modal>
+
+  <app-review-modal
+    [isOpen]="isReviewModalOpen()"
+    [task]="getActiveReviewTask()"
+    (closeModal)="closeReviewModal()"
+    (submitReview)="onHandleSubmitReview($event)"
+  ></app-review-modal>
+
+  <app-doc-viewer-modal
+    [isOpen]="isDocViewerOpen()"
+    [docName]="activeDocName()"
+    [docUrl]="activeDocUrl()"
+    [docContent]="activeDocContent()"
+    (closeModal)="closeDocViewer()"
+  ></app-doc-viewer-modal>
+</div>
