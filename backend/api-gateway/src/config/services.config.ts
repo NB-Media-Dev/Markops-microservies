@@ -2,7 +2,6 @@ import dotenv from "dotenv";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
@@ -15,10 +14,10 @@ export const servicesConfig = {
     auth: process.env.AUTH_SERVICE_URL || "http://localhost:4001",
     campaigns: process.env.CAMPAIGN_SERVICE_URL || "http://localhost:4002",
     tasks: process.env.CREATIVE_TASK_SERVICE_URL || "http://localhost:4003",
-    leads: process.env.LEAD_SERVICE_URL || "http://localhost:4004",
-    conversions: process.env.CONVERSION_SERVICE_URL || "http://localhost:4005",
+    telecalling: process.env.TELECALLING_SERVICE_URL || "http://localhost:4004",
     realtime: process.env.REALTIME_SERVICE_URL || "http://localhost:4006",
     reports: process.env.REPORTING_SERVICE_URL || "http://localhost:4007"
   }
+  
 };
 

@@ -10,8 +10,6 @@ import authRoutes from "./routes/auth.routes.js";
 import usersRoutes from "./routes/users.routes.js";
 import campaignsRoutes from "./routes/campaigns.routes.js";
 import tasksRoutes from "./routes/tasks.routes.js";
-import leadsRoutes from "./routes/leads.routes.js";
-import conversionsRoutes from "./routes/conversions.routes.js";
 import packagesRoutes from "./routes/packages.routes.js";
 import reportsRoutes from "./routes/reports.routes.js";
 import productsRoutes from "./routes/products.routes.js";
@@ -19,6 +17,7 @@ import designersRoutes from "./routes/designers.routes.js";
 import commentsRoutes from "./routes/comments.routes.js";
 import versionsRoutes from "./routes/versions.routes.js";
 import adsRoutes from "./routes/ads.routes.js";
+import telecallingRoutes from "./routes/telecalling.routes.js";
 
 const app = express();
 
@@ -78,14 +77,18 @@ const routeList = [
   { path: "/campaigns", handler: campaignsRoutes },
   { path: "/ads", handler: adsRoutes },
   { path: "/tasks", handler: tasksRoutes },
-  { path: "/leads", handler: leadsRoutes },
   { path: "/packages", handler: packagesRoutes },
   { path: "/products", handler: productsRoutes },
   { path: "/designers", handler: designersRoutes },
   { path: "/designer", handler: designersRoutes },
   { path: "/comments", handler: commentsRoutes },
   { path: "/versions", handler: versionsRoutes },
-  { path: "/reports", handler: reportsRoutes }
+  { path: "/reports", handler: reportsRoutes },
+  { path: "/call-logs", handler: telecallingRoutes },
+  { path: "/telecaller-targets", handler: telecallingRoutes },
+  { path: "/targets", handler: telecallingRoutes },
+  { path: "/follow-ups", handler: telecallingRoutes },
+  { path: "/telecalling", handler: telecallingRoutes }
 ];
 
 for (const route of routeList) {

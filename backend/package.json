@@ -31,7 +31,12 @@
     "dev:auth": "npm --workspace=auth-service run dev",
     "dev:campaign": "npm --workspace=campaign-service run dev",
     "dev:creative": "npm --workspace=creative-task-service run dev",
-    "dev": "concurrently -n \"gateway,auth,campaign,tasks\" -c \"cyan,magenta,green,yellow\" \"npm run dev:gateway\" \"npm run dev:auth\" \"npm run dev:campaign\" \"npm run dev:creative\"",
+    "dev:lead": "npm --workspace=lead-service run dev",
+    "insert:campaign": "npm --workspace=campaign-service run insert",
+    "truncate:campaign": "npm --workspace=campaign-service run truncate",
+    "insert:lead": "npm --workspace=lead-service run insert",
+    "truncate:lead": "npm --workspace=lead-service run truncate",
+    "dev": "concurrently -n \"gateway,auth,campaign,tasks,lead\" -c \"cyan,magenta,green,yellow,blue\" \"npm run dev:gateway\" \"npm run dev:auth\" \"npm run dev:campaign\" \"npm run dev:creative\" \"npm run dev:lead\"",
     "dev:all": "concurrently \"npm run start:gateway\" \"npm run start:auth\" \"npm run start:campaign\" \"npm run start:creative\" \"npm run start:lead\" \"npm run start:realtime\" \"npm run start:reporting\""
   },
   "keywords": [],

@@ -138,13 +138,13 @@ CREATE TABLE `leads` (
   `email` VARCHAR(100) DEFAULT NULL,
   `phone` VARCHAR(20) NOT NULL,
   `source` ENUM(
-  'META', 
-  'GOOGLE', 
-  'FACEBOOK', 
-  'LINKINED', 
-  'YOUTUBE',
-  'INSTAGRAM'
-) NOT NULL DEFAULT 'META';
+    'META', 
+    'GOOGLE', 
+    'FACEBOOK', 
+    'LINKINED', 
+    'YOUTUBE',    
+    'INSTAGRAM'
+  ) NOT NULL DEFAULT 'META',
   `campaign` VARCHAR(150) DEFAULT NULL,
   `ad` VARCHAR(150) DEFAULT NULL,
   `product_id` VARCHAR(100) DEFAULT NULL,
@@ -169,4 +169,5 @@ CREATE TABLE `leads` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
+
 

@@ -6,9 +6,9 @@ import { optionalGatewayToken } from "../middleware/auth.middleware.js";
 const router = Router();
 
 const packagesProxy = createServiceProxy({
-  target: servicesConfig.services.conversions,
+  target: servicesConfig.services.tasks,
   routePrefix: "/packages",
-  serviceName: "Conversion (Packages) Service"
+  serviceName: "Packages (Creative Task Service)"
 });
 
 router.use("/", optionalGatewayToken, packagesProxy);
