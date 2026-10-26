@@ -53,13 +53,20 @@ export class LoginComponent {
   const success = await this.authService.login({ email, password });
 
   if (success) {
-    this.demoMessage.set('Login successfully!');
+    this.demoMessage.set('Login successful!');
     try {
       if (typeof window !== 'undefined' && window.parent && window.parent !== window) {
+        window.parent.postMessage({
+          type: 'MARKOPS_AUTH_UPDATE',
+          token: this.authService.accessToken(),
+          user: this.authService.currentUser()
+        }, '*');
         window.parent.postMessage({
           type: 'MARKOPS_NAVIGATE',
           route: 'dashboard'
         }, '*');
+      } else {
+        this.router.navigate(['/dashboard']);
       }
     } catch {}
   }

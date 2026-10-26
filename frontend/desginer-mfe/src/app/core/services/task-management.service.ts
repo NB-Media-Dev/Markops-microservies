@@ -249,8 +249,9 @@ export class TaskManagementService {
 
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data)) {
-          const unique = this.deduplicateTasks(data);
+        const rawList = Array.isArray(data) ? data : (data.tasks || data.data || []);
+        if (Array.isArray(rawList)) {
+          const unique = this.deduplicateTasks(rawList);
           this._tasks.set(unique);
           this._error.set(null);
           this._hasLoaded.set(true);
