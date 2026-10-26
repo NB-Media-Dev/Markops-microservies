@@ -16,7 +16,7 @@ async function initializeDatabase() {
   console.log(" 📢 MarkOps Campaign & Digital Service Database Setup");
   console.log("================================================================");
 
-  const connectionString = process.env.DATABASE_URL || "mysql://root:tiger@localhost:3306/digital_db";
+  const connectionString = process.env.DATABASE_URL || "mysql://root:Ratheesh@17@localhost:3306/digital_db";
   let connection;
 
   try {

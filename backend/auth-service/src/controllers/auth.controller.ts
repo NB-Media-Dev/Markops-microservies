@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { login, register, refreshSession, logout, getCurrentUser } from "../services/auth.service.js";
+import { verifyAccessToken } from "../services/token.service.js";
 
 export async function loginController(
   req: Request,
@@ -29,8 +30,6 @@ export async function loginController(
     next(error);
   }
 }
-
-
 
 export async function refreshController(
   req: Request,
@@ -80,7 +79,25 @@ export async function meController(
   next: NextFunction
 ) {
   try {
-    const userId = (req.headers["x-user-id"] as string) || "usr-admin-1";
+    let userId = req.headers["x-user-id"] as string;
+
+    if (!userId && req.headers.authorization) {
+      try {
+        const token = req.headers.authorization.replace(/^Bearer\s+/i, "");
+        const decoded = verifyAccessToken(token);
+        if (decoded && decoded.userId) {
+          userId = String(decoded.userId);
+        }
+      } catch { }
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "No active session found"
+      });
+    }
+
     const profile = await getCurrentUser(userId);
 
     return res.status(200).json({
@@ -88,6 +105,9 @@ export async function meController(
       data: profile
     });
   } catch (error) {
-    next(error);
+    return res.status(401).json({
+      success: false,
+      message: "Invalid or expired session"
+    });
   }
 }

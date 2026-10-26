@@ -13,7 +13,7 @@ dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 dotenv.config({ path: path.resolve(process.cwd(), "backend/.env") });
 dotenv.config({ path: path.resolve(process.cwd(), "backend/creative-task-service/.env") });
 
-const databaseUrl = process.env.DATABASE_URL || "mysql://root:tiger@localhost:3306/designer_db";
+const databaseUrl = process.env.DATABASE_URL || "mysql://root:Ratheesh@17@localhost:3306/designer_db";
 
 const dbUrl = new URL(databaseUrl);
 

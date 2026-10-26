@@ -19,14 +19,18 @@ export class AppComponent implements OnInit {
   readonly isNotificationFlyoutOpen = signal<boolean>(false);
   readonly notifFlyoutFilter = signal<'ALL' | 'UNREAD'>('ALL');
   readonly isProfileModalOpen = signal<boolean>(false);
+  readonly isEmbedded = typeof window !== 'undefined' && window.parent && window.parent !== window;
 
-  // Active User & Roles (Preethi Designer)
+  // Active User & Roles
   readonly activeRole = computed<string>(() => {
     return this.authService.currentUser()?.role || 'DESIGNER';
   });
 
   readonly roleDisplayLabel = computed<string>(() => {
-    return 'Designer';
+    const role = this.activeRole();
+    if (role === 'ADMINISTRATOR') return 'Executive Operations';
+    if (role === 'DESIGNER') return 'Creative Designer';
+    return role;
   });
 
   readonly roleAction = computed(() => {

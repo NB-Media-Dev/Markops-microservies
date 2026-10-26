@@ -12,7 +12,7 @@
     "reporting-service",
     "shared"
   ],
-  "description": "",
+  "description": "MarkOps Backend Microservices Suite",
   "main": "index.js",
   "directories": {
     "doc": "docs",
@@ -51,4 +51,3 @@
     "esbuild@0.28.2": true
   }
 }
-

@@ -47,6 +47,14 @@ export class AuthService {
 
   constructor() {
     if (this.isBrowser) {
+      window.addEventListener('message', (event) => {
+        if (event.data?.type === 'MARKOPS_AUTH_UPDATE' && event.data.token) {
+          const user = event.data.user || this.parseUserFromJwt(event.data.token);
+          if (user) {
+            this.setSession(user, event.data.token);
+          }
+        }
+      });
       this.initAuth();
     } else {
   
@@ -273,6 +281,12 @@ export class AuthService {
         credentials: 'include',
       }).catch((e: any) => console.log('Logout API notification notice:', e));
       this.clearSession();
+      if (typeof window !== 'undefined' && window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'MARKOPS_AUTH_UPDATE', token: null, user: null }, '*');
+        window.parent.postMessage({ type: 'MARKOPS_NAVIGATE', route: 'login' }, '*');
+      } else if (typeof window !== 'undefined' && window.location.port === '4202') {
+        window.location.href = 'http://localhost:4201/login';
+      }
     } else {
       this._currentUser.set(null);
       this._accessToken.set(null);
@@ -282,7 +296,14 @@ export class AuthService {
   handleUnauthorized(): void {
     this.clearSession();
     if (this.isBrowser) {
-      this.router.navigate(['/login'], { queryParams: { sessionExpired: 'true' } });
+      if (typeof window !== 'undefined' && window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'MARKOPS_AUTH_UPDATE', token: null, user: null }, '*');
+        window.parent.postMessage({ type: 'MARKOPS_NAVIGATE', route: 'login' }, '*');
+      } else if (typeof window !== 'undefined' && window.location.port === '4202') {
+        window.location.href = 'http://localhost:4201/login?sessionExpired=true';
+      } else {
+        this.router.navigate(['/login'], { queryParams: { sessionExpired: 'true' } });
+      }
     }
   }
 
