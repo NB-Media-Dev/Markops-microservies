@@ -6,7 +6,8 @@
   "workspaces": [
     "shell-app",
     "login-mfe",
-    "desginer-mfe"
+    "desginer-mfe",
+    "admin-mfe"
   ],
   "scripts": {
     "start:shell": "npm --prefix shell-app start",
@@ -14,9 +15,11 @@
     "start:designer": "npm --prefix desginer-mfe start",
     "dev:designer": "npm --prefix desginer-mfe run dev",
     "dev:login": "npm --prefix login-mfe run dev",
-    "dev:all": "npx concurrently -n \"SHELL(4200),LOGIN(4201),DESIGNER(4202)\" -c \"blue,green,magenta\" \"npm run start:shell\" \"npm run start:login\" \"npm run start:designer\"",
-    "dev:mfes": "npx concurrently -n \"LOGIN(4201),DESIGNER(4202)\" -c \"green,magenta\" \"npm run start:login\" \"npm run start:designer\"",
-    "build:all": "npm --prefix shell-app run build && npm --prefix login-mfe run build && npm --prefix desginer-mfe run build"
+    "dev:all": "npx concurrently -n \"SHELL(4200),LOGIN(4201),DESIGNER(4202),ADMIN(4203)\" -c \"blue,green,magenta,yellow\" \"npm run start:shell\" \"npm run start:login\" \"npm run start:designer\" \"npm run start:admin\"",
+    "dev:mfes": "npx concurrently -n \"LOGIN(4201),DESIGNER(4202),ADMIN(4203)\" -c \"green,magenta,yellow\" \"npm run start:login\" \"npm run start:designer\" \"npm run start:admin\"",
+    "build:all": "npm --prefix login-mfe run build && npm --prefix desginer-mfe run build && npm --prefix admin-mfe run build",
+    "start:admin": "npm --prefix admin-mfe start",
+    "dev:admin": "npm --prefix admin-mfe run dev"
   },
   "keywords": [
     "microfrontends",

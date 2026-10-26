@@ -929,6 +929,28 @@
       display: block;
       background: #FFFFFF;
     }
+    /* ======================================================== */
+    /* VIEW 5: Admin Microfrontend Container (:4203)            */
+    /* ======================================================== */
+    .admin-mfe-viewport-section {
+      display: none;
+      flex-direction: column;
+      width: 100%;
+      height: calc(100vh - 70px);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .admin-mfe-iframe {
+      width: 100%;
+      flex: 1;
+      height: 100%;
+      min-height: 0;
+      border: none;
+      display: block;
+      background: #F8FAFC;
+    }
+
 
     /* ======================================================== */
     /* VIEW 4: Full-Screen Login Container                     */
@@ -1176,6 +1198,12 @@
           </div>
         </div>
 
+        <!-- Admin Nav Button -->
+        <button class="header-action-dark-btn" id="header-admin-nav-btn" onclick="openAdmin()" title="Admin & Users Management" style="margin-right: 8px;">
+          <span class="material-symbols-outlined action-icon-amber">manage_accounts</span>
+          <span>Users & Roles</span>
+        </button>
+
         <!-- Role Action Button -->
         <button class="header-action-dark-btn" id="header-action-btn" onclick="handleRoleAction()">
           <span class="material-symbols-outlined action-icon-amber" id="header-action-icon">add_circle</span>
@@ -1357,6 +1385,11 @@
         </div>
         <iframe id="designer-frame" class="designer-mfe-iframe" src="http://localhost:4202" onload="syncAuthToDesignerFrame()" allow="clipboard-read; clipboard-write"></iframe>
       </section>
+      <!-- PAGE 4: Admin Microfrontend Container (:4203) -->
+      <section id="view-admin-mfe" class="admin-mfe-viewport-section">
+        <iframe id="admin-frame" class="admin-mfe-iframe" src="http://localhost:4203" onload="syncAuthToAdminFrame()" allow="clipboard-read; clipboard-write"></iframe>
+      </section>
+
 
     </div>
   </div>
@@ -1684,11 +1717,6 @@
       } catch (err) {
         alert('Network error connecting to API Gateway');
       }
-    };
-      pkgs.unshift(newPkg);
-      savePackagesForProduct(currentProduct, pkgs);
-      closeCreatePackageModal();
-      renderPackagesGrid();
     }
 
     const ROLE_PROFILES = {
@@ -1697,8 +1725,8 @@
         email: 'admin@markops.io',
         role: 'ADMINISTRATOR',
         badge: 'ADMINISTRATOR',
-        actionLabel: 'Create Task',
-        actionIcon: 'add_circle'
+        actionLabel: 'Manage Users',
+        actionIcon: 'manage_accounts'
       },
       DESIGNER: {
         fullName: 'Preethi Designer',
@@ -1829,6 +1857,7 @@
       if (avail) avail.style.display = 'none';
       document.getElementById('view-package-works').style.display = 'none';
       document.getElementById('view-designer-mfe').style.display = 'none';
+      const adminV = document.getElementById('view-admin-mfe'); if (adminV) adminV.style.display = 'none';
       updateDesignerBreadcrumb(null);
       window.scrollTo(0, 0);
     }
@@ -1839,6 +1868,7 @@
       if (avail) avail.style.display = 'flex';
       document.getElementById('view-package-works').style.display = 'none';
       document.getElementById('view-designer-mfe').style.display = 'none';
+      const adminV = document.getElementById('view-admin-mfe'); if (adminV) adminV.style.display = 'none';
 
       document.getElementById('avail-bc-product').textContent = currentProduct;
       fetchPackagesFromDb();
@@ -1847,6 +1877,8 @@
     }
 
     function openProduct(productName, productId) {
+      console.log(productName,productId);
+      
       currentProduct = productName;
       if (productId) {
         currentProductId = productId;
@@ -1873,6 +1905,7 @@
       if (avail) avail.style.display = 'none';
       document.getElementById('view-package-works').style.display = 'flex';
       document.getElementById('view-designer-mfe').style.display = 'none';
+      const adminV = document.getElementById('view-admin-mfe'); if (adminV) adminV.style.display = 'none';
       updateDesignerBreadcrumb(null);
       window.scrollTo(0, 0);
     }
@@ -1908,6 +1941,36 @@
       }
     }
 
+    
+    function openAdmin() {
+      document.getElementById('view-dashboard').style.display = 'none';
+      const avail = document.getElementById('view-available-packages');
+      if (avail) avail.style.display = 'none';
+      document.getElementById('view-package-works').style.display = 'none';
+      document.getElementById('view-designer-mfe').style.display = 'none';
+      const adminV = document.getElementById('view-admin-mfe'); if (adminV) adminV.style.display = 'none';
+      const adminView = document.getElementById('view-admin-mfe');
+      if (adminView) {
+        adminView.style.display = 'flex';
+        syncAuthToAdminFrame();
+      }
+      updateDesignerBreadcrumb(null);
+      window.scrollTo(0, 0);
+    }
+
+    function syncAuthToAdminFrame() {
+      const frame = document.getElementById('admin-frame');
+      const token = localStorage.getItem('markops_token') || 'mo_jwt_default';
+      const user = getUser();
+      if (frame && frame.contentWindow && user) {
+        frame.contentWindow.postMessage({
+          type: 'MARKOPS_AUTH_UPDATE',
+          token,
+          user
+        }, '*');
+      }
+    }
+
     function openDepartment(deptId) {
       if (deptId === 'DESIGNER') {
         document.getElementById('view-dashboard').style.display = 'none';
@@ -1921,7 +1984,9 @@
     }
 
     function handleRoleAction() {
-      if (currentUserRole === 'DESIGNER' || currentUserRole === 'ADMINISTRATOR') {
+      if (currentUserRole === 'ADMINISTRATOR') {
+        openAdmin();
+      } else if (currentUserRole === 'DESIGNER') {
         openDepartment('DESIGNER');
       } else {
         openProduct(currentProduct);
@@ -1967,6 +2032,7 @@
       }
       if (event.data && event.data.type === 'MARKOPS_REQUEST_AUTH') {
         syncAuthToDesignerFrame();
+        syncAuthToAdminFrame();
       }
       if (event.data && event.data.type === 'MARKOPS_DESIGNER_SELECTED') {
         updateDesignerBreadcrumb(event.data.designerName);
@@ -1974,6 +2040,8 @@
       if (event.data && event.data.type === 'MARKOPS_NAVIGATE') {
         if (event.data.route === 'dashboard') {
           goToDashboard();
+        } else if (event.data.route === 'admin' || event.data.route === 'users') {
+          openAdmin();
         } else if (event.data.route === 'designer') {
           openDepartment('DESIGNER');
         } else if (event.data.route === 'package-works' || event.data.route === 'operations') {

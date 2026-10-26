@@ -64,6 +64,6 @@ server.listen(PORT, "0.0.0.0", () => {
   console.log(`\n======================================================`);
   console.log(`🚀 MarkOps Enterprise Portal Active!`);
   console.log(`👉 Primary URL : http://localhost:${PORT}`);
-  console.log(`👉 Remote MFEs : Login (4201) | Designer (4202)`);
+  console.log(`👉 Remote MFEs : Login (4201) | Designer (4202) | Admin (4203)`);
   console.log(`======================================================\n`);
 });
