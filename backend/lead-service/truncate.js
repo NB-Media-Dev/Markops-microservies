@@ -16,7 +16,7 @@ async function truncateDatabaseTables() {
   console.log(" 🗑️  MarkOps Lead & Telecalling Service Database Truncate");
   console.log("================================================================");
 
-  const connectionString = process.env.DATABASE_URL || "mysql://root:Ratheesh@17@localhost:3306/digital_db";
+  const connectionString = process.env.DATABASE_URL || "mysql://root:tiger@localhost:3306/digital_db";
   let connection;
 
   const truncateLeads = process.argv.includes('--all') || process.argv.includes('--leads') || process.argv.includes('--with-leads');
