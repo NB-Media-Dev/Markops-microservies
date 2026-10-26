@@ -420,6 +420,13 @@ export class AuthService {
       try {
         localStorage.setItem('markops_token', activeToken);
         localStorage.setItem('markops_user', JSON.stringify(activeUser));
+        if (typeof window !== 'undefined' && window.parent && window.parent !== window) {
+          window.parent.postMessage({
+            type: 'MARKOPS_AUTH_UPDATE',
+            token: activeToken,
+            user: activeUser
+          }, '*');
+        }
       } catch { }
       this.setCookie('markops_token', activeToken, 7);
     }

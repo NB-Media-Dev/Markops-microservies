@@ -14,7 +14,10 @@ const MIME_TYPES = {
   ".json": "application/json; charset=utf-8",
   ".svg": "image/svg+xml",
   ".ico": "image/x-icon",
-  ".png": "image/png"
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".webp": "image/webp"
 };
 
 const server = http.createServer((req, res) => {
@@ -59,7 +62,7 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`\n======================================================`);
-  console.log(`🚀 MarkOps Micro Frontend Shell Container Active!`);
+  console.log(`🚀 MarkOps Enterprise Portal Active!`);
   console.log(`👉 Primary URL : http://localhost:${PORT}`);
   console.log(`👉 Remote MFEs : Login (4201) | Designer (4202)`);
   console.log(`======================================================\n`);

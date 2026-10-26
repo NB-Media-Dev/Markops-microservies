@@ -9,7 +9,7 @@ import {
   DesignerDashboardMetrics,
   computeTaskProgressPercent,
 } from '../models/task.model';
-import { safeFetch, getBackendBaseUrl, getAuthToken } from '../utils/api-url.utils';
+import { safeFetch, getBackendBaseUrl, getAuthToken, getRealtimeUrl } from '../utils/api-url.utils';
 import { AuthService } from './auth.service';
 
 @Injectable({
@@ -52,10 +52,10 @@ export class TaskManagementService {
 
   private initRealtimeSocket(): void {
     try {
-      const backendUrl = getBackendBaseUrl();
+      const realtimeUrl = getRealtimeUrl();
       const token = this.authService.accessToken() || getAuthToken();
       const user = this.authService.currentUser();
-      this.socket = io(backendUrl, {
+      this.socket = io(realtimeUrl, {
         auth: {
           token: token || undefined,
           userId: user?.id,

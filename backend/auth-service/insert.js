@@ -4,7 +4,7 @@ import 'dotenv/config';
 async function runDatabaseInsertions() {
   console.log("Connecting to the MySQL Workbench instance...");
 
-  const connectionString = process.env.DATABASE_URL || "mysql://root:password@localhost:3306/auth_db";
+  const connectionString = process.env.DATABASE_URL || "";
   
   let connection;
   try {

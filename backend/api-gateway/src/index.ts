@@ -3,11 +3,12 @@ import { servicesConfig } from "./config/services.config.js";
 
 const PORT = servicesConfig.port;
 
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, "0.0.0.0", () => {
   console.log(`=========================================`);
   console.log(`🚀 API Gateway running on port ${PORT}`);
-  console.log(`📍 Health Check: http://localhost:${PORT}/health`);
+  console.log(`📍 Health Check:    http://localhost:${PORT}/health`);
   console.log(`📍 Services Status: http://localhost:${PORT}/health/services`);
+  console.log(`🔌 WebSockets:      ws://localhost:${PORT}/socket.io`);
   console.log(`=========================================`);
   console.log(`Configured Microservice Downstream Targets:`);
   for (const [name, url] of Object.entries(servicesConfig.services)) {
@@ -24,4 +25,3 @@ process.on("SIGTERM", () => {
     process.exit(0);
   });
 });
-

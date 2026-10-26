@@ -26,16 +26,28 @@ export function getBackendBaseUrl(): string {
       /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hostname) ||
       hostname.endsWith('.local');
 
-    if (port !== '4202' && (isDevPort || isLocalHost || isLanIp)) {
-      return `${protocol}//${hostname}:4202`;
+    if (port !== '4000' && (isDevPort || isLocalHost || isLanIp)) {
+      return `${protocol}//${hostname}:4000`;
     }
 
     return window.location.origin;
   }
 
-  const port = (typeof process !== 'undefined' && process.env && (process.env['DESIGNER_BACKEND_PORT'] || process.env['PORT'])) || '4002';
+  const port = (typeof process !== 'undefined' && process.env && (process.env['DESIGNER_BACKEND_PORT'] || process.env['PORT'])) || '4000';
   const backendHost = (typeof process !== 'undefined' && process.env && process.env['DESIGNER_BACKEND_URL']) || `http://localhost:${port}`;
   return backendHost.replace(/\/$/, '');
+}
+
+export function getRealtimeUrl(): string {
+  if (typeof window !== 'undefined' && window.location) {
+    const injectedUrl = (window as any).__REALTIME_URL__ || localStorage.getItem('markops_realtime_url');
+    if (injectedUrl) return injectedUrl.replace(/\/$/, '');
+
+    const protocol = window.location.protocol || 'http:';
+    const hostname = window.location.hostname || 'localhost';
+    return `${protocol}//${hostname}:4006`;
+  }
+  return 'http://localhost:4006';
 }
 
 export function getApiUrl(url: string): string {

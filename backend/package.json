@@ -12,7 +12,7 @@
     "reporting-service",
     "shared"
   ],
-  "description": "",
+  "description": "MarkOps Backend Microservices Suite",
   "main": "index.js",
   "directories": {
     "doc": "docs",
@@ -31,7 +31,8 @@
     "dev:auth": "npm --workspace=auth-service run dev",
     "dev:campaign": "npm --workspace=campaign-service run dev",
     "dev:creative": "npm --workspace=creative-task-service run dev",
-    "dev": "concurrently -n \"gateway,auth,campaign,tasks\" -c \"cyan,magenta,green,yellow\" \"npm run dev:gateway\" \"npm run dev:auth\" \"npm run dev:campaign\" \"npm run dev:creative\"",
+    "dev:realtime": "npm --workspace=realtime-service run dev",
+    "dev": "concurrently -n \"gateway,auth,campaign,tasks,realtime\" -c \"cyan,magenta,green,yellow,blue\" \"npm run dev:gateway\" \"npm run dev:auth\" \"npm run dev:campaign\" \"npm run dev:creative\" \"npm run dev:realtime\"",
     "dev:all": "concurrently \"npm run start:gateway\" \"npm run start:auth\" \"npm run start:campaign\" \"npm run start:creative\" \"npm run start:lead\" \"npm run start:realtime\" \"npm run start:reporting\""
   },
   "keywords": [],
@@ -46,4 +47,3 @@
     "esbuild@0.28.2": true
   }
 }
-

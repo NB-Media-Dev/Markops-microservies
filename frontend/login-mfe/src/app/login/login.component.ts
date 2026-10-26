@@ -1,4 +1,4 @@
-﻿import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -49,12 +49,19 @@ export class LoginComponent {
 
   const password = String(this.loginForm.value.password || '');
 
-  
+
   const success = await this.authService.login({ email, password });
 
   if (success) {
     this.demoMessage.set('Login successfully!');
-    const role = this.authService.currentUser()?.role;
+    try {
+      if (typeof window !== 'undefined' && window.parent && window.parent !== window) {
+        window.parent.postMessage({
+          type: 'MARKOPS_NAVIGATE',
+          route: 'dashboard'
+        }, '*');
+      }
+    } catch {}
   }
 
 }
