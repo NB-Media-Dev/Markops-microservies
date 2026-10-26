@@ -1,20 +1,18 @@
 import mysql from 'mysql2/promise';
+import bcrypt from 'bcryptjs';
 import 'dotenv/config';
 
 async function runDatabaseInsertions() {
   console.log("Connecting to the MySQL Workbench instance...");
 
-  const connectionString = process.env.DATABASE_URL || "";
+  const connectionString = process.env.DATABASE_URL || "mysql://root:Ratheesh@17@localhost:3303/auth_db";
   
   let connection;
   try {
     connection = await mysql.createConnection(connectionString);
     console.log("Successfully connected to MySQL database!");
 
-
     console.log("Creating tables if they do not exist...");
-
-    await connection.execute(`DROP TABLE IF EXISTS User;`);
 
     // Permission Table
     await connection.execute(`
@@ -56,8 +54,7 @@ async function runDatabaseInsertions() {
     
     console.log("✔ Tables checked/created successfully!");
 
-  
-    console.log("Inserting Permissions records data blocks...");
+    console.log("Inserting Permissions records...");
     const permissionQuery = `
       INSERT INTO Permission (id, name, description, resource, action) 
       VALUES 
@@ -79,10 +76,9 @@ async function runDatabaseInsertions() {
       ON DUPLICATE KEY UPDATE name=VALUES(name);
     `;
     await connection.execute(permissionQuery);
-    console.log("Permissions table rows fully inserted successfully!");
+    console.log("✔ Permissions table rows fully inserted successfully!");
 
-  
-    console.log("Inserting System Roles data JSON signatures...");
+    console.log("Inserting System Roles data...");
     const roleQuery = `
       INSERT INTO Role (id, name, description, permissions) 
       VALUES 
@@ -116,31 +112,34 @@ async function runDatabaseInsertions() {
         'Business Development Manager managing creating designer tasks only', 
         '["reports:read", "tasks:write"]'
       )
-      ON DUPLICATE KEY UPDATE name=VALUES(name);
+      ON DUPLICATE KEY UPDATE name=VALUES(name), description=VALUES(description), permissions=VALUES(permissions);
     `;
     await connection.execute(roleQuery);
-    console.log("✔ Roles table rows with strict JSON parameters fully updated!");
+    console.log("✔ Roles table rows updated successfully!");
 
-  
-    console.log("Inserting dynamic target User entries records...");
-    
-    const sampleUserQuery = `
-      INSERT INTO User (name, email, password, avatar_image, roleId, isActive, createdAt, updatedAt)
-      VALUES ( 
-        'Admin', 
-        'Admin@markops.in', 
-        '$2b$10$xyzHashedPasswordSampleSecureString', 
-        'https://cdn.com', 
-        'Admin', 
-        TRUE, 
-        NOW(3), 
-        NOW(3)
-      )
-      ON DUPLICATE KEY UPDATE email=VALUES(email);
-    `;
+    console.log("Inserting valid default users with hashed passwords...");
+    const adminPassHash = await bcrypt.hash('admin123', 10);
+    const pass123Hash = await bcrypt.hash('Password@123', 10);
 
-    const [result] = await connection.query(sampleUserQuery);
-    console.log(`✔ User table row generated completely! Auto-Incremented ID: ${result.insertId}`);
+    const users = [
+      { name: 'System Administrator', email: 'admin@markops.io', pass: adminPassHash, role: 'admin' },
+      { name: 'System Administrator', email: 'admin@markops.in', pass: adminPassHash, role: 'admin' },
+      { name: 'Preethi Designer', email: 'preethi@markops.io', pass: pass123Hash, role: 'designer' },
+      { name: 'Siddharth Marketing', email: 'marketing@markops.io', pass: adminPassHash, role: 'digital-marketing' },
+      { name: 'Rajesh Telecaller', email: 'telecaller@markops.io', pass: adminPassHash, role: 'telecaller' },
+      { name: 'Karthik BDM', email: 'bdm@markops.io', pass: adminPassHash, role: 'bdm' },
+      { name: 'karthick', email: 'kar@markops.io', pass: adminPassHash, role: 'bdm' }
+    ];
+
+    for (const u of users) {
+      await connection.execute(`
+        INSERT INTO User (name, email, password, roleId, isActive, createdAt, updatedAt)
+        VALUES (?, ?, ?, ?, TRUE, NOW(3), NOW(3))
+        ON DUPLICATE KEY UPDATE name=VALUES(name), password=VALUES(password), roleId=VALUES(roleId), isActive=TRUE, updatedAt=NOW(3);
+      `, [u.name, u.email.toLowerCase(), u.pass, u.role]);
+    }
+
+    console.log("✔ Default users generated with bcrypt hashed credentials!");
 
   } catch (error) {
     console.error("❌ Database script running execution failure error:", error);

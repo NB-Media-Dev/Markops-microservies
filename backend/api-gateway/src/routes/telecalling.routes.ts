@@ -5,12 +5,12 @@ import { optionalGatewayToken } from "../middleware/auth.middleware.js";
 
 const router = Router();
 
-const leadsProxy = createServiceProxy({
-  target: servicesConfig.services.campaigns || "http://localhost:4002",
+const telecallingProxy = createServiceProxy({
+  target: servicesConfig.services.telecalling || "http://localhost:4004",
   routePrefix: "/leads",
-  serviceName: "Leads (Campaign Service)"
+  serviceName: "Lead & Telecalling Service"
 });
 
-router.use("/", optionalGatewayToken, leadsProxy);
+router.use("/", optionalGatewayToken, telecallingProxy);
 
 export default router;
