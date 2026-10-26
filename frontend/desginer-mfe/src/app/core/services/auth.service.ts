@@ -55,6 +55,9 @@ export class AuthService {
           }
         }
       });
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'MARKOPS_REQUEST_AUTH' }, '*');
+      }
       this.initAuth();
     } else {
   

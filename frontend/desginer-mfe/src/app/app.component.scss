@@ -900,3 +900,15 @@
   }
 }
 
+
+
+.mo-dashboard-layout.is-embedded {
+  min-height: auto;
+  .mo-main-content {
+    min-height: auto;
+  }
+  .content-viewport {
+    margin-top: 0;
+    padding-top: 0;
+  }
+}

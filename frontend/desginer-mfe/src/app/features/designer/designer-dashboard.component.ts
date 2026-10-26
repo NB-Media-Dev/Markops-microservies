@@ -64,7 +64,7 @@ export class DesignerDashboardComponent implements OnInit {
     return this.productFilterSignal();
   }
 
-  @Input() embedded = false;
+  @Input() embedded = typeof window !== 'undefined' && window.parent && window.parent !== window;
 
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -457,6 +457,13 @@ export class DesignerDashboardComponent implements OnInit {
     this.selectedDesignerId.set(String(designerId));
     this.showDesignersDirectory.set(false);
     this.taskService.closeTaskDetail();
+    if (typeof window !== 'undefined' && window.parent && window.parent !== window) {
+      const designer = this.designersSummaryList().find((d) => String(d.id) === String(designerId));
+      window.parent.postMessage({
+        type: 'MARKOPS_DESIGNER_SELECTED',
+        designerName: designer?.name || null
+      }, '*');
+    }
   }
 
   handleDeleteDesigner(designerId: string | number): void {
@@ -482,6 +489,12 @@ export class DesignerDashboardComponent implements OnInit {
   clearDesignerFilter(): void {
     this.selectedDesignerId.set(null);
     this.designerSearchQuery.set('');
+    if (typeof window !== 'undefined' && window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        type: 'MARKOPS_DESIGNER_SELECTED',
+        designerName: null
+      }, '*');
+    }
   }
 
   onPriorityFilterChange(event: Event): void {
@@ -641,7 +654,7 @@ export class DesignerDashboardComponent implements OnInit {
         } else if (currentPath.includes('files')) {
           this.statusFilter.set('FILES');
         }
-      } else if (!this.embedded) {
+      } else if (!this.isDesigner()) {
         this.showDesignersDirectory.set(true);
       }
 
