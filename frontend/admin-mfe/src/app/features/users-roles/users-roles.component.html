@@ -101,42 +101,15 @@
       >
         All Roles
       </button>
-      <button
-        class="filter-pill-btn"
-        [class.active]="selectedRoleFilter() === 'ADMINISTRATOR'"
-        (click)="onFilterRole('ADMINISTRATOR')"
-      >
-        Admin
-      </button>
-
-      <button
-        class="filter-pill-btn"
-        [class.active]="selectedRoleFilter() === 'DIGITAL_MARKETING'"
-        (click)="onFilterRole('DIGITAL_MARKETING')"
-      >
-        Digital Marketing
-      </button>
-      <button
-        class="filter-pill-btn"
-        [class.active]="selectedRoleFilter() === 'BDM'"
-        (click)="onFilterRole('BDM')"
-      >
-        BDM
-      </button>
-      <button
-        class="filter-pill-btn"
-        [class.active]="selectedRoleFilter() === 'DESIGNER'"
-        (click)="onFilterRole('DESIGNER')"
-      >
-        Designer
-      </button>
-      <button
-        class="filter-pill-btn"
-        [class.active]="selectedRoleFilter() === 'TELECALLER'"
-        (click)="onFilterRole('TELECALLER')"
-      >
-        Telecaller
-      </button>
+      @for (roleItem of availableRoles(); track roleItem.id) {
+        <button
+          class="filter-pill-btn"
+          [class.active]="selectedRoleFilter().toLowerCase() === roleItem.id.toLowerCase() || selectedRoleFilter().toUpperCase() === roleItem.name.toUpperCase()"
+          (click)="onFilterRole(roleItem.id)"
+        >
+          {{ roleItem.name }}
+        </button>
+      }
     </div>
   </div>
 
@@ -343,9 +316,9 @@
             <label class="form-label" for="createRole">System Role <span class="required">*</span></label>
             <div class="custom-select-wrap">
               <select id="createRole" formControlName="role" class="form-select">
-                @for (roleItem of systemRoles; track roleItem) {
-                  <option [value]="roleItem.code">
-                    {{ roleItem.label }}
+                @for (roleItem of availableRoles(); track roleItem.id) {
+                  <option [value]="roleItem.id">
+                    {{ roleItem.name }}
                   </option>
                 }
               </select>
@@ -469,9 +442,9 @@
             <label class="form-label" for="editRole">System Role <span class="required">*</span></label>
             <div class="custom-select-wrap">
               <select id="editRole" formControlName="role" class="form-select">
-                @for (roleItem of systemRoles; track roleItem) {
-                  <option [value]="roleItem.code">
-                    {{ roleItem.label }}
+                @for (roleItem of availableRoles(); track roleItem.id) {
+                  <option [value]="roleItem.id">
+                    {{ roleItem.name }}
                   </option>
                 }
               </select>

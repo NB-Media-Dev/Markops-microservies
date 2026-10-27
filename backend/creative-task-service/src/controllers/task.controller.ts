@@ -16,7 +16,7 @@ import {
 function normalizeTaskType(type?: string): "BANNER" | "POSTER" | "VIDEO" {
   const upper = String(type || "").toUpperCase().trim();
   if (upper.includes("VIDEO")) return "VIDEO";
-  if (upper.includes("POSTER")) return "POSTER";
+  if (upper.includes("POST")) return "POSTER";
   return "BANNER";
 }
 
@@ -26,10 +26,14 @@ export async function findTask(taskId: any): Promise<TaskItem | null> {
 
   try {
     const [rows]: any = await dbPool.query(
-      `SELECT t.*, p.name as resolved_product_name, pkg.name as resolved_package_name
+      `SELECT t.*, p.name as resolved_product_name, pkg.name as resolved_package_name,
+              u.name as resolved_assignee_name,
+              c.name as resolved_creator_name
        FROM tasks t
        LEFT JOIN ourproducts p ON t.product_id = p.id
        LEFT JOIN product_packages pkg ON t.package_id = pkg.id
+       LEFT JOIN auth_db.User u ON t.assigned_to = u.id
+       LEFT JOIN auth_db.User c ON t.created_by = c.id
        WHERE t.id = ?
        LIMIT 1`,
       [numericId]
@@ -97,7 +101,9 @@ export async function findTask(taskId: any): Promise<TaskItem | null> {
         status: row.status || "ASSIGNED",
         priority: row.priority || "MEDIUM",
         createdBy: row.created_by,
+        creatorName: row.resolved_creator_name || (row.created_by === 1 ? "Admin" : "System Admin"),
         assignedTo: row.assigned_to,
+        assigneeName: row.resolved_assignee_name || (row.assigned_to === 3 ? "swathi" : (row.assigned_to ? `Designer #${row.assigned_to}` : "Unassigned")),
         dueDate: formatDueDate(row.due_date),
         progressPercent: computeTaskProgress(row.status, row.progress_percent),
         createdAt: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString(),
@@ -137,10 +143,14 @@ export async function getTasks(req: Request, res: Response): Promise<Response> {
 
   try {
     let query = `
-      SELECT t.*, p.name as resolved_product_name, pkg.name as resolved_package_name
+      SELECT t.*, p.name as resolved_product_name, pkg.name as resolved_package_name,
+             u.name as resolved_assignee_name,
+             c.name as resolved_creator_name
       FROM tasks t
       LEFT JOIN ourproducts p ON t.product_id = p.id
       LEFT JOIN product_packages pkg ON t.package_id = pkg.id
+      LEFT JOIN auth_db.User u ON t.assigned_to = u.id
+      LEFT JOIN auth_db.User c ON t.created_by = c.id
     `;
     const conditions: string[] = [];
     const params: any[] = [];
@@ -192,7 +202,9 @@ export async function getTasks(req: Request, res: Response): Promise<Response> {
         status: row.status,
         priority: row.priority,
         createdBy: row.created_by,
+        creatorName: row.resolved_creator_name || (row.created_by === 1 ? "Admin" : "System Admin"),
         assignedTo: row.assigned_to,
+        assigneeName: row.resolved_assignee_name || (row.assigned_to === 3 ? "swathi" : (row.assigned_to ? `Designer #${row.assigned_to}` : "Unassigned")),
         dueDate: formatDueDate(row.due_date),
         progressPercent: computeTaskProgress(row.status, row.progress_percent),
         createdAt: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString(),
@@ -257,9 +269,38 @@ export async function createTask(req: Request, res: Response): Promise<Response>
   const user = (req as any).user;
   const creatorId = parseInt(String(user?.id || 1), 10);
   const normalizedType = normalizeTaskType(taskType || task_type);
-  const targetPackageId = packageId || package_id || null;
-  const targetProductId = productId || product_id || null;
-  const targetProductName = productName || product_name || packageName || package_name || null;
+  let targetPackageId = packageId || package_id || null;
+  let targetProductId = productId || product_id || null;
+  let targetProductName = productName || product_name || null;
+  const targetPkgName = packageName || package_name || "";
+
+  if (!targetPackageId && targetPkgName) {
+    try {
+      const [pkgRows]: any = await dbPool.query(
+        "SELECT id, product_id, name FROM product_packages WHERE LOWER(name) = LOWER(?) OR id = ? LIMIT 1",
+        [targetPkgName.trim(), targetPkgName.trim()]
+      );
+      if (Array.isArray(pkgRows) && pkgRows.length > 0) {
+        targetPackageId = pkgRows[0].id;
+        if (!targetProductId) targetProductId = pkgRows[0].product_id;
+      }
+    } catch (e: any) {
+      console.warn("[createTask package resolution]:", e?.message || e);
+    }
+  }
+
+  if (targetProductId && !targetProductName) {
+    try {
+      const [prodRows]: any = await dbPool.query(
+        "SELECT name FROM ourproducts WHERE id = ? LIMIT 1",
+        [targetProductId]
+      );
+      if (Array.isArray(prodRows) && prodRows.length > 0) {
+        targetProductName = prodRows[0].name;
+      }
+    } catch {}
+  }
+  if (!targetProductName) targetProductName = targetPkgName || null;
   const targetAssignedTo = assignedTo || assigned_to ? parseInt(String(assignedTo || assigned_to), 10) : 2;
 
   const rawAttachmentUrl = attachmentUrl || attachment_url || "";

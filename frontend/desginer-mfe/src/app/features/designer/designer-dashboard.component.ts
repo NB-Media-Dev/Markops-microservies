@@ -10,7 +10,7 @@ import { UserManagementService } from '../../core/services/user-management.servi
 import { PackageService } from '../../core/services/package.service';
 
 import { Task, TaskStatus, TaskPriority } from '../../core/models/task.model';
-import { FIXED_PACKAGES, isTaskForPackage } from '../../core/models/package.model';
+import {isTaskForPackage } from '../../core/models/package.model';
 
 import { DesignerKpisComponent } from './components/designer-kpis/designer-kpis.component';
 import { DesignersTableComponent, DesignerSummary } from './components/designers-table/designers-table.component';
@@ -90,7 +90,7 @@ export class DesignerDashboardComponent implements OnInit {
   });
 
   readonly activeProductName = computed<string>(() => {
-    return this.resolvedActiveProduct() || 'Careermate';
+    return this.resolvedActiveProduct() || 'All Products';
   });
 
   readonly resolvedActiveProduct = computed<string | null>(() => {
@@ -99,88 +99,39 @@ export class DesignerDashboardComponent implements OnInit {
 
     const pkgFilter = this.packageFilterSignal()?.trim();
     if (pkgFilter) {
-      const fixed = FIXED_PACKAGES.find((p) => p.name.toLowerCase() === pkgFilter.toLowerCase());
-      if (fixed) return fixed.name;
-
       const dbPkgs = this.packageService.packages();
       const match = dbPkgs.find((p) => p.name.toLowerCase().trim() === pkgFilter.toLowerCase());
       if (match && match.productId) {
-        const fixedByProdId = FIXED_PACKAGES.find(
-          (fp) => fp.id.toLowerCase() === match.productId.toLowerCase() ||
-                  fp.name.toLowerCase().includes(match.productId.toLowerCase().replace('pkg_', ''))
-        );
-        if (fixedByProdId) return fixedByProdId.name;
+        const dbProds = this.packageService.products();
+        const foundProd = dbProds.find((p) => p.id === match.productId);
+        if (foundProd) return foundProd.name;
         return match.productId;
       }
     }
-    return null;
+    const firstProd = this.packageService.products()[0];
+    return firstProd ? firstProd.name : null;
   });
 
   readonly availablePackagesList = computed<{ name: string; icon: string }[]>(() => {
     const map = new Map<string, { name: string; icon: string }>();
-    const activeProd = this.resolvedActiveProduct();
     const filterPkg = this.packageFilterSignal()?.trim();
     const dbPkgs = this.packageService.packages();
 
-    if (activeProd) {
-      const fixedProd = FIXED_PACKAGES.find(
-        (p) => p.name.toLowerCase() === activeProd.toLowerCase() || p.id.toLowerCase() === activeProd.toLowerCase()
-      );
-      const activeProdId = (fixedProd?.id || activeProd).toLowerCase();
-      const activeProdName = fixedProd?.name || activeProd;
+    if (filterPkg) {
+      map.set(filterPkg.toLowerCase(), { name: filterPkg, icon: 'inventory_2' });
+    }
 
-      if (filterPkg && (!fixedProd || filterPkg.toLowerCase() !== fixedProd.name.toLowerCase())) {
-        map.set(filterPkg.toLowerCase(), {
-          name: filterPkg,
-          icon: 'inventory_2',
-        });
-      }
+    for (const p of dbPkgs) {
+      if (!p.name || !p.name.trim()) continue;
+      map.set(p.name.toLowerCase(), {
+        name: p.name,
+        icon: p.icon || 'inventory_2',
+      });
+    }
 
-      for (const p of dbPkgs) {
-        if (!p.name || !p.name.trim()) continue;
-        const pProd = (p.productId || '').toLowerCase().trim();
-        const matchesProduct =
-          pProd === activeProdId ||
-          (activeProdName.toLowerCase().includes('career') && (pProd.includes('career') || pProd === 'pkg_careermate')) ||
-          (activeProdName.toLowerCase().includes('class') && (pProd.includes('class') || pProd === 'pkg_classmate')) ||
-          ((activeProdName.toLowerCase().includes('jesus') || activeProdName.toLowerCase().includes('messang')) &&
-            (pProd.includes('jesus') || pProd.includes('messang') || pProd === 'pkg_jesus_messanger'));
-
-        if (matchesProduct && !map.has(p.name.toLowerCase().trim())) {
-          map.set(p.name.toLowerCase().trim(), {
-            name: p.name.trim(),
-            icon: 'inventory_2',
-          });
-        }
-      }
-
-      if (map.size === 0 && fixedProd) {
-        map.set(fixedProd.name.toLowerCase(), {
-          name: fixedProd.name,
-          icon: fixedProd.icon,
-        });
-      }
-    } else {
-      if (filterPkg) {
-        map.set(filterPkg.toLowerCase(), {
-          name: filterPkg,
-          icon: 'inventory_2',
-        });
-      }
-
-      for (const p of dbPkgs) {
-        if (p.name && p.name.trim() && !map.has(p.name.toLowerCase().trim())) {
-          map.set(p.name.toLowerCase().trim(), { name: p.name.trim(), icon: 'inventory_2' });
-        }
-      }
-
-      if (map.size === 0) {
-        for (const pkg of FIXED_PACKAGES) {
-          if (!map.has(pkg.name.toLowerCase())) {
-            map.set(pkg.name.toLowerCase(), { name: pkg.name, icon: pkg.icon });
-          }
-        }
-      }
+    if (map.size === 0) {
+      map.set('current affair', { name: 'current affair', icon: 'inventory_2' });
+      map.set('augest exam 2026', { name: 'augest exam 2026', icon: 'inventory_2' });
     }
 
     return Array.from(map.values());
@@ -213,8 +164,8 @@ export class DesignerDashboardComponent implements OnInit {
   }
 
   readonly canCreateTask = computed<boolean>(() => {
-    const role = this.authService.currentUser()?.role;
-    return role === 'ADMINISTRATOR' || role === 'MARKETING_MANAGER' || role === 'BDM';
+    const role = (this.authService.currentUser()?.role || '').toUpperCase();
+    return role === 'ADMIN' || role === 'ADMINISTRATOR' || role === 'BDM';
   });
 
   readonly activeTaskView = computed<'all' | 'my'>(() => this.taskService.activeView());
@@ -225,7 +176,9 @@ export class DesignerDashboardComponent implements OnInit {
   }
 
   readonly isDesigner = computed<boolean>(() => {
-    return this.authService.currentUser()?.role === 'DESIGNER';
+    const user = this.authService.currentUser();
+    const role = String(user?.role || user?.roleName || (user as any)?.roleId || '').toUpperCase();
+    return role === 'DESIGNER' || role.includes('DESIGN');
   });
 
   isTaskCreator(task: Task | null): boolean {
@@ -257,14 +210,48 @@ export class DesignerDashboardComponent implements OnInit {
 
   readonly realDesignersList = computed(() => {
     const allUsers = this.userService.users();
-    const designers = allUsers.filter((u) => u.role === 'DESIGNER');
-    return designers.map((u) => ({
-      id: u.id,
-      name: u.fullName,
-      email: u.email,
-      department: u.department || 'Creative Design',
-      avatarUrl: u.avatarUrl,
-    }));
+    const designersFromUsers = allUsers.filter((u) => {
+      const r = String(u.role || u.roleName || (u as any).roleId || '').toUpperCase();
+      return r === 'DESIGNER' || r.includes('DESIGN');
+    });
+
+    const designersFromDir = this.taskService.designers() || [];
+    const map = new Map<string, { id: string | number; name: string; email?: string; department?: string; avatarUrl?: string }>();
+
+    for (const u of designersFromUsers) {
+      map.set(String(u.id), {
+        id: u.id,
+        name: u.fullName || u.name,
+        email: u.email,
+        department: u.department || 'Creative Design',
+        avatarUrl: u.avatarUrl,
+      });
+    }
+
+    for (const d of designersFromDir) {
+      const idStr = String(d.id);
+      if (!map.has(idStr)) {
+        map.set(idStr, {
+          id: d.id,
+          name: d.fullName || d.name || `Designer #${d.id}`,
+          email: d.email || `designer.${d.id}@markops.io`,
+          department: d.department || 'Creative Design Studio',
+          avatarUrl: d.avatarUrl,
+        });
+      }
+    }
+
+    if (map.size === 0) {
+      map.set('3', {
+        id: '3',
+        name: 'swathi',
+        email: 'swathi@gmail.com',
+        department: 'Creative Design',
+        avatarUrl: '',
+      });
+    }
+
+    return Array.from(map.values());
   });
 
   readonly designersSummaryList = computed<DesignerSummary[]>(() => {
@@ -302,7 +289,7 @@ export class DesignerDashboardComponent implements OnInit {
 
     const dateFilter = this.selectedDateFilter();
     const tasksToCount = allTasks.filter((t) => {
-      if (currentRole === 'DESIGNER') {
+      if (this.isDesigner()) {
         const isAssignedToMe =
           (t.assignedTo !== undefined && String(t.assignedTo).toLowerCase().trim() === currentUserId) ||
           (currentUserEmail && t.assignedTo !== undefined && String(t.assignedTo).toLowerCase().trim() === currentUserEmail);
@@ -534,7 +521,7 @@ export class DesignerDashboardComponent implements OnInit {
       const tAssignedToStr = String(t.assignedTo || '').toLowerCase().trim();
       const tAssigneeNameStr = String(t.assigneeName || '').toLowerCase().trim();
 
-      if (currentRole === 'DESIGNER') {
+      if (this.isDesigner()) {
         const isAssignedToMe =
           (tAssignedToStr && (tAssignedToStr === currentUserId || (currentUserEmail && tAssignedToStr === currentUserEmail))) ||
           (tAssigneeNameStr && currentUserName && (tAssigneeNameStr === currentUserName || tAssigneeNameStr.includes(currentUserName)));
@@ -618,6 +605,12 @@ export class DesignerDashboardComponent implements OnInit {
   });
 
   async ngOnInit(): Promise<void> {
+    this.packageService.loadAllPackages().subscribe();
+    this.packageService.loadProducts().subscribe();
+    this.userService.loadUsersFromDatabase();
+    this.taskService.loadDesigners();
+    this.taskService.loadTasks();
+    this.taskService.loadDesignerMetrics();
     await this.authService.ensureInitialized();
 
     this.route.queryParams.subscribe((params) => {
@@ -664,15 +657,14 @@ export class DesignerDashboardComponent implements OnInit {
       }
     });
 
-    if (this.authService.isAuthenticated()) {
-      await Promise.all([
-        this.taskService.loadTasks(),
-        this.taskService.loadDesignerMetrics(),
-        this.notifService.loadNotifications(),
-        this.userService.loadUsersFromDatabase(),
-      ]);
-      this.packageService.loadAllPackages().subscribe();
-    }
+    // Always load initial data for packages, users, and designers unconditionally
+    this.packageService.loadAllPackages().subscribe();
+    this.packageService.loadProducts().subscribe();
+    this.userService.loadUsersFromDatabase();
+    this.taskService.loadDesigners();
+    this.taskService.loadTasks();
+    this.taskService.loadDesignerMetrics();
+    this.notifService.loadNotifications();
   }
 
   openDocViewer(event: Event, url?: string, name?: string, content?: string): void {
@@ -842,6 +834,13 @@ export class DesignerDashboardComponent implements OnInit {
   }
 
   openCreateTaskModal(preselectedDesignerId?: string): void {
+    if (!this.canCreateTask()) {
+      alert('Access Restricted: Only Administrator and BDM are permitted to create tasks.');
+      return;
+    }
+    this.packageService.loadAllPackages().subscribe();
+    this.userService.loadUsersFromDatabase();
+    this.taskService.loadDesigners();
     this.selectedDesignerId.set(preselectedDesignerId || null);
     this.isCreateTaskModalOpen.set(true);
   }
@@ -857,10 +856,14 @@ export class DesignerDashboardComponent implements OnInit {
     fileContent: string;
     fileObj: File | null;
   }): Promise<void> {
+    if (!this.canCreateTask()) {
+      alert('Access Restricted: Only Administrator and BDM are permitted to create tasks.');
+      return;
+    }
     const { formValues, fileName, dataUrl, fileContent, fileObj } = event;
     const currentUser = this.authService.currentUser();
     const selectedDesigner = this.realDesignersList().find((d) => d.id === formValues.assignedTo);
-    const targetPkg = formValues.packageName || this.packageFilterSignal() || 'Careermate';
+    const targetPkg = formValues.packageName || this.packageFilterSignal() || 'General';
 
     const currentUserId = currentUser?.id || '1';
     const currentUserName = currentUser?.fullName || (currentUser?.role === 'BDM' ? 'Business Development Manager' : 'System Administrator');
@@ -884,7 +887,7 @@ export class DesignerDashboardComponent implements OnInit {
     if (created) {
       await this.notifService.loadNotifications();
       this.closeCreateTaskModal();
-      this.switchTaskView('my');
+      this.switchTaskView('all');
     }
   }
 
@@ -896,7 +899,7 @@ export class DesignerDashboardComponent implements OnInit {
     this.taskService.closeTaskDetail();
     const baseRoute = this.isDesigner() ? '/designer-tasks' : '/tasks';
     let returnUrl = this.router.url;
-    const prod = this.productFilter || this.activeProductName() || 'Careermate';
+    const prod = this.productFilter || this.activeProductName() || 'All Products';
     const pkg = this.packageFilter || task.packageName || 'Test';
     returnUrl = `/package-works?package=${encodeURIComponent(prod)}&workspace=${encodeURIComponent(pkg)}&dept=DESIGNER`;
 
@@ -935,6 +938,24 @@ export class DesignerDashboardComponent implements OnInit {
       this.router.navigate(['/designer-tasks']);
     } else {
       this.router.navigate(['/dashboard']);
+    }
+  }
+
+  onBreadcrumbNavigate(target: 'dashboard' | 'packages' | 'operations', event?: Event): void {
+    if (event) {
+      event.preventDefault();
+    }
+    if (typeof window !== 'undefined' && window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: 'MARKOPS_NAVIGATE', route: target }, '*');
+      return;
+    }
+    const prod = this.activeProductName();
+    if (target === 'dashboard' || target === 'packages') {
+      this.router.navigate(['/package-works'], { queryParams: { package: prod } });
+    } else if (target === 'operations') {
+      this.router.navigate(['/package-works'], {
+        queryParams: this.packageFilter ? { package: prod, workspace: this.packageFilter } : { package: prod },
+      });
     }
   }
 }

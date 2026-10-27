@@ -29,37 +29,18 @@ export const routes: Routes = [
     data: { title: 'Task Details' },
   },
   {
-    path: 'admin',
-    loadComponent: () =>
-      import('@admin/features/users-roles/users-roles.component').then(
-        (m) => m.UsersRolesComponent
-      ),
-    data: { title: 'MarkOps Administration' },
-  },
-  {
-    path: 'admin/users',
-    loadComponent: () =>
-      import('@admin/features/users-roles/users-roles.component').then(
-        (m) => m.UsersRolesComponent
-      ),
-    data: { title: 'Users Management' },
-  },
-  {
-    path: 'users',
+    path: 'users-roles',
     loadComponent: () =>
       import('@admin/features/users-roles/users-roles.component').then(
         (m) => m.UsersRolesComponent
       ),
     data: { title: 'Users & Roles Management' },
   },
-  {
-    path: 'roles',
-    loadComponent: () =>
-      import('@admin/features/users-roles/users-roles.component').then(
-        (m) => m.UsersRolesComponent
-      ),
-    data: { title: 'System Roles' },
-  },
+  // Canonical redirects to avoid repeating component loader code:
+  { path: 'admin', redirectTo: 'users-roles', pathMatch: 'full' },
+  { path: 'admin/users', redirectTo: 'users-roles', pathMatch: 'full' },
+  { path: 'users', redirectTo: 'users-roles', pathMatch: 'full' },
+  { path: 'roles', redirectTo: 'users-roles', pathMatch: 'full' },
   {
     path: '**',
     redirectTo: 'login',

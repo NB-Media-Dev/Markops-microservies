@@ -101,6 +101,21 @@ export async function safeFetch(input: RequestInfo | URL, init?: RequestInit): P
     headers.set('Authorization', `Bearer ${token}`);
   }
 
+  // Identity headers for Creative Task Service (Section 12)
+  if (typeof window !== 'undefined') {
+    try {
+      const userStr = localStorage.getItem('markops_user');
+      if (userStr) {
+        const u = JSON.parse(userStr);
+        if (u) {
+          if (u.id && !headers.has('x-user-id')) headers.set('x-user-id', String(u.id));
+          if (u.role && !headers.has('x-user-role')) headers.set('x-user-role', String(u.role));
+          if ((u.fullName || u.name) && !headers.has('x-user-name')) headers.set('x-user-name', String(u.fullName || u.name));
+        }
+      }
+    } catch { }
+  }
+
   const enhancedInit: RequestInit = {
     ...init,
     headers,

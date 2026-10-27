@@ -4,7 +4,10 @@ export interface ManagedUser {
   id: string;
   email: string;
   fullName: string;
+  name?: string;
   role: UserRole;
+  roleName?: string;
+  roleId?: string;
   department: string;
   isActive: boolean;
   avatarUrl?: string;

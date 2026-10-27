@@ -10,19 +10,32 @@ export class AuthService {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
 
-  private readonly _currentUser = signal<User | null>({
-    id: '1',
-    email: 'admin@markops.io',
-    fullName: 'System Administrator',
-    role: 'ADMINISTRATOR',
-    department: 'Executive Operations',
-    isActive: true,
-  });
+  private readonly _currentUser = signal<User | null>(null);
 
   readonly currentUser = computed(() => this._currentUser());
 
   constructor() {
     if (this.isBrowser) {
+      try {
+        const stored = localStorage.getItem('markops_user') || sessionStorage.getItem('markops_user');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed && parsed.email) {
+            this._currentUser.set(parsed);
+          }
+        }
+      } catch {}
+
+      window.addEventListener('message', (event) => {
+        if (event.data?.type === 'MARKOPS_AUTH_UPDATE' && event.data.user) {
+          this._currentUser.set(event.data.user);
+        }
+      });
+
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'MARKOPS_REQUEST_AUTH' }, '*');
+      }
+
       setTimeout(() => {
         void this.fetchProfile();
       }, 0);
@@ -39,16 +52,16 @@ export class AuthService {
           this._currentUser.set({
             id: String(user.id),
             email: user.email,
-            fullName: user.fullName || user.name,
+            fullName: user.fullName || user.name || 'User',
             role: user.role || user.roleId || 'ADMINISTRATOR',
-            department: user.department || 'Executive Operations',
+            department: user.department || user.roleName || user.role || 'Operations',
             avatarUrl: user.avatarUrl || user.avatar_image,
             isActive: Boolean(user.isActive),
           });
         }
       }
     } catch {
-      // Keep session fallback
+      // Ignore network errors
     }
   }
 }

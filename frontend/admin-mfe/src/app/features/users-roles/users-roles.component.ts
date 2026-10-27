@@ -5,7 +5,7 @@ import { RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { UserManagementService } from '../../core/services/user-management.service';
 import { UserRole } from '../../core/models/auth.model';
-import { ManagedUser, SYSTEM_ROLES_METADATA } from '../../core/models/user-management.model';
+import { ManagedUser } from '../../core/models/user-management.model';
 import { getApiUrl } from '../../core/utils/api-url.utils';
 
 @Component({
@@ -20,7 +20,15 @@ export class UsersRolesComponent {
   readonly authService = inject(AuthService);
   readonly userMgmtService = inject(UserManagementService);
 
-  readonly systemRoles = SYSTEM_ROLES_METADATA;
+  readonly availableRoles = computed(() => {
+    return this.userMgmtService.roles().map((r: any) => ({
+      id: r.id,
+      code: r.id,
+      name: r.name,
+      label: r.name,
+      description: r.description || ''
+    }));
+  });
 
   readonly userSearchQuery = signal<string>('');
   readonly selectedRoleFilter = signal<string>('ALL');

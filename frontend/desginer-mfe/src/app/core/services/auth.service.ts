@@ -13,20 +13,7 @@ export const ROLE_DEFAULT_ROUTES: Record<UserRole, string> = {
   BDM: '/package-works',
 };
 
-export const DEMO_ACCOUNTS: Record<string, { email: string; pass: string; user: User }> = {
-  ADMINISTRATOR: {
-    email: 'admin@markops.io',
-    pass: 'admin123',
-    user: {
-      id: '1',
-      email: 'admin@markops.io',
-      fullName: 'System Administrator',
-      role: 'ADMINISTRATOR',
-      department: 'Executive Operations',
-      isActive: true,
-    },
-  },
-};
+export const DEMO_ACCOUNTS: Record<string, { email: string; pass: string; user: User }> = {};
 
 @Injectable({
   providedIn: 'root',
@@ -60,9 +47,6 @@ export class AuthService {
       }
       this.initAuth();
     } else {
-  
-      this._currentUser.set(DEMO_ACCOUNTS['ADMINISTRATOR'].user);
-      this._accessToken.set('mo_jwt_default');
       this._isInitialized.set(true);
     }
   }
@@ -76,7 +60,6 @@ export class AuthService {
   readonly authError = computed(() => this._authError());
 
   
-  readonly PRIMARY_ADMIN: User = DEMO_ACCOUNTS['ADMINISTRATOR'].user;
 
 
   async ensureInitialized(): Promise<boolean> {
@@ -216,19 +199,19 @@ export class AuthService {
   private parseUserFromJwt(token: string): User | null {
     try {
       if (!token || !token.includes('.')) {
-        return DEMO_ACCOUNTS['ADMINISTRATOR'].user;
+        return null;
       }
       const parts = token.split('.');
       if (parts.length < 2) return null;
       const payloadStr = atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'));
       const payload = JSON.parse(payloadStr);
-      if (payload && payload.sub) {
+      if (payload && (payload.sub || payload.id)) {
         return {
-          id: String(payload.sub),
-          email: payload.email || 'admin@markops.io',
-          fullName: payload.fullName || payload.name || 'System Administrator',
-          role: payload.role || 'ADMINISTRATOR',
-          department: payload.department || 'Executive Operations',
+          id: String(payload.sub || payload.id),
+          email: payload.email || '',
+          fullName: payload.fullName || payload.name || 'User',
+          role: payload.role || 'USER',
+          department: payload.department || payload.role || 'Operations',
           isActive: payload.isActive !== false,
         };
       }
@@ -328,9 +311,10 @@ export class AuthService {
 
   switchRole(newRole: UserRole): void {
     const current = this._currentUser();
+    if (!current) return;
     const token = this._accessToken() || `mo_jwt_${newRole.toLowerCase()}_${Date.now()}`;
     const updatedUser: User = {
-      ...(current || DEMO_ACCOUNTS['ADMINISTRATOR'].user),
+      ...current,
       role: newRole,
       isActive: true,
     };
@@ -423,7 +407,14 @@ export class AuthService {
 
   private setSession(user: User, token: string): void {
     const activeToken = token || 'mo_jwt_default';
-    const activeUser: User = { ...user, isActive: user.isActive !== false };
+    const rawRole = String(user.roleName || user.role || 'ADMINISTRATOR').toUpperCase();
+    const normalizedRole = (rawRole === 'ADMIN' ? 'ADMINISTRATOR' : rawRole) as UserRole;
+    const activeUser: User = {
+      ...user,
+      role: normalizedRole,
+      roleName: normalizedRole,
+      isActive: user.isActive !== false,
+    };
     this._currentUser.set(activeUser);
     this._accessToken.set(activeToken);
     this._isInitialized.set(true);

@@ -22,7 +22,7 @@ export class CreateTaskModalComponent implements OnChanges {
   @Input() isOpen = false;
   @Input() availablePackages: { name: string; icon: string }[] = [];
   @Input() designers: { id: string | number; name: string }[] = [];
-  @Input() defaultPackage = 'Careermate';
+  @Input() defaultPackage = '';
   @Input() preselectedDesignerId = '';
 
   @Output() closeModal = new EventEmitter<void>();
@@ -67,20 +67,30 @@ export class CreateTaskModalComponent implements OnChanges {
     }
   }
 
+  getDefaultDueDate(): string {
+    const d = new Date(Date.now() + 3 * 86400000);
+    return d.toISOString().split('T')[0];
+  }
+
   resetModal(): void {
     this.createdBriefFile.set(null);
     this.createdBriefFileName.set('');
     this.createdBriefDataUrl.set('');
     this.createdBriefContent.set('');
-    this.selectedTaskType.set('');
+    const defType = 'BANNER_DESIGN';
+    const defPkg = this.defaultPackage || '';
+    const defDesigner = this.preselectedDesignerId || '';
+    const defDueDate = '';
+
+    this.selectedTaskType.set(defType);
     this.createTaskForm.reset({
       title: '',
-      taskType: '',
-      packageName: '',
+      taskType: defType,
+      packageName: defPkg,
       description: '',
-      assignedTo: '',
-      priority: '',
-      dueDate: '',
+      assignedTo: defDesigner,
+      priority: 'MEDIUM',
+      dueDate: defDueDate,
     });
   }
 
@@ -187,7 +197,7 @@ export class CreateTaskModalComponent implements OnChanges {
 
 
   getPackageIcon(packageName?: string): string {
-    const targetName = (packageName || this.defaultPackage || 'Careermate').toLowerCase().trim();
+    const targetName = (packageName || this.defaultPackage || '').toLowerCase().trim();
     const pkg = this.availablePackages.find((p) => p.name.toLowerCase().trim() === targetName);
     return pkg?.icon || 'palette';
   }
@@ -240,10 +250,38 @@ export class CreateTaskModalComponent implements OnChanges {
   }
 
   onSubmit(): void {
+    const vals = this.createTaskForm.value;
+    if (!vals.taskType) {
+      const defType = this.selectedTaskType() || 'BANNER_DESIGN';
+      this.createTaskForm.patchValue({ taskType: defType });
+      this.selectedTaskType.set(defType);
+    }
+    if (!vals.packageName) {
+      const defPkg = this.defaultPackage || (this.availablePackages.length > 0 ? this.availablePackages[0].name : 'current affair');
+      this.createTaskForm.patchValue({ packageName: defPkg });
+    }
+    if (!vals.assignedTo) {
+      const defDesigner = this.preselectedDesignerId || (this.designers.length > 0 ? String(this.designers[0].id) : '3');
+      this.createTaskForm.patchValue({ assignedTo: defDesigner });
+    }
+    if (!vals.priority) {
+      this.createTaskForm.patchValue({ priority: 'MEDIUM' });
+    }
+    if (!vals.dueDate) {
+      this.createTaskForm.patchValue({ dueDate: this.getDefaultDueDate() });
+    }
+
     if (this.createTaskForm.invalid) {
       this.createTaskForm.markAllAsTouched();
+      const titleErr = this.createTaskForm.get('title')?.invalid;
+      if (titleErr) {
+        alert('Please enter a Task Title to proceed.');
+      } else {
+        alert('Please fill all required fields before creating the task.');
+      }
       return;
     }
+
     this.submitCreateTask.emit({
       formValues: this.createTaskForm.value,
       fileName: this.createdBriefFileName(),

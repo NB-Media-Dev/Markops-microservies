@@ -22,7 +22,8 @@ export const config = {
   dbPassword: process.env.DB_PASSWORD || "tiger",
   dbName: process.env.DB_NAME || "markops_designer_db",
   uploadDir: path.resolve(process.env.UPLOAD_DIR || path.join(__dirname, "../../uploads")),
-  maxFileSizeMb: parseInt(process.env.MAX_FILE_SIZE_MB || "50", 10)
+  maxFileSizeMb: parseInt(process.env.MAX_FILE_SIZE_MB || "50", 10),
+  realtimeServiceUrl: process.env.REALTIME_SERVICE_URL || "http://localhost:4006"
 };
 
 export default config;

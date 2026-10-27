@@ -120,10 +120,41 @@ export async function getDesignerDashboardMetrics(req: Request, res: Response): 
 }
 
 export async function getDesignersDirectory(_req: Request, res: Response): Promise<Response> {
-  let designers: any[] = [];
+  const designerMap = new Map<string, any>();
 
   try {
-    const [rows]: any = await dbPool.query(`
+    // 1. Fetch real registered designers from auth_db
+    try {
+      const [userRows]: any = await dbPool.query(`
+        SELECT u.id, u.name, u.email, u.department, u.avatar_image, u.isActive, r.name as roleName
+        FROM auth_db.User u
+        LEFT JOIN auth_db.Role r ON u.roleId = r.id
+        WHERE UPPER(r.name) = 'DESIGNER' OR UPPER(u.roleId) LIKE '%DESIGN%' OR LOWER(u.roleId) = 'designer'
+      `);
+      if (Array.isArray(userRows)) {
+        for (const u of userRows) {
+          designerMap.set(String(u.id), {
+            id: String(u.id),
+            fullName: u.name,
+            name: u.name,
+            email: u.email,
+            role: "DESIGNER",
+            department: u.department || "Creative Design",
+            avatarUrl: u.avatar_image || "",
+            isActive: Boolean(u.isActive ?? true),
+            totalTasks: 0,
+            completedTasks: 0,
+            activeTasks: 0,
+            workloadScore: 0
+          });
+        }
+      }
+    } catch (authErr: any) {
+      console.warn("[Designers Directory] Could not query auth_db.User directly:", authErr?.message);
+    }
+
+    // 2. Fetch task aggregates from tasks table
+    const [taskRows]: any = await dbPool.query(`
       SELECT t.assigned_to as id,
              COUNT(t.id) as total_tasks,
              SUM(CASE WHEN t.status IN ('APPROVED', 'COMPLETED', 'PUBLISHED') THEN 1 ELSE 0 END) as completed_tasks,
@@ -132,18 +163,37 @@ export async function getDesignersDirectory(_req: Request, res: Response): Promi
       WHERE t.assigned_to IS NOT NULL
       GROUP BY t.assigned_to
     `);
-    if (Array.isArray(rows) && rows.length > 0) {
-      designers = rows.map((r: any) => ({
-        id: String(r.id),
-        fullName: `Designer #${r.id}`,
-        role: "DESIGNER",
-        department: "Creative Design Studio",
-        isActive: true,
-        totalTasks: parseInt(r.total_tasks, 10) || 0,
-        completedTasks: parseInt(r.completed_tasks, 10) || 0,
-        activeTasks: parseInt(r.active_tasks, 10) || 0,
-        workloadScore: Math.min(100, (parseInt(r.active_tasks, 10) || 0) * 20)
-      }));
+
+    if (Array.isArray(taskRows)) {
+      for (const r of taskRows) {
+        const idStr = String(r.id);
+        const total = parseInt(r.total_tasks, 10) || 0;
+        const completed = parseInt(r.completed_tasks, 10) || 0;
+        const active = parseInt(r.active_tasks, 10) || 0;
+
+        if (designerMap.has(idStr)) {
+          const d = designerMap.get(idStr);
+          d.totalTasks = total;
+          d.completedTasks = completed;
+          d.activeTasks = active;
+          d.workloadScore = Math.min(100, active * 20);
+        } else {
+          designerMap.set(idStr, {
+            id: idStr,
+            fullName: `Designer #${idStr}`,
+            name: `Designer #${idStr}`,
+            email: `designer.${idStr}@markops.io`,
+            role: "DESIGNER",
+            department: "Creative Design Studio",
+            avatarUrl: "",
+            isActive: true,
+            totalTasks: total,
+            completedTasks: completed,
+            activeTasks: active,
+            workloadScore: Math.min(100, active * 20)
+          });
+        }
+      }
     }
   } catch (e: any) {
     console.error("[Designers Directory DB Error]:", e?.message || e);
@@ -152,6 +202,6 @@ export async function getDesignersDirectory(_req: Request, res: Response): Promi
 
   return res.json({
     success: true,
-    data: designers
+    data: Array.from(designerMap.values())
   });
 }

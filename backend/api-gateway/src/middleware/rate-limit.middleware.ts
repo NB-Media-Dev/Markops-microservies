@@ -1,9 +1,9 @@
 import { rateLimit } from "express-rate-limit";
 
-// General rate limiter: 300 requests per 15 minutes per IP
+// General rate limiter: 5000 requests per 15 minutes in dev, 300 in prod
 export const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 300,
+  limit: process.env.NODE_ENV === 'production' ? 300 : 5000,
   standardHeaders: "draft-7",
   legacyHeaders: false,
   message: {
@@ -12,7 +12,10 @@ export const generalLimiter = rateLimit({
   }
 });
 
+
+
 // Strict rate limiter for sensitive authentication endpoints (e.g. login, register): 30 requests per 15 minutes
+
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 30,

@@ -1,6 +1,16 @@
 import type { Request, Response, NextFunction } from "express";
 
-const ALLOWED_TASK_TYPES = ["BANNER", "POSTER", "VIDEO", "BANNER_DESIGN"];
+const ALLOWED_TASK_TYPES = [
+  "BANNER",
+  "POSTER",
+  "VIDEO",
+  "BANNER_DESIGN",
+  "POST_DESIGN",
+  "VIDEO_DESIGN",
+  "REEL",
+  "STORY",
+  "POST"
+];
 const ALLOWED_PRIORITIES = ["LOW", "MEDIUM", "HIGH", "URGENT"];
 const ALLOWED_STATUSES = [
   "DRAFT",

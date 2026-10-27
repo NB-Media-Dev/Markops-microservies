@@ -25,6 +25,9 @@ export class TaskManagementService {
   private readonly _tasks = signal<Task[]>([]);
   private readonly _selectedTask = signal<Task | null>(null);
   private readonly _designerMetrics = signal<DesignerDashboardMetrics | null>(null);
+  private readonly _designers = signal<any[]>([]);
+  readonly designers = computed(() => this._designers());
+
   private readonly _isLoading = signal<boolean>(false);
   private readonly _hasLoaded = signal<boolean>(false);
   private readonly _error = signal<string | null>(null);
@@ -156,7 +159,7 @@ export class TaskManagementService {
       if (user?.role === 'DESIGNER') {
         this._activeView.set('all');
       }
-      await Promise.all([this.loadTasks(), this.loadDesignerMetrics()]);
+      await Promise.all([this.loadTasks(), this.loadDesignerMetrics(), this.loadDesigners()]);
     }
   }
 
@@ -269,6 +272,46 @@ export class TaskManagementService {
     this._isLoading.set(false);
   }
 
+
+  
+  async loadDesigners(): Promise<void> {
+    try {
+      const res = await safeFetch('/api/designers');
+      if (res.ok) {
+        const json = await res.json();
+        const list = Array.isArray(json) ? json : (json.data || []);
+        this._designers.set(list);
+      }
+    } catch (err) {
+      console.warn('Error fetching designers directory:', err);
+    }
+  }
+
+  async getTaskHistory(taskId: string): Promise<any[]> {
+    try {
+      const res = await safeFetch(`/api/tasks/${taskId}/history`);
+      if (res.ok) {
+        const json = await res.json();
+        return json.activities || json.data || [];
+      }
+    } catch (e) {
+      console.warn('Error fetching task history:', e);
+    }
+    return [];
+  }
+
+  async getTaskSubmissions(taskId: string): Promise<any[]> {
+    try {
+      const res = await safeFetch(`/api/tasks/${taskId}/submissions`);
+      if (res.ok) {
+        const json = await res.json();
+        return json.deliverables || json.data || [];
+      }
+    } catch (e) {
+      console.warn('Error fetching task submissions:', e);
+    }
+    return [];
+  }
 
   async loadDesignerMetrics(): Promise<void> {
     if (!this.isBrowser) return;
@@ -385,7 +428,7 @@ export class TaskManagementService {
       const res = await safeFetch(`/api/tasks/${taskId}/redesign`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason: trimmedReason }),
+        body: JSON.stringify({ reason: trimmedReason, feedback: trimmedReason }),
       });
       if (res.ok) {
         const updatedTask: Task = await res.json();
@@ -469,7 +512,12 @@ export class TaskManagementService {
     try {
       const res = await safeFetch('/api/tasks', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-role': req.creatorRole || 'ADMINISTRATOR',
+          'x-user-id': String(req.creatorId || '1'),
+          'x-user-name': req.creatorName || 'Admin',
+        },
         body: JSON.stringify(req),
       });
 
@@ -481,9 +529,15 @@ export class TaskManagementService {
         await this.loadTasks();
         await this.loadDesignerMetrics();
         return newTask;
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        console.error('Failed to create task:', res.status, errJson);
+        const errMsg = errJson.error || errJson.message || ('Server error (' + res.status + ')');
+        alert('Task Creation Failed: ' + errMsg);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error creating new task:', err);
+      alert('Error creating new task: ' + (err?.message || err));
     }
     return null;
   }

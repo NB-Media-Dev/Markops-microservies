@@ -6,7 +6,6 @@ import { AuthService } from './auth.service';
 import { TaskManagementService } from './task-management.service';
 import { PackageService } from './package.service';
 import { Task } from '../models/task.model';
-import { FIXED_PACKAGES } from '../models/package.model';
 import { safeFetch, getBackendBaseUrl, getAuthToken } from '../utils/api-url.utils';
 
 export interface NotificationItem {
@@ -38,8 +37,7 @@ export function sanitizeNotification(item: NotificationItem): NotificationItem {
   };
 }
 
-export const TELECALLING_PACKAGE_TARGET_ROUTE =
-  '/package-works?package=CAREERMATE&workspace=CURRENT-AFFAIR-PACKAGE&dept=TELECALLING&tab=TELECALLER_MEMBERS';
+export const TELECALLING_PACKAGE_TARGET_ROUTE = '/package-works';
 
 @Injectable({
   providedIn: 'root',
@@ -211,11 +209,12 @@ export class NotificationService {
 
     if (extractedProduct) {
       const cleanP = extractedProduct.toLowerCase().trim();
-      const matchedFixed = FIXED_PACKAGES.find(
-        (fp) => fp.name.toLowerCase() === cleanP || fp.id.toLowerCase() === cleanP || cleanP.includes(fp.name.toLowerCase())
+      const dbProds = this.packageService.products();
+      const matched = dbProds.find(
+        (p) => p.name.toLowerCase() === cleanP || p.id.toLowerCase() === cleanP || cleanP.includes(p.name.toLowerCase())
       );
-      if (matchedFixed) {
-        extractedProduct = matchedFixed.name;
+      if (matched) {
+        extractedProduct = matched.name;
       }
     }
 
@@ -259,20 +258,18 @@ export class NotificationService {
           (p) => String(p.name).toLowerCase().trim() === extractedPackage.toLowerCase().trim() || String(p.id) === extractedPackage
         );
         if (foundPkg && foundPkg.productId) {
-          const prodObj = FIXED_PACKAGES.find((fp) => fp.id.toLowerCase() === foundPkg.productId.toLowerCase());
+          const dbProds = this.packageService.products();
+          const prodObj = dbProds.find((fp) => fp.id.toLowerCase() === foundPkg.productId.toLowerCase());
           if (prodObj) extractedProduct = prodObj.name;
         }
       }
 
       if (!extractedProduct) {
-        const cleanPkg = (extractedPackage || text).toLowerCase();
-        if (cleanPkg.includes('class')) extractedProduct = 'Classmate';
-        else if (cleanPkg.includes('jesus') || cleanPkg.includes('messang') || cleanPkg.includes('messeng')) extractedProduct = 'Jesus the messanger';
-        else extractedProduct = 'Careermate';
+        extractedProduct = this.packageService.products()[0]?.name || 'General';
       }
 
-      const prod = extractedProduct || 'Careermate';
-      const pkg = extractedPackage || 'CURRENT AFFAIRS AUGUST -2026';
+      const prod = extractedProduct || 'General';
+      const pkg = extractedPackage || 'General';
 
       if (currentRole === 'TELECALLER') {
         return `/package-works?package=${encodeURIComponent(prod)}&workspace=${encodeURIComponent(pkg)}&dept=TELECALLING&tab=TELECALLING`;
@@ -321,7 +318,7 @@ export class NotificationService {
 
     if (isTaskNotif) {
       const allPkgs = this.packageService.packages();
-      let taskPkg = matchedTask?.packageName || extractedPackage || matchedTask?.title || matchedTaskTitle || 'Careermate';
+      let taskPkg = matchedTask?.packageName || extractedPackage || matchedTask?.title || matchedTaskTitle || 'General';
       let taskProd = extractedProduct || '';
 
       if (!taskProd) {
@@ -332,13 +329,11 @@ export class NotificationService {
         );
 
         if (foundPkg && foundPkg.productId) {
-          const prodMatch = FIXED_PACKAGES.find((fp) => fp.id.toLowerCase() === foundPkg.productId.toLowerCase());
+          const dbProds = this.packageService.products();
+          const prodMatch = dbProds.find((fp) => fp.id.toLowerCase() === foundPkg.productId.toLowerCase());
           if (prodMatch) taskProd = prodMatch.name;
         } else {
-          const cleanPkg = taskPkg.toLowerCase();
-          if (cleanPkg.includes('class')) taskProd = 'Classmate';
-          else if (cleanPkg.includes('jesus') || cleanPkg.includes('messang') || cleanPkg.includes('messeng')) taskProd = 'Jesus the messanger';
-          else taskProd = 'Careermate';
+          taskProd = this.packageService.products()[0]?.name || 'General';
         }
       }
 
@@ -357,8 +352,8 @@ export class NotificationService {
       text.includes('ctr') ||
       (notif.targetRoute && (notif.targetRoute.includes('/campaigns') || notif.targetRoute.includes('/ads') || notif.targetRoute.includes('/ad-metrics')))
     ) {
-      const prod = extractedProduct || 'Careermate';
-      const pkg = extractedPackage || 'CURRENT AFFAIRS AUGUST -2026';
+      const prod = extractedProduct || this.packageService.products()[0]?.name || 'General';
+      const pkg = extractedPackage || 'General';
       return `/package-works?package=${encodeURIComponent(prod)}&workspace=${encodeURIComponent(pkg)}&dept=DIGITAL_MARKETING&tab=CAMPAIGNS`;
     }
 
@@ -372,13 +367,13 @@ export class NotificationService {
       text.includes('performance') ||
       text.includes('audit')
     ) {
-      const prod = extractedProduct || 'Careermate';
-      const pkg = extractedPackage || 'CURRENT AFFAIRS AUGUST -2026';
+      const prod = extractedProduct || this.packageService.products()[0]?.name || 'General';
+      const pkg = extractedPackage || 'General';
       return `/package-works?package=${encodeURIComponent(prod)}&workspace=${encodeURIComponent(pkg)}&dept=ANALYTICS&tab=REPORTS`;
     }
 
-    const defaultProd = extractedProduct || 'Careermate';
-    const defaultPkg = extractedPackage || 'CURRENT AFFAIRS AUGUST -2026';
+    const defaultProd = extractedProduct || this.packageService.products()[0]?.name || 'General';
+    const defaultPkg = extractedPackage || 'General';
     return `/package-works?package=${encodeURIComponent(defaultProd)}&workspace=${encodeURIComponent(defaultPkg)}`;
   }
 

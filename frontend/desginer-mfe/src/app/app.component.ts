@@ -27,10 +27,14 @@ export class AppComponent implements OnInit {
   });
 
   readonly roleDisplayLabel = computed<string>(() => {
-    const role = this.activeRole();
-    if (role === 'ADMINISTRATOR') return 'Executive Operations';
-    if (role === 'DESIGNER') return 'Creative Designer';
-    return role;
+    const user = this.authService.currentUser();
+    const role = (user?.roleName || user?.role || this.activeRole()).toUpperCase();
+    if (role === 'ADMIN' || role === 'ADMINISTRATOR') return 'Administrator';
+    if (role === 'DESIGNER') return 'Designer';
+    if (role === 'BDM') return 'BDM';
+    if (role.includes('MARKET')) return 'Digital Marketing';
+    if (role.includes('TELE')) return 'Telecaller';
+    return role.replace(/_/g, ' ');
   });
 
   readonly roleAction = computed(() => {

@@ -3,28 +3,21 @@ import { Routes } from '@angular/router';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'users',
+    redirectTo: 'users-roles',
     pathMatch: 'full',
   },
   {
-    path: 'users',
+    path: 'users-roles',
     loadComponent: () =>
       import('./features/users-roles/users-roles.component').then(
         (m) => m.UsersRolesComponent
       ),
     data: { title: 'Users & Roles Management' },
   },
-  {
-    path: 'roles',
-    loadComponent: () =>
-      import('./features/users-roles/users-roles.component').then(
-        (m) => m.UsersRolesComponent
-      ),
-    data: { title: 'System Roles' },
-  },
+  { path: 'users', redirectTo: 'users-roles', pathMatch: 'full' },
+  { path: 'roles', redirectTo: 'users-roles', pathMatch: 'full' },
   {
     path: '**',
-    redirectTo: 'users',
+    redirectTo: 'users-roles',
   },
 ];
-
