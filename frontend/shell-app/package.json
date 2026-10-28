@@ -1,6 +1,7 @@
 {
   "name": "markops-shell-host",
   "version": "1.0.0",
+  "type": "module",
   "private": true,
   "description": "MarkOps Micro Frontend Shell Host Container (Port 4200)",
   "scripts": {

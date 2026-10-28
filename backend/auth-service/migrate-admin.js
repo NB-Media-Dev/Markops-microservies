@@ -8,7 +8,7 @@ dotenv.config({ path: path.resolve(__dirname, '.env') });
 dotenv.config();
 
 async function run() {
-  const conn = await mysql.createConnection(process.env.DATABASE_URL || 'mysql://root:tiger@localhost:3306/auth_db');
+  const conn = await mysql.createConnection(process.env.DATABASE_URL || 'mysql://root:nb123@localhost:3306/auth_db');
   console.log('Connected to auth_db');
 
   const [cols] = await conn.query('SHOW COLUMNS FROM User LIKE ?', ['department']);

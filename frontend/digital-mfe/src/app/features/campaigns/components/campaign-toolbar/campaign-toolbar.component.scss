@@ -1,0 +1,136 @@
+$color-orange: #FF9F1C;
+$color-text-main: #2B2D42;
+$color-text-muted: #8D99AE;
+$color-border-light: #E5E7EB;
+
+.toolbar-card {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  box-shadow: none;
+  border: none;
+  flex-wrap: wrap;
+
+  @media (max-width: 960px) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  /* SEARCH BOX STYLING TRIMS */
+  .search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-width: 320px;
+    flex: 1;
+
+    @media (max-width: 960px) {
+      width: 100%;
+      min-width: unset;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      color: $color-text-muted;
+      font-size: 20px;
+      pointer-events: none;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.6rem 2.25rem 0.6rem 2.6rem;
+      border-radius: 8px; 
+      border: 1.5px solid rgba($color-orange, 0.7);
+      background-color: #FFFFFF;
+      font-size: 0.85rem;
+      color: $color-text-main;
+      font-weight: 500;
+      box-sizing: border-box;
+      transition: all 0.2s ease;
+
+      &::placeholder {
+        color: #CBD5E1;
+      }
+
+      &:focus {
+        background-color: #FFFFFF;
+        border-color: $color-orange; // Highlighting focal changes
+        box-shadow: 0 0 0 3px rgba($color-orange, 0.08);
+        outline: none;
+      }
+    }
+
+    .clear-search-btn {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
+      color: #94A3B8;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      padding: 0;
+
+      .material-symbols-outlined {
+        font-size: 16px;
+      }
+
+      &:hover {
+        color: $color-text-main;
+      }
+    }
+  }
+
+  /* TOGGLE FLOW CONTROLS STYLE */
+  .segmented-tabs {
+    display: flex;
+    align-items: center;
+    background: #FFFFFF;
+    padding: 3px;
+    border-radius: 8px;
+    border: 1.5px solid rgba($color-orange, 0.2); // Frame wrapper block
+    gap: 2px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
+
+    @media (max-width: 960px) {
+      width: 100%;
+      justify-content: flex-start;
+    }
+
+    .tab-pill-btn {
+      background: transparent;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px; // Clean micro corners inside tabs frame box
+      font-size: 0.825rem;
+      font-weight: 600;
+      color: $color-text-main;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+
+      &:hover {
+        color: $color-text-main;
+        background-color: #F8FAFC;
+      }
+
+      &.active {
+        background: $color-orange; // Active tab highlights completely orange
+        color: #FFFFFF !important;
+        font-weight: 700;
+        box-shadow: none;
+      }
+    }
+  }
+}

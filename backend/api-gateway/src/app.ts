@@ -21,6 +21,7 @@ import versionsRoutes from "./routes/versions.routes.js";
 import adsRoutes from "./routes/ads.routes.js";
 import telecallingRoutes from "./routes/telecalling.routes.js";
 import rolesRoutes from "./routes/roles.routes.js";
+import leadsRoutes from "./routes/leads.routes.js";
 
 const app = express();
 
@@ -101,6 +102,8 @@ const routeList = [
   { path: "/comments", handler: commentsRoutes },
   { path: "/versions", handler: versionsRoutes },
   { path: "/reports", handler: reportsRoutes },
+  { path: "/leads", handler: leadsRoutes },
+  { path: "/calls", handler: telecallingRoutes },
   { path: "/call-logs", handler: telecallingRoutes },
   { path: "/telecaller-targets", handler: telecallingRoutes },
   { path: "/targets", handler: telecallingRoutes },

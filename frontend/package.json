@@ -7,17 +7,20 @@
     "shell-app",
     "login-mfe",
     "desginer-mfe",
-    "admin-mfe"
+    "admin-mfe",
+    "digital-mfe"
   ],
   "scripts": {
     "start:shell": "npm --prefix shell-app start",
     "start:login": "npm --prefix login-mfe start",
     "start:designer": "npm --prefix desginer-mfe start",
     "dev:designer": "npm --prefix desginer-mfe run dev",
+    "start:digital": "npm --prefix digital-mfe start",
+    "dev:digital": "npm --prefix digital-mfe run dev",
     "dev:login": "npm --prefix login-mfe run dev",
-    "dev:all": "npx concurrently -n \"SHELL(4200),LOGIN(4201),DESIGNER(4202),ADMIN(4203)\" -c \"blue,green,magenta,yellow\" \"npm run start:shell\" \"npm run start:login\" \"npm run start:designer\" \"npm run start:admin\"",
-    "dev:mfes": "npx concurrently -n \"LOGIN(4201),DESIGNER(4202),ADMIN(4203)\" -c \"green,magenta,yellow\" \"npm run start:login\" \"npm run start:designer\" \"npm run start:admin\"",
-    "build:all": "npm --prefix login-mfe run build && npm --prefix desginer-mfe run build && npm --prefix admin-mfe run build",
+    "dev:all": "npx concurrently -n \"SHELL(4200),LOGIN(4201),DESIGNER(4202),ADMIN(4203),DIGITAL(4204)\" -c \"blue,green,magenta,yellow,cyan\" \"npm run start:shell\" \"npm run start:login\" \"npm run start:designer\" \"npm run start:admin\" \"npm run start:digital\"",
+    "dev:mfes": "npx concurrently -n \"LOGIN(4201),DESIGNER(4202),ADMIN(4203),DIGITAL(4204)\" -c \"green,magenta,yellow,cyan\" \"npm run start:login\" \"npm run start:designer\" \"npm run start:admin\" \"npm run start:digital\"",
+    "build:all": "npm --prefix login-mfe run build && npm --prefix desginer-mfe run build && npm --prefix admin-mfe run build && npm --prefix digital-mfe run build",
     "start:admin": "npm --prefix admin-mfe start",
     "dev:admin": "npm --prefix admin-mfe run dev"
   },

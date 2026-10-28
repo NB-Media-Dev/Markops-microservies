@@ -10,34 +10,41 @@ Instead of running one big app, the frontend is split into small independent app
 
 | App Name | Port | What it does | Link |
 | :--- | :--- | :--- | :--- |
-| **Shell Host App** | **4200** | **Main Door / Container**. Open this in your browser. It shows the header, sidebar, and loads the other apps inside it. | [http://localhost:4200](http://localhost:4200) |
+| **Shell Host App** | **4200** | **Main Door / Container**. Open this in your browser. It shows header, navigation, and loads the MFEs inside. | [http://localhost:4200](http://localhost:4200) |
 | **Login App** | **4201** | Handles Login, Email, Password, and Tokens. | [http://localhost:4201](http://localhost:4201) |
 | **Designer App** | **4202** | Handles Creative Tasks, Kanban Board, Image/Video uploads, and Approvals. | [http://localhost:4202](http://localhost:4202) |
+| **Admin App** | **4203** | Handles Users, Roles, and System Configurations. | [http://localhost:4203](http://localhost:4203) |
+| **Digital Marketing App** | **4204** | Handles Campaigns, Ad Sets, Meta Connections, and Lead Telecalling. | [http://localhost:4204](http://localhost:4204) |
 
-👉 **Note:** You only need to open **`http://localhost:4200`** in Chrome. It will automatically show the Designer and Login screens for you!
+👉 **Note:** You only need to open **`http://localhost:4200`** in Chrome. It will automatically load Designer, Admin, and Digital Marketing screens inside it when you click their department cards!
 
 ---
 
 ## 2. How to Run Everything (1 Command)
 
-Open your terminal inside the folder:  
-`c:\Users\User.DESKTOP-CNI30ID\Downloads\v3clone-digital-marketing-module\MarkopsFinal\Mark-microservies\frontend`
+Open your terminal inside the `frontend` folder:
 
-### 👉 Run all 3 apps together:
+### 👉 Run all apps together:
 ```bash
 npm run dev:all
 ```
-* That's it! This single command starts **Port 4200 (Shell)**, **Port 4201 (Login)**, and **Port 4202 (Designer)** at the same time.
+* Starts **Port 4200 (Shell)**, **Port 4201 (Login)**, **Port 4202 (Designer)**, **Port 4203 (Admin)**, and **Port 4204 (Digital)** simultaneously!
 
 ### If you want to run only one app separately:
 ```bash
-# Run only Designer App (Port 4202)
+# Run Digital Marketing App (Port 4204)
+npm run start:digital
+
+# Run Designer App (Port 4202)
 npm run start:designer
 
-# Run only Login App (Port 4201)
+# Run Admin App (Port 4203)
+npm run start:admin
+
+# Run Login App (Port 4201)
 npm run start:login
 
-# Run only Shell App (Port 4200)
+# Run Shell Host App (Port 4200)
 npm run start:shell
 ```
 

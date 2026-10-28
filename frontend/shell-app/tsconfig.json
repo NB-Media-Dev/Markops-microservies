@@ -8,7 +8,8 @@
     "paths": {
       "@login/*": ["../login-mfe/src/app/*"],
       "@designer/*": ["../desginer-mfe/src/app/*"],
-      "@admin/*": ["../admin-mfe/src/app/*"]
+      "@admin/*": ["../admin-mfe/src/app/*"],
+      "@digital/*": ["../digital-mfe/src/app/*"]      
     }
   },
   "include": ["src/**/*"]

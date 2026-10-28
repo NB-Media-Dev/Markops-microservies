@@ -1,0 +1,53 @@
+<section class="kpi-grid">
+
+  <div class="kpi-card card-revenue">
+    <div class="kpi-top-row">
+      <div class="kpi-squircle-icon icon-amber">
+        <span class="currency-symbol">₹</span>
+      </div>
+     
+    </div>
+    <div class="kpi-body">
+      <span class="kpi-title">TOTAL AD SPEND</span>
+      <div class="kpi-value">₹{{ totalSpend | number: '1.2-2' }}</div>
+    </div>
+  </div>
+
+  <div class="kpi-card card-leads">
+    <div class="kpi-top-row">
+      <div class="kpi-squircle-icon icon-purple">
+        <span class="material-symbols-outlined">contacts</span>
+      </div>
+
+    </div>
+    <div class="kpi-body">
+      <span class="kpi-title">TOTAL LEADS</span>
+      <div class="kpi-value">{{ totalLeads | number }}</div>
+    </div>
+
+  </div>
+
+  <div class="kpi-card card-conversion">
+    <div class="kpi-top-row">
+      <div class="kpi-squircle-icon icon-emerald">
+        <span class="material-symbols-outlined">price_check</span>
+      </div>
+    </div>
+    <div class="kpi-body">
+      <span class="kpi-title">AVERAGE CPL</span>
+      <div class="kpi-value">₹{{ averageCpl }}</div>
+    </div>
+  </div>
+
+  <div class="kpi-card card-tasks">
+    <div class="kpi-top-row">
+      <div class="kpi-squircle-icon icon-rose">
+        <span class="material-symbols-outlined">touch_app</span>
+      </div>
+    </div>
+    <div class="kpi-body">
+      <span class="kpi-title">AVERAGE CTR</span>
+      <div class="kpi-value">{{ averageCtr }}%</div>
+    </div>
+  </div>
+</section>

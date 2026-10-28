@@ -1,0 +1,117 @@
+<div class="campaigns-page" [class.embedded-view]="embedded">
+  @if (!embedded) {
+    <header class="page-clean-branding-header">
+      <div class="header-titles-block">
+        <h1 class="page-main-orange-title">Digital Marketing</h1>
+        <div class="page-breadcrumb-subrow">
+          <a
+            (click)="onBreadcrumbNavigate('dashboard', $event)"
+            class="bc-link"
+            href="javascript:void(0)"
+          >{{ activeProductName() }}</a>
+          <span class="bc-sep">&gt;</span>
+          <a
+            (click)="onBreadcrumbNavigate('packages', $event)"
+            class="bc-link"
+            href="javascript:void(0)"
+          >Available Package</a>
+          <span class="bc-sep">&gt;</span>
+          <a
+            (click)="onBreadcrumbNavigate('operations', $event)"
+            class="bc-link"
+            href="javascript:void(0)"
+          >Department Operations</a>
+          <span class="bc-sep">&gt;</span>
+
+          @if (activeSubView() === 'CAMPAIGNS') {
+            <a
+              (click)="setSubView('HUB')"
+              class="bc-link"
+              href="javascript:void(0)"
+            >Digital Marketing</a>
+            <span class="bc-sep">&gt;</span>
+            <span class="bc-current">Campaigns</span>
+          } @else {
+            <span class="bc-current">Digital Marketing</span>
+          }
+        </div>
+      </div>
+    </header>
+  }
+
+  @if (successMessage()) {
+    <div class="alert-banner alert-success">
+      <div class="alert-icon-wrap">
+        <span class="material-symbols-outlined">check_circle</span>
+      </div>
+      <span class="alert-text">{{ successMessage() }}</span>
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="alert-banner alert-danger">
+      <div class="alert-icon-wrap">
+        <span class="material-symbols-outlined">error</span>
+      </div>
+      <span class="alert-text">{{ errorMessage() }}</span>
+    </div>
+  }
+
+  @if (activeSubView() === 'HUB' && !hideKpis) {
+    <app-campaign-kpis
+      [totalSpend]="totalSpend()"
+      [totalBudget]="totalBudget()"
+      [budgetUsedPercent]="budgetUsedPercent()"
+      [totalLeads]="totalLeads()"
+      [totalQualifiedLeads]="totalQualifiedLeads()"
+      [averageCpl]="averageCpl()"
+      [totalConversions]="totalConversions()"
+      [overallConvRate]="overallConvRate()"
+      [totalCampaignsCount]="filteredCampaigns.length"
+      [activeCampaignsCount]="activeCampaignsCount()"
+      [completedCampaignsCount]="completedCampaignsCount()"
+      [totalClicks]="totalClicks()"
+      (viewCampaigns)="onViewCampaigns()"
+      (createCampaign)="openCreateModal()"
+      (viewAnalytics)="onViewAnalytics()"
+      (viewLeads)="onViewLeads()"
+    ></app-campaign-kpis>
+  } @else {
+    <app-campaign-toolbar
+      [searchQuery]="searchQuery()"
+      [filterStatus]="filterStatus()"
+      [totalCampaignsCount]="filteredCampaigns.length"
+      [activeCount]="activeCampaignsCount()"
+      [planningCount]="planningCampaignsCount()"
+      [pausedCount]="pausedCampaignsCount()"
+      [completedCount]="completedCampaignsCount()"
+      (searchChange)="searchQuery.set($event)"
+      (filterChange)="setFilterStatus($event)"
+    ></app-campaign-toolbar>
+
+    <app-campaigns-table
+      [campaigns]="filteredCampaigns"
+      [totalCampaignsCount]="filteredCampaigns.length"
+      [canManageCampaigns]="canManageCampaigns()"
+      [currentUserId]="authService.currentUser()?.id ?? null"
+      (create)="openCreateModal()"
+      (edit)="openEditModal($event)"
+      (delete)="confirmDelete($event)"
+    ></app-campaigns-table>
+  }
+
+  <app-campaign-form-modal
+    [isOpen]="showModal()"
+    [isEditing]="isEditing()"
+    [formModel]="formModel"
+    [todayDate]="todayDate"
+    (closeModal)="closeModal()"
+    (save)="saveCampaign()"
+  ></app-campaign-form-modal>
+
+  <app-campaign-delete-modal
+    [target]="deleteConfirmTarget()"
+    (cancelDelete)="cancelDelete()"
+    (confirm)="executeDelete()"
+  ></app-campaign-delete-modal>
+</div>

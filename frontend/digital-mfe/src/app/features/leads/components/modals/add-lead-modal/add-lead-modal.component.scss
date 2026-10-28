@@ -1,0 +1,202 @@
+$color-orange: #FF9F1C;
+$color-blue: #3A86FF;
+$color-green: #2EC4B6;
+$color-text-main: #2B2D42;
+$color-text-muted: #8D99AE;
+$color-border-light: #E2E8F0;
+
+.modal-card.add-lead-modal-card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 620px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid $color-border-light;
+  max-height: 96vh; // Safe height boundary window
+
+  .modal-header {
+    padding: 10px 16px 4px 16px; // Tightened header zone
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    h2 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: $color-text-main;
+      margin: 0;
+    }
+
+    .btn-close-modal {
+      background: transparent;
+      border: none;
+      color: $color-text-muted;
+      cursor: pointer;
+      display: flex;
+      padding: 2px;
+    }
+  }
+
+  .modal-body.compact-no-scroll {
+    padding: 6px 16px 10px 16px; 
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem; // Minimized vertical gaps between step blocks
+    overflow-y: hidden; // Removes the scrollbar completely on standard layouts
+
+    .form-step-section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+
+      .step-heading {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+
+        .step-badge {
+          width: 16px;
+          height: 16px;
+          font-size: 0.65rem;
+          font-weight: 700;
+          color: #FFFFFF;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          
+          &.step-orange { background-color: $color-orange; }
+          &.step-blue { background-color: $color-blue; }
+          &.step-green { background-color: $color-green; }
+        }
+
+        h3 {
+          font-size: 0.785rem;
+          font-weight: 700;
+          color: $color-text-main;
+          margin: 0;
+        }
+      }
+    }
+
+    .form-row-flexible {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px; // Compact row gap
+      width: 100%;
+
+      .flex-1 { flex: 1 1 180px; min-width: 0; }
+      .flex-grow-1 { flex: 1 1 100%; min-width: 0; }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 2px; // Minimized label to field gap
+
+      .form-label {
+        font-size: 0.725rem;
+        font-weight: 600;
+        color: $color-text-main;
+
+        .required { color: #EF4444; }
+      }
+
+      .form-input {
+        width: 100%;
+        padding: 5px 8px; // Reduced padding thickness inside field
+        border: 1px solid #E2E8F0;
+        border-radius: 5px;
+        font-size: 0.785rem;
+        color: $color-text-main;
+        box-sizing: border-box;
+        height: 30px; // Controlled compact row target profile
+
+        &:focus {
+          outline: none;
+          border-color: $color-orange;
+        }
+      }
+
+      select.form-input {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        background-color: #FFFFFF;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.65rem center;
+        background-size: 0.9rem;
+        padding-right: 1.85rem;
+        cursor: pointer;
+      }
+    }
+
+    .input-with-icon-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      .form-input { padding-right: 1.75rem; }
+      .input-right-status-icon {
+        position: absolute;
+        right: 8px;
+        color: #10B981;
+        .material-symbols-outlined { font-size: 14px; }
+      }
+    }
+
+    .telecaller-assign-group {
+      .distribution-label { display: flex; justify-content: space-between; width: 100%; }
+      .badge-role-telecaller {
+        font-size: 0.6rem;
+        font-weight: 700;
+        background: #EFF6FF;
+        color: #1D4ED8;
+        padding: 0px 4px;
+        border-radius: 3px;
+      }
+    }
+  }
+
+  .modal-footer {
+    padding: 6px 16px 10px 16px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    background: #FFFFFF;
+    border-top: 1px solid #F1F5F9;
+
+    .btn-action-secondary {
+      padding: 0 12px;
+      height: 30px;
+      border: 1px solid #E2E8F0;
+      background: #FFFFFF;
+      border-radius: 5px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: $color-text-muted;
+      cursor: pointer;
+    }
+
+    .btn-action-primary-orange {
+      padding: 0 14px;
+      height: 30px;
+      background: $color-orange;
+      border: none;
+      border-radius: 5px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #FFFFFF;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+
+      .material-symbols-outlined { font-size: 14px; font-weight: bold; }
+    }
+  }
+}

@@ -14,7 +14,7 @@ import { NotificationService } from './core/services/notification.service';
 export class AppComponent implements OnInit {
   readonly authService = inject(AuthService);
   readonly notifService = inject(NotificationService);
-  private readonly router = inject(Router);
+  private readonly router = inject(Router)
 
   readonly isNotificationFlyoutOpen = signal<boolean>(false);
   readonly notifFlyoutFilter = signal<'ALL' | 'UNREAD'>('ALL');
