@@ -12,7 +12,7 @@ dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 dotenv.config({ path: path.resolve(process.cwd(), "backend/.env") });
 dotenv.config({ path: path.resolve(process.cwd(), "backend/lead-service/.env") });
 
-const databaseUrl = process.env.DATABASE_URL || "mysql://root:tiger@localhost:3306/telecaller_db";
+const databaseUrl = process.env.DATABASE_URL || "mysql://root:nb123@localhost:3306/telecaller_db";
 const dbUrl = new URL(databaseUrl);
 
 export const CAMPAIGN_DB = process.env.CAMPAIGN_DB || "digital_db";
