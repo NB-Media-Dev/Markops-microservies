@@ -241,16 +241,6 @@ export class DesignerDashboardComponent implements OnInit {
       }
     }
 
-    if (map.size === 0) {
-      map.set('3', {
-        id: '3',
-        name: 'swathi',
-        email: 'swathi@gmail.com',
-        department: 'Creative Design',
-        avatarUrl: '',
-      });
-    }
-
     return Array.from(map.values());
   });
 
