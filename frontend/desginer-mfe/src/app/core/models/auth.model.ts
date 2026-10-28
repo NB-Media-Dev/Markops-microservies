@@ -17,6 +17,7 @@ export interface User {
   email: string;
   fullName: string;
   role: UserRole;
+  roleName?: string;
   avatarUrl?: string;
   department?: string;
   isActive: boolean;

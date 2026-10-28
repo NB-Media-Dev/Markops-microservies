@@ -5,10 +5,10 @@
     "moduleResolution": "bundler",
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
-    "baseUrl": "",
     "paths": {
       "@login/*": ["../login-mfe/src/app/*"],
-      "@designer/*": ["../desginer-mfe/src/app/*"]
+      "@designer/*": ["../desginer-mfe/src/app/*"],
+      "@admin/*": ["../admin-mfe/src/app/*"]
     }
   },
   "include": ["src/**/*"]

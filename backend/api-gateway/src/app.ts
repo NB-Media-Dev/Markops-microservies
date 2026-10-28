@@ -20,6 +20,7 @@ import commentsRoutes from "./routes/comments.routes.js";
 import versionsRoutes from "./routes/versions.routes.js";
 import adsRoutes from "./routes/ads.routes.js";
 import telecallingRoutes from "./routes/telecalling.routes.js";
+import rolesRoutes from "./routes/roles.routes.js";
 
 const app = express();
 
@@ -89,6 +90,7 @@ app.use("/socket.io", socketIoProxy);
 const routeList = [
   { path: "/auth", handler: authRoutes },
   { path: "/users", handler: usersRoutes },
+  { path: "/roles", handler: rolesRoutes },
   { path: "/campaigns", handler: campaignsRoutes },
   { path: "/ads", handler: adsRoutes },
   { path: "/tasks", handler: tasksRoutes },

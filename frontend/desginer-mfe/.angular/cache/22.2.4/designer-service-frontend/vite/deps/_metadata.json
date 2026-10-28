@@ -1,61 +1,78 @@
 {
-  "hash": "b667e0e8",
-  "configHash": "4eedf0e2",
-  "lockfileHash": "100b75ee",
-  "browserHash": "3a64e886",
+  "hash": "260b34ae",
+  "configHash": "b217f624",
+  "lockfileHash": "6d44a643",
+  "browserHash": "5880d2d4",
   "optimized": {
     "@angular/common": {
       "src": "../../../../../../../node_modules/@angular/common/fesm2022/common.mjs",
       "file": "@angular_common.js",
-      "fileHash": "ef37c07c",
+      "fileHash": "f57e6f10",
       "needsInterop": false
     },
-    "@angular/common/http": {
-      "src": "../../../../../../../node_modules/@angular/common/fesm2022/http.mjs",
-      "file": "@angular_common_http.js",
-      "fileHash": "1975dd3e",
+      "fileHash": "19989f0a",
       "needsInterop": false
     },
     "@angular/core": {
       "src": "../../../../../../../node_modules/@angular/core/fesm2022/core.mjs",
       "file": "@angular_core.js",
-      "fileHash": "1197eaee",
+      "fileHash": "de6da7bb",
       "needsInterop": false
     },
     "@angular/forms": {
       "src": "../../../../../../../node_modules/@angular/forms/fesm2022/forms.mjs",
       "file": "@angular_forms.js",
+<<<<<<< HEAD
       "fileHash": "eaf549d8",
-      "needsInterop": false
-    },
+=======
+      "fileHash": "0efd9e6f",
     "@angular/platform-browser": {
-      "src": "../../../../../../../node_modules/@angular/platform-browser/fesm2022/platform-browser.mjs",
       "file": "@angular_platform-browser.js",
+<<<<<<< HEAD
       "fileHash": "d812d6f1",
+=======
+      "fileHash": "fd2e6156",
+>>>>>>> 7a642072988d76938759e71819960cc959c0d8a0
       "needsInterop": false
     },
     "@angular/router": {
       "src": "../../../../../../../node_modules/@angular/router/fesm2022/router.mjs",
       "file": "@angular_router.js",
+<<<<<<< HEAD
       "fileHash": "7c16178b",
+=======
+      "fileHash": "a912e3d7",
+>>>>>>> 7a642072988d76938759e71819960cc959c0d8a0
       "needsInterop": false
     },
     "rxjs": {
       "src": "../../../../../../../node_modules/rxjs/dist/esm5/index.js",
       "file": "rxjs.js",
+<<<<<<< HEAD
       "fileHash": "534abdac",
+=======
+      "fileHash": "d0460c09",
+>>>>>>> 7a642072988d76938759e71819960cc959c0d8a0
       "needsInterop": false
     },
     "rxjs/operators": {
       "src": "../../../../../../../node_modules/rxjs/dist/esm5/operators/index.js",
       "file": "rxjs_operators.js",
+<<<<<<< HEAD
       "fileHash": "59da814e",
+=======
+      "fileHash": "c5169e05",
+>>>>>>> 7a642072988d76938759e71819960cc959c0d8a0
       "needsInterop": false
     },
     "socket.io-client": {
       "src": "../../../../../../../node_modules/socket.io-client/build/esm/index.js",
       "file": "socket__io-client.js",
+<<<<<<< HEAD
       "fileHash": "50c9f28c",
+=======
+      "fileHash": "96d267fe",
+>>>>>>> 7a642072988d76938759e71819960cc959c0d8a0
       "needsInterop": false
     }
   },

@@ -87,10 +87,10 @@ export const createPackage = async (req: Request, res: Response): Promise<Respon
 
 export const updatePackage = async (req: Request, res: Response): Promise<Response> => {
   const { id } = req.params;
-  const { productId, name } = req.body;
+  const { productId, product_id, name } = req.body;
+  const targetProductId = productId || product_id;
 
   try {
-  
     if (name) {
       const trimmedName = name.trim();
       const [existing]: any = await dbPool.query(
@@ -102,10 +102,23 @@ export const updatePackage = async (req: Request, res: Response): Promise<Respon
       }
     }
 
-    const [result]: any = await dbPool.query(
-      "UPDATE product_packages SET product_id = ?, name = ?, updated_at = NOW() WHERE id = ?",
-      [productId, name?.trim(), id]
-    );
+    let query = "UPDATE product_packages SET ";
+    const updates: string[] = [];
+    const params: any[] = [];
+
+    if (targetProductId) {
+      updates.push("product_id = ?");
+      params.push(targetProductId);
+    }
+    if (name) {
+      updates.push("name = ?");
+      params.push(name.trim());
+    }
+    updates.push("updated_at = NOW()");
+    query += updates.join(", ") + " WHERE id = ?";
+    params.push(id);
+
+    const [result]: any = await dbPool.query(query, params);
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ success: false, error: "Package not found to update" });

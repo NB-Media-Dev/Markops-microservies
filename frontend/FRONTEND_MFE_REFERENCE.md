@@ -161,3 +161,4 @@ These are the summary numbers shown on top of the Designer Dashboard:
 * **Designer Port:** `4202`
 * **Single Command to start all:** `npm run dev:all`
 * **Only work inside:** `Mark-microservies/frontend` (Don't touch backend or root `MarkopsFinal`).
+

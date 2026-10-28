@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 4200;
 const PUBLIC_DIR = path.join(__dirname, "public");
+const SRC_INDEX = path.join(__dirname, "src", "index.html");
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -38,12 +39,12 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // File resolution
+  // File resolution: serve static assets from public/ and SPA fallback to src/index.html
   const cleanUrl = req.url.split("?")[0];
   let filePath = path.join(PUBLIC_DIR, cleanUrl === "/" ? "index.html" : cleanUrl);
 
-  if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
-    filePath = path.join(PUBLIC_DIR, "index.html");
+  if (cleanUrl === "/" || !fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
+    filePath = SRC_INDEX;
   }
 
   const ext = path.extname(filePath).toLowerCase();
@@ -64,6 +65,7 @@ server.listen(PORT, "0.0.0.0", () => {
   console.log(`\n======================================================`);
   console.log(`🚀 MarkOps Enterprise Portal Active!`);
   console.log(`👉 Primary URL : http://localhost:${PORT}`);
-  console.log(`👉 Remote MFEs : Login (4201) | Designer (4202)`);
+  console.log(`👉 Source HTML : ${SRC_INDEX}`);
+  console.log(`👉 Remote MFEs : Login (4201) | Designer (4202) | Admin (4203)`);
   console.log(`======================================================\n`);
 });

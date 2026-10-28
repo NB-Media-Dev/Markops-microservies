@@ -122,13 +122,11 @@ async function runDatabaseInsertions() {
     const pass123Hash = await bcrypt.hash('Password@123', 10);
 
     const users = [
-      { name: 'System Administrator', email: 'admin@markops.io', pass: adminPassHash, role: 'admin' },
-      { name: 'System Administrator', email: 'admin@markops.in', pass: adminPassHash, role: 'admin' },
-      { name: 'Preethi Designer', email: 'preethi@markops.io', pass: pass123Hash, role: 'designer' },
-      { name: 'Siddharth Marketing', email: 'marketing@markops.io', pass: adminPassHash, role: 'digital-marketing' },
-      { name: 'Rajesh Telecaller', email: 'telecaller@markops.io', pass: adminPassHash, role: 'telecaller' },
-      { name: 'Karthik BDM', email: 'bdm@markops.io', pass: adminPassHash, role: 'bdm' },
-      { name: 'karthick', email: 'kar@markops.io', pass: adminPassHash, role: 'bdm' }
+      { name: 'Admin', email: 'admin@markops.io', pass: adminPassHash, role: 'admin' },
+      { name: 'vishwa', email: 'vishwa@markops.io', pass: pass123Hash, role: 'designer' },
+      { name: 'sakthi', email: 'sakthi@markops.io', pass: adminPassHash, role: 'digital-marketing' },
+      { name: 'Rajesh', email: 'rajesh@markops.io', pass: adminPassHash, role: 'telecaller' },
+      { name: 'Karthik', email: 'karthick@markops.io', pass: adminPassHash, role: 'bdm' },
     ];
 
     for (const u of users) {

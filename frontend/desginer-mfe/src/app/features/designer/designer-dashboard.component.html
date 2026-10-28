@@ -1,45 +1,44 @@
 <div class="designer-dashboard" [class.embedded-mode]="embedded">
 
-  @if (!embedded) {
-    <header class="page-clean-branding-header mb-3">
-      <div class="header-titles-block">
-        <h1 class="page-main-orange-title">{{ pageHeaderTitle() }}</h1>
-        <div class="page-breadcrumb-subrow">
-          <a
-            routerLink="/package-works"
-            [queryParams]="{ package: activeProductName() }"
-            class="bc-link"
-          >{{ activeProductName() }}</a>
-          <span class="bc-sep">&gt;</span>
-          <a
-            routerLink="/package-works"
-            [queryParams]="{ package: activeProductName() }"
-            class="bc-link"
-          >Available Package</a>
-          <span class="bc-sep">&gt;</span>
+  <header class="page-clean-branding-header mb-3">
+    <div class="header-titles-block">
+      <h1 class="page-main-orange-title">{{ pageHeaderTitle() }}</h1>
+      <div class="page-breadcrumb-subrow">
+        <a
+          (click)="onBreadcrumbNavigate('dashboard', $event)"
+          class="bc-link"
+          href="javascript:void(0)"
+        >{{ activeProductName() }}</a>
+        <span class="bc-sep">&gt;</span>
+        <a
+          (click)="onBreadcrumbNavigate('packages', $event)"
+          class="bc-link"
+          href="javascript:void(0)"
+        >Available Package</a>
+        <span class="bc-sep">&gt;</span>
 
-          <a
-            routerLink="/package-works"
-            [queryParams]="packageFilter ? { package: activeProductName(), workspace: packageFilter } : { package: activeProductName(), workspace: 'Test' }"
-            class="bc-link"
-          >Department Operations</a>
-          <span class="bc-sep">&gt;</span>
+        <a
+          (click)="onBreadcrumbNavigate('operations', $event)"
+          class="bc-link"
+          href="javascript:void(0)"
+        >Department Operations</a>
+        <span class="bc-sep">&gt;</span>
 
-          @if (selectedDesigner()) {
-            <a
-              type="button"
-              class="bc-link"
-              (click)="clearDesignerFilter()"
-            >Designer</a>
-            <span class="bc-sep">&gt;</span>
-            <span class="bc-current">{{ selectedDesigner()?.name }}</span>
-          } @else {
-            <span class="bc-current">Designer</span>
-          }
-        </div>
+        @if (selectedDesigner()) {
+          <a
+            type="button"
+            class="bc-link"
+            (click)="clearDesignerFilter()"
+            href="javascript:void(0)"
+          >Designer</a>
+          <span class="bc-sep">&gt;</span>
+          <span class="bc-current">{{ selectedDesigner()?.name }}</span>
+        } @else {
+          <span class="bc-current">Designer</span>
+        }
       </div>
-    </header>
-  }
+    </div>
+  </header>
 
   @if (!isDesigner()) {
     <!-- 5 KPI Cards: Active Designers, Assigned Tasks, Pending Tasks, In-Progress Tasks, Completed Tasks -->
@@ -319,7 +318,9 @@
             @if (filteredTasks().length === 0) {
               <div class="empty-state">
                 <span class="material-symbols-outlined empty-icon">assignment_late</span>
-                @if (activeTaskView() === 'my') {
+                @if (isDesigner()) {
+                  <h4 class="empty-title">No tasks available.</h4>
+                } @else if (activeTaskView() === 'my') {
                   <h4 class="empty-title">
                     {{
                       selectedDesigner()
@@ -327,8 +328,7 @@
                         : 'No tasks created by you.'
                     }}
                   </h4>
-                }
-                @if (activeTaskView() === 'all') {
+                } @else if (activeTaskView() === 'all') {
                   <h4 class="empty-title">
                     {{
                       selectedDesigner()
@@ -338,10 +338,12 @@
                   </h4>
                 }
                 @if (
-                  searchQuery() ||
-                  statusFilter() !== 'ALL' ||
-                  priorityFilter() !== 'ALL' ||
-                  selectedDateFilter()
+                  !isDesigner() && (
+                    searchQuery() ||
+                    statusFilter() !== 'ALL' ||
+                    priorityFilter() !== 'ALL' ||
+                    selectedDateFilter()
+                  )
                 ) {
                   <p>Try adjusting your search query or filters.</p>
                 }

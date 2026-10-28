@@ -1,0 +1,76 @@
+{
+  "hash": "6e6490eb",
+  "configHash": "05f88864",
+  "lockfileHash": "6d44a643",
+  "browserHash": "fabf3e2a",
+  "optimized": {
+    "@angular/common": {
+      "src": "../../../../../../../node_modules/@angular/common/fesm2022/common.mjs",
+      "file": "@angular_common.js",
+      "fileHash": "4f0dd062",
+      "needsInterop": false
+    },
+    "@angular/common/http": {
+      "src": "../../../../../../../node_modules/@angular/common/fesm2022/http.mjs",
+      "file": "@angular_common_http.js",
+      "fileHash": "92daea86",
+      "needsInterop": false
+    },
+    "@angular/core": {
+      "src": "../../../../../../../node_modules/@angular/core/fesm2022/core.mjs",
+      "file": "@angular_core.js",
+      "fileHash": "71abe91e",
+      "needsInterop": false
+    },
+    "@angular/forms": {
+      "src": "../../../../../../../node_modules/@angular/forms/fesm2022/forms.mjs",
+      "file": "@angular_forms.js",
+      "fileHash": "341604c4",
+      "needsInterop": false
+    },
+    "@angular/platform-browser": {
+      "src": "../../../../../../../node_modules/@angular/platform-browser/fesm2022/platform-browser.mjs",
+      "file": "@angular_platform-browser.js",
+      "fileHash": "81d81edb",
+      "needsInterop": false
+    },
+    "@angular/router": {
+      "src": "../../../../../../../node_modules/@angular/router/fesm2022/router.mjs",
+      "file": "@angular_router.js",
+      "fileHash": "a25b8751",
+      "needsInterop": false
+    },
+    "rxjs": {
+      "src": "../../../../../../../node_modules/rxjs/dist/esm5/index.js",
+      "file": "rxjs.js",
+      "fileHash": "9556be8e",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "_xhr-chunk-sBaWxn4Z": {
+      "file": "_xhr-chunk-sBaWxn4Z.js",
+      "isDynamicEntry": false
+    },
+    "common-DdVQVZhg": {
+      "file": "common-DdVQVZhg.js",
+      "isDynamicEntry": false
+    },
+    "core-CqYqrg3J": {
+      "file": "core-CqYqrg3J.js",
+      "isDynamicEntry": false
+    },
+    "esm5-sVPx2E-k": {
+      "file": "esm5-sVPx2E-k.js",
+      "isDynamicEntry": false
+    },
+    "http-CAhgucSm": {
+      "file": "http-CAhgucSm.js",
+      "isDynamicEntry": false
+    },
+    "platform-browser-DgGalA6y": {
+      "file": "platform-browser-DgGalA6y.js",
+      "isDynamicEntry": false
+    }
+  }
+}

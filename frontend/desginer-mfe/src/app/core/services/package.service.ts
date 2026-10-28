@@ -9,16 +9,42 @@ export interface ProductHeroBanner {
   imageUrl: string;
 }
 
+export interface OurProduct {
+  id: string;
+  name: string;
+  createdAt?: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class PackageService {
   private readonly http = inject(HttpClient);
 
+  readonly products = signal<OurProduct[]>([]);
   readonly packages = signal<ProductPackage[]>([]);
   readonly summary = signal<PackageSummary | null>(null);
   readonly loading = signal<boolean>(false);
   readonly error = signal<string | null>(null);
+
+  constructor() {
+    this.loadProducts().subscribe({ error: () => {} });
+    this.loadAllPackages().subscribe({ error: () => {} });
+  }
+
+  loadProducts() {
+    return this.http.get<{ success: boolean; data: OurProduct[] } | OurProduct[]>(
+      getApiUrl('/api/products')
+    ).pipe(
+      tap({
+        next: (res: any) => {
+          const list = Array.isArray(res) ? res : (res?.data || []);
+          this.products.set(list);
+        },
+        error: (err) => console.warn('Failed to load products from backend:', err),
+      })
+    );
+  }
 
   loadProductHeroBanner(productId: string) {
     return this.http.get<ProductHeroBanner | null>(
@@ -38,11 +64,11 @@ export class PackageService {
     const path = productId ? `/api/packages?productId=${encodeURIComponent(productId)}` : '/api/packages';
     const url = getApiUrl(path);
 
-    return this.http.get<ProductPackage[]>(url).pipe(
+    return this.http.get<any>(url).pipe(
       tap({
-        next: (data) => {
+        next: (res: any) => {
+          const data: ProductPackage[] = Array.isArray(res) ? res : (res?.data || []);
           if (productId) {
-
             this.packages.update((current) => {
               const other = current.filter((p) => p.productId !== productId);
               return [...data, ...other];
@@ -62,9 +88,10 @@ export class PackageService {
 
   loadAllPackages() {
     this.loading.set(true);
-    return this.http.get<ProductPackage[]>(getApiUrl('/api/packages')).pipe(
+    return this.http.get<any>(getApiUrl('/api/packages')).pipe(
       tap({
-        next: (data) => {
+        next: (res: any) => {
+          const data: ProductPackage[] = Array.isArray(res) ? res : (res?.data || []);
           this.packages.set(data);
           this.loading.set(false);
         },
@@ -106,14 +133,13 @@ export class PackageService {
     );
   }
 
-  updatePackage(id: string | number, payload: Partial<ProductPackage> & { image?: string; fileName?: string }) {
+  
+  updatePackage(packageId: string, payload: Partial<ProductPackage>) {
     this.loading.set(true);
-    return this.http.put<ProductPackage>(getApiUrl(`/api/packages/${id}`), payload).pipe(
+    return this.http.put<ProductPackage>(getApiUrl(`/api/packages/${encodeURIComponent(packageId)}`), payload).pipe(
       tap({
-        next: (updatedPkg) => {
-          this.packages.update((list) =>
-            list.map((p) => (String(p.id) === String(id) ? updatedPkg : p))
-          );
+        next: (updated) => {
+          this.packages.update((list) => list.map((p) => (String(p.id) === String(packageId) ? { ...p, ...updated } : p)));
           this.loading.set(false);
           this.loadSummary().subscribe();
         },
@@ -125,12 +151,12 @@ export class PackageService {
     );
   }
 
-  deletePackage(id: string | number) {
+  deletePackage(packageId: string) {
     this.loading.set(true);
-    return this.http.delete<{ success: boolean; id: string | number }>(getApiUrl(`/api/packages/${id}`)).pipe(
+    return this.http.delete(getApiUrl(`/api/packages/${encodeURIComponent(packageId)}`)).pipe(
       tap({
         next: () => {
-          this.packages.update((list) => list.filter((p) => String(p.id) !== String(id)));
+          this.packages.update((list) => list.filter((p) => String(p.id) !== String(packageId)));
           this.loading.set(false);
           this.loadSummary().subscribe();
         },

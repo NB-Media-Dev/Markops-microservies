@@ -56,12 +56,12 @@ export class TaskDetailComponent implements OnInit {
     }
 
     const t = this.task();
-    if (!t) return { productName: prodFromUrl || 'Careermate', packageName: pkgFromUrl || 'Test' };
+    if (!t) return { productName: prodFromUrl || this.packageService.products()[0]?.name || '', packageName: pkgFromUrl || '' };
     const packages = this.packageService.packages();
     const scope = resolveTaskProductAndPackage(t, packages);
     return {
-      productName: prodFromUrl || scope.productName || t.productName || 'Careermate',
-      packageName: pkgFromUrl || scope.packageName || t.packageName || 'Test',
+      productName: prodFromUrl || scope.productName || t.productName || this.packageService.products()[0]?.name || '',
+      packageName: pkgFromUrl || scope.packageName || t.packageName || '',
     };
   });
 
@@ -95,27 +95,39 @@ export class TaskDetailComponent implements OnInit {
 
   goToProduct(event?: Event): void {
     if (event) event.preventDefault();
+    if (typeof window !== 'undefined' && window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: 'MARKOPS_NAVIGATE', route: 'dashboard' }, '*');
+      return;
+    }
     const scope = this.resolvedScope();
     this.router.navigate(['/package-works'], {
-      queryParams: { package: scope.productName || 'Careermate' },
+      queryParams: { package: scope.productName || this.packageService.products()[0]?.name || '' },
     });
   }
 
   goToAvailablePackage(event?: Event): void {
     if (event) event.preventDefault();
+    if (typeof window !== 'undefined' && window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: 'MARKOPS_NAVIGATE', route: 'packages' }, '*');
+      return;
+    }
     const scope = this.resolvedScope();
     this.router.navigate(['/package-works'], {
-      queryParams: { package: scope.productName || 'Careermate' },
+      queryParams: { package: scope.productName || this.packageService.products()[0]?.name || '' },
     });
   }
 
   goToDepartmentOperations(event?: Event): void {
     if (event) event.preventDefault();
+    if (typeof window !== 'undefined' && window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: 'MARKOPS_NAVIGATE', route: 'operations' }, '*');
+      return;
+    }
     const scope = this.resolvedScope();
     this.router.navigate(['/package-works'], {
       queryParams: scope.packageName
-        ? { package: scope.productName || 'Careermate', workspace: scope.packageName }
-        : { package: scope.productName || 'Careermate', workspace: 'Test' },
+        ? { package: scope.productName || '', workspace: scope.packageName }
+        : { package: scope.productName || '' },
     });
   }
 
@@ -129,8 +141,8 @@ export class TaskDetailComponent implements OnInit {
     const scope = this.resolvedScope();
     this.router.navigate(['/package-works'], {
       queryParams: {
-        package: scope.productName || 'Careermate',
-        workspace: scope.packageName || 'Test',
+        package: scope.productName || '',
+        workspace: scope.packageName || '',
         dept: this.resolvedDeptCode(),
       },
     });
@@ -197,6 +209,8 @@ export class TaskDetailComponent implements OnInit {
       }
     });
 
+    this.userService.loadUsersFromDatabase();
+    this.taskService.loadDesigners();
     if (this.packageService.packages().length === 0) {
       this.packageService.loadAllPackages().subscribe();
     }
@@ -272,7 +286,18 @@ export class TaskDetailComponent implements OnInit {
 
   getAssigneeName(t: Task | null): string {
     if (!t) return 'Unassigned';
-    return t.assigneeName || 'Unassigned';
+    if (t.assigneeName && t.assigneeName !== 'Unassigned' && t.assigneeName !== 'Assigned Designer') {
+      return t.assigneeName;
+    }
+    const user = this.getAssigneeUser(t);
+    if (user?.fullName) return user.fullName;
+    if (user?.name) return user.name;
+    if (t.assignedTo) {
+      const foundDesigner = this.taskService.designers().find((d) => String(d.id) === String(t.assignedTo));
+      if (foundDesigner?.name || foundDesigner?.fullName) return foundDesigner.name || foundDesigner.fullName;
+      return 'Designer #' + t.assignedTo;
+    }
+    return 'Unassigned';
   }
 
   getAssigneeEmail(t: Task | null): string {
@@ -298,13 +323,19 @@ export class TaskDetailComponent implements OnInit {
   }
 
   getAssigneeDisplayName(t: Task | null): string {
+    if (!t) return 'Assigned Designer';
+    if (t.assigneeName && t.assigneeName !== 'Unassigned' && t.assigneeName !== 'Assigned Designer') {
+      return t.assigneeName;
+    }
     const user = this.getAssigneeUser(t);
     if (user?.fullName) return user.fullName;
-    const raw = t?.assigneeName;
-    if (raw && raw !== 'Assigned Designer' && raw !== 'Assigned User' && raw !== 'Unassigned') {
-      return raw.charAt(0).toUpperCase() + raw.slice(1);
+    if (user?.name) return user.name;
+    if (t.assignedTo) {
+      const foundDesigner = this.taskService.designers().find((d) => String(d.id) === String(t.assignedTo));
+      if (foundDesigner?.name || foundDesigner?.fullName) return foundDesigner.name || foundDesigner.fullName;
+      return 'Designer #' + t.assignedTo;
     }
-    return 'Surya';
+    return 'Assigned Designer';
   }
 
   getAssigneeRole(t: Task | null): string {

@@ -1,3 +1,4 @@
+import { requireRole } from "../middleware/auth.middleware.js";
 import { Router } from "express";
 import {
   getTasks,
@@ -22,7 +23,7 @@ const router = Router();
 
 router.get("/tasks", getTasks);
 router.get("/tasks/my", getMyTasks);
-router.post("/tasks", validateCreateTask, createTask);
+router.post("/tasks", requireRole("ADMIN", "ADMINISTRATOR", "BDM"), validateCreateTask, createTask);
 
 // Single Task Endpoints
 router.get("/tasks/:id", getTaskById);

@@ -13,20 +13,7 @@ export const ROLE_DEFAULT_ROUTES: Record<UserRole, string> = {
   BDM: '/package-works',
 };
 
-export const DEMO_ACCOUNTS: Record<string, { email: string; pass: string; user: User }> = {
-  ADMINISTRATOR: {
-    email: 'admin@markops.io',
-    pass: 'admin123',
-    user: {
-      id: '1',
-      email: 'admin@markops.io',
-      fullName: 'System Administrator',
-      role: 'ADMINISTRATOR',
-      department: 'Executive Operations',
-      isActive: true,
-    },
-  },
-};
+export const DEMO_ACCOUNTS: Record<string, { email: string; pass: string; user: User }> = {};
 
 @Injectable({
   providedIn: 'root',
@@ -50,8 +37,6 @@ export class AuthService {
       this.initAuth();
     } else {
 
-      this._currentUser.set(DEMO_ACCOUNTS['ADMINISTRATOR'].user);
-      this._accessToken.set('mo_jwt_default');
       this._isInitialized.set(true);
     }
   }
@@ -65,7 +50,6 @@ export class AuthService {
   readonly authError = computed(() => this._authError());
 
 
-  readonly PRIMARY_ADMIN: User = DEMO_ACCOUNTS['ADMINISTRATOR'].user;
 
 
   async ensureInitialized(): Promise<boolean> {
@@ -205,7 +189,7 @@ export class AuthService {
   private parseUserFromJwt(token: string): User | null {
     try {
       if (!token || !token.includes('.')) {
-        return DEMO_ACCOUNTS['ADMINISTRATOR'].user;
+        return null;
       }
       const parts = token.split('.');
       if (parts.length < 2) return null;
@@ -214,10 +198,10 @@ export class AuthService {
       if (payload && payload.sub) {
         return {
           id: String(payload.sub),
-          email: payload.email || 'admin@markops.io',
-          fullName: payload.fullName || payload.name || 'System Administrator',
-          role: payload.role || 'ADMINISTRATOR',
-          department: payload.department || 'Executive Operations',
+          email: payload.email || '',
+          fullName: payload.fullName || payload.name || 'User',
+          role: payload.role || 'USER',
+          department: payload.department || payload.role || 'Operations',
           isActive: payload.isActive !== false,
         };
       }
@@ -318,7 +302,7 @@ export class AuthService {
     const current = this._currentUser();
     const token = this._accessToken() || `mo_jwt_${newRole.toLowerCase()}_${Date.now()}`;
     const updatedUser: User = {
-      ...(current || DEMO_ACCOUNTS['ADMINISTRATOR'].user),
+      ...(current || { id: '0', email: '', fullName: 'User', role: newRole, isActive: true }),
       role: newRole,
       isActive: true,
     };

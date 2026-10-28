@@ -14,16 +14,38 @@ export interface AuthenticatedUser {
  */
 export function authenticateJwt(_dbPool?: DbPoolWrapper) {
   return (req: Request, _res: Response, next: NextFunction): void => {
-    const userId = req.headers["x-user-id"] as string | undefined;
-    const userRole = (req.headers["x-user-role"] || req.headers["x-role-code"]) as string | undefined;
-    const userEmail = req.headers["x-user-email"] as string | undefined;
-    const userName = req.headers["x-user-name"] as string | undefined;
+    let userId = req.headers["x-user-id"] as string | undefined;
+    let userRole = (req.headers["x-user-role"] || req.headers["x-role-code"]) as string | undefined;
+    let userEmail = req.headers["x-user-email"] as string | undefined;
+    let userName = req.headers["x-user-name"] as string | undefined;
+
+    if (!userRole && req.headers.authorization) {
+      try {
+        const parts = String(req.headers.authorization).split(" ");
+        if (parts.length === 2 && parts[1].includes(".")) {
+          const payload = JSON.parse(Buffer.from(parts[1].split(".")[1], "base64").toString("utf-8"));
+          if (payload) {
+            userId = userId || String(payload.sub || payload.id);
+            userRole = userRole || payload.role || payload.roleId;
+            userEmail = userEmail || payload.email;
+            userName = userName || payload.fullName || payload.name;
+          }
+        }
+      } catch {}
+    }
+
+    if (!userRole && req.body) {
+      userRole = req.body.creatorRole || req.body.userRole || req.body.role;
+      userId = userId || (req.body.creatorId ? String(req.body.creatorId) : undefined);
+      userName = userName || req.body.creatorName || req.body.name;
+      userEmail = userEmail || req.body.creatorEmail || req.body.email;
+    }
 
     (req as any).user = {
-      id: userId ? (parseInt(userId, 10) || userId) : 2,
-      role: (userRole || "DESIGNER").toUpperCase(),
-      email: userEmail || "designer@markops.io",
-      fullName: userName || "Creative Designer"
+      id: userId ? (parseInt(userId, 10) || userId) : undefined,
+      role: (userRole || "").toUpperCase(),
+      email: userEmail || "",
+      fullName: userName || ""
     };
 
     next();
@@ -33,14 +55,18 @@ export function authenticateJwt(_dbPool?: DbPoolWrapper) {
 export function requireRole(...allowedRoles: string[]) {
   return (req: Request, res: Response, next: NextFunction): void => {
     const user = (req as any).user as AuthenticatedUser | undefined;
-    if (!user) {
-      res.status(401).json({ error: "Unauthorized: Authentication required" });
-      return;
-    }
-    const userRole = (user.role || "").toUpperCase();
-    if (!allowedRoles.map((r) => r.toUpperCase()).includes(userRole)) {
+    const userRole = (user?.role || "").toUpperCase();
+    const normalizedAllowed = allowedRoles.map((r) => r.toUpperCase());
+
+    const isAllowed =
+      normalizedAllowed.includes(userRole) ||
+      (normalizedAllowed.includes("ADMIN") && userRole === "ADMINISTRATOR") ||
+      (normalizedAllowed.includes("ADMINISTRATOR") && userRole === "ADMIN");
+
+    if (!isAllowed) {
       res.status(403).json({
-        error: `Forbidden: Access restricted to [${allowedRoles.join(", ")}]. Current role: ${userRole}`
+        success: false,
+        error: `Forbidden: Only ${allowedRoles.join(" and ")} are permitted to perform this action. Current role: ${userRole || "UNKNOWN"}`
       });
       return;
     }

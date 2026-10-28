@@ -11,19 +11,7 @@ export class UserManagementService {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
 
-  private readonly PRIMARY_ADMIN: ManagedUser = {
-    id: '1',
-    email: 'admin@markops.io',
-    fullName: 'System Administrator',
-    role: 'ADMINISTRATOR',
-    department: 'Executive Operations',
-    isActive: true,
-    lastLoginAt: 'Just now',
-    createdAt: '2026-01-10',
-    avatarUrl: '/uploads/avatars/avatar_1_1791895994639.png',
-  };
-
-  private readonly _users = signal<ManagedUser[]>([this.PRIMARY_ADMIN]);
+  private readonly _users = signal<ManagedUser[]>([]);
 
   readonly users = computed(() => this._users());
   readonly activeUsersCount = computed(() => this._users().filter((u) => u.isActive).length);
@@ -31,25 +19,19 @@ export class UserManagementService {
 
   constructor() {
     if (this.isBrowser) {
-      try {
-        localStorage.removeItem('markops_users_db_store');
-      } catch {}
       this.loadUsersFromDatabase();
     }
   }
 
- 
   async loadUsersFromDatabase(): Promise<void> {
     try {
       const res = await safeFetch('/api/users');
       if (res.ok) {
-        const text = await res.text();
-        if (text && text.trim().startsWith('[') || text.trim().startsWith('{')) {
-          const data = JSON.parse(text);
-          if (Array.isArray(data) && data.length > 0) {
-            this._users.set(data);
-            return;
-          }
+        const json = await res.json();
+        const list: ManagedUser[] = Array.isArray(json) ? json : (json?.data || []);
+        if (list && list.length > 0) {
+          this._users.set(list);
+          return;
         }
       }
     } catch (err) {
