@@ -54,11 +54,6 @@ export async function testConnection() {
 
 export const initDatabase = testConnection;
 
-// ==============================================================================
-// Domain Entity Interfaces (Mapped directly to Schema.sql 5 tables)
-// ==============================================================================
-
-// 1. Table: ourproducts
 export interface ProductItem {
   id: string;
   name: string;

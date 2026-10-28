@@ -48,28 +48,28 @@
     }
   },
   "chunks": {
-    "_xhr-chunk-sBaWxn4Z": {
-      "file": "_xhr-chunk-sBaWxn4Z.js",
+    "_xhr-chunk-DjcptqSM": {
+      "file": "_xhr-chunk-DjcptqSM.js",
       "isDynamicEntry": false
     },
-    "common-DdVQVZhg": {
-      "file": "common-DdVQVZhg.js",
+    "common-CMVP8Yjq": {
+      "file": "common-CMVP8Yjq.js",
       "isDynamicEntry": false
     },
-    "core-CqYqrg3J": {
-      "file": "core-CqYqrg3J.js",
+    "core-CNjJsE2e": {
+      "file": "core-CNjJsE2e.js",
       "isDynamicEntry": false
     },
-    "esm5-sVPx2E-k": {
-      "file": "esm5-sVPx2E-k.js",
+    "esm5-cmvpcM3J": {
+      "file": "esm5-cmvpcM3J.js",
       "isDynamicEntry": false
     },
-    "http-CAhgucSm": {
-      "file": "http-CAhgucSm.js",
+    "http-JW52dn9E": {
+      "file": "http-JW52dn9E.js",
       "isDynamicEntry": false
     },
-    "platform-browser-DgGalA6y": {
-      "file": "platform-browser-DgGalA6y.js",
+    "platform-browser-gzYHFeEr": {
+      "file": "platform-browser-gzYHFeEr.js",
       "isDynamicEntry": false
     }
   }

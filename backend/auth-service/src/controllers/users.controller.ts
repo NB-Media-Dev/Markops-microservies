@@ -9,7 +9,6 @@ export interface User {
   passwordHash: string;
   avatar_image?: string | null;
   roleId: string;
-  department?: string | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -28,7 +27,7 @@ export function sanitizeUser(user: any): any {
 // Database helper queries
 export async function findUserById(id: string | number): Promise<User | null> {
   const [rows]: any = await pool.execute(
-    `SELECT u.id, u.name, u.email, u.password AS passwordHash, u.avatar_image, u.roleId, u.department, u.isActive, u.createdAt, u.updatedAt,
+    `SELECT u.id, u.name, u.email, u.password AS passwordHash, u.avatar_image, u.roleId, u.isActive, u.createdAt, u.updatedAt,
             r.name as roleName
      FROM User u
      LEFT JOIN Role r ON u.roleId = r.id
@@ -42,7 +41,7 @@ export async function findUserById(id: string | number): Promise<User | null> {
 export async function findUserByEmail(email: string): Promise<User | null> {
   const lowercaseEmail = email.toLowerCase().trim();
   const [rows]: any = await pool.execute(
-    `SELECT u.id, u.name, u.email, u.password AS passwordHash, u.avatar_image, u.roleId, u.department, u.isActive, u.createdAt, u.updatedAt,
+    `SELECT u.id, u.name, u.email, u.password AS passwordHash, u.avatar_image, u.roleId, u.isActive, u.createdAt, u.updatedAt,
             r.name as roleName
      FROM User u
      LEFT JOIN Role r ON u.roleId = r.id
@@ -78,7 +77,6 @@ export async function createUser(data: {
   email: string;
   passwordHash: string;
   role?: string;
-  department?: string | null;
   avatar_image?: string | null;
   isActive?: boolean;
 }): Promise<User> {
@@ -86,11 +84,11 @@ export async function createUser(data: {
   const lowercaseEmail = data.email.toLowerCase().trim();
   const avatar: string | null = data.avatar_image !== undefined ? data.avatar_image : null;
   const targetRoleId = (await resolveRoleId(data.role)) || "telecaller";
-  const dept = data.department || "General Operations";
+
 
   const insertQuery = `
-    INSERT INTO User (name, email, password, avatar_image, roleId, department, isActive, createdAt, updatedAt)
-    VALUES (?, ?, ?, ?, ?, ?, ?, NOW(3), NOW(3));
+    INSERT INTO User (name, email, password, avatar_image, roleId, isActive, createdAt, updatedAt)
+    VALUES (?, ?, ?, ?, ?, ?, NOW(3), NOW(3));
   `;
 
   await pool.execute(insertQuery, [
@@ -99,7 +97,6 @@ export async function createUser(data: {
     data.passwordHash,
     avatar,
     targetRoleId,
-    dept,
     activeStatus
   ] as any[]);
 
@@ -113,7 +110,7 @@ export async function getUsersController(_req: Request, res: Response, next: Nex
   try {
     const [rows]: any = await pool.execute(
       `SELECT u.id, u.name, u.name as fullName, u.email, u.avatar_image, u.avatar_image as avatarUrl,
-              u.roleId, u.roleId as role, r.name as roleName, u.department,
+              u.roleId, u.roleId as role, r.name as roleName,
               u.isActive, u.createdAt, u.updatedAt
        FROM User u
        LEFT JOIN Role r ON u.roleId = r.id
@@ -127,7 +124,6 @@ export async function getUsersController(_req: Request, res: Response, next: Nex
       fullName: r.fullName || r.name,
       role: r.roleId,
       roleName: r.roleName || r.roleId,
-      department: r.department || "General Operations",
       isActive: Boolean(r.isActive),
       avatarUrl: r.avatarUrl || undefined,
       lastLoginAt: "Recently",
@@ -163,7 +159,7 @@ export async function getUserByIdController(req: Request, res: Response, next: N
 
 export async function createUserController(req: Request, res: Response, next: NextFunction) {
   try {
-    const { name, fullName, email, password, role, roleId, department, avatar_image, avatarUrl, isActive } = req.body;
+    const { name, fullName, email, password, role, roleId, avatar_image, avatarUrl, isActive } = req.body;
 
     const inputName = String(fullName || name || "").trim();
     if (!inputName || !email) {
@@ -187,7 +183,6 @@ export async function createUserController(req: Request, res: Response, next: Ne
       email,
       passwordHash,
       role: targetRoleId || "telecaller",
-      department: department || "General Operations",
       avatar_image: resolvedAvatar,
       isActive: isActive !== undefined ? Boolean(isActive) : true
     });
@@ -201,7 +196,6 @@ export async function createUserController(req: Request, res: Response, next: Ne
       email: sanitized.email,
       fullName: sanitized.fullName || sanitized.name,
       role: sanitized.role || sanitized.roleId,
-      department: sanitized.department,
       isActive: sanitized.isActive,
       avatarUrl: sanitized.avatarUrl,
       data: sanitized
@@ -229,11 +223,11 @@ export async function updateUserController(req: Request, res: Response, next: Ne
       });
     }
 
-    const { name, fullName, email, password, avatar_image, avatarUrl, role, roleId, department, isActive } = req.body;
+    const { name, fullName, email, password, avatar_image, avatarUrl, role, roleId, isActive } = req.body;
 
     const updatedName = (fullName || name) !== undefined ? String(fullName || name).trim() : currentUser.name;
     const updatedEmail = email !== undefined ? email.toLowerCase().trim() : currentUser.email;
-    const updatedDepartment = department !== undefined ? department : (currentUser.department || "General Operations");
+   
 
     let updatedPassword = currentUser.passwordHash;
     if (password && password.trim().length > 0) {
@@ -261,7 +255,7 @@ export async function updateUserController(req: Request, res: Response, next: Ne
 
     const updateQuery = `
       UPDATE User
-      SET name = ?, email = ?, password = ?, avatar_image = ?, roleId = ?, department = ?, isActive = ?, updatedAt = NOW(3)
+      SET name = ?, email = ?, password = ?, avatar_image = ?, roleId = ?, isActive = ?, updatedAt = NOW(3)
       WHERE id = ?
     `;
 
@@ -271,7 +265,6 @@ export async function updateUserController(req: Request, res: Response, next: Ne
       updatedPassword,
       updatedAvatar,
       updatedRoleId,
-      updatedDepartment,
       updatedIsActive,
       id
     ] as any[]);
