@@ -1,0 +1,328 @@
+@use 'sass:color';
+
+$ui-orange: #FF9F1C;
+$ui-orange-bg: #FFF5E6;
+$ui-text-dark: #2B2D42;
+$ui-text-muted: #8D99AE;
+$ui-border-color: #E2E8F0;
+$ui-light-bg: #F8FAFC;
+
+.table-card {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid $ui-border-color;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.01);
+  font-family: inherit;
+
+  .card-title-bar {
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #F1F5F9;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+
+    .title-with-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+
+      .title-icon-squircle {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        background: #F1F5F9;
+        color: $ui-text-dark;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        .material-symbols-outlined { font-size: 20px; }
+      }
+
+      h3 {
+        font-size: 1.05rem;
+        font-weight: 700;
+        margin: 0;
+        color: $ui-text-dark;
+      }
+
+      .table-sub-meta {
+        font-size: 0.785rem;
+        color: $ui-text-muted;
+        display: block;
+        margin-top: 2px;
+      }
+    }
+  }
+
+  .btn-action-primary-orange {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background-color: $ui-orange;
+    border: none;
+    color: #FFFFFF;
+    padding: 0 16px;
+    height: 36px;
+    border-radius: 8px;
+    font-size: 0.825rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    .material-symbols-outlined { font-size: 16px; font-weight: bold; }
+    &:hover { background-color: color.adjust($ui-orange, $lightness: -5%); }
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+
+    /* 🏷️ ORANGE ACCENT DATA TABLE HEADER */
+    thead th {
+      background-color: $ui-orange-bg;
+      color: #E28704;
+      font-weight: 700;
+      font-size: 0.725rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.75rem 1.25rem;
+      border-bottom: 1px solid rgba($ui-orange, 0.15);
+      white-space: nowrap;
+      text-align: left;
+
+      &.text-right { text-align: right; }
+    }
+
+    tbody tr.ad-row {
+      border-bottom: 1px solid #F1F5F9;
+      &:hover { background-color: $ui-light-bg; }
+      &:last-child { border-bottom: none; }
+    }
+
+    td {
+      padding: 0.85rem 1.25rem;
+      color: $ui-text-dark;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+  }
+}
+
+/* 🖼️ AD IMAGERY PREVIEWS & TITLES */
+.ad-title-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  .ad-thumb-preview {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    overflow: hidden;
+    background-color: #3B82F6; // Blue background theme block placeholder
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid $ui-border-color;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    &.ad-thumb-default {
+      color: #FFFFFF;
+      .material-symbols-outlined { font-size: 16px; }
+    }
+  }
+
+  .ad-text-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    .ad-name-text {
+      font-weight: 700;
+      color: $ui-text-dark;
+      font-size: 0.85rem;
+    }
+
+    .ad-meta-sub-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ad-sub-text {
+      font-size: 0.75rem;
+      color: $ui-text-muted;
+    }
+
+    .ad-design-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #047857;
+      background: #E6F4EA;
+      padding: 1px 6px;
+      border-radius: 4px;
+
+      .material-symbols-outlined { font-size: 11px; font-weight: bold; }
+    }
+  }
+}
+
+/* 🏷️ CHIP METADATA ENTRIES */
+.campaign-tag-pill {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: $ui-text-dark;
+}
+
+.platform-tag {
+  font-size: 0.785rem;
+  font-weight: 600;
+  color: $ui-text-muted;
+  
+  &.platform-meta { color: #0064E0; }
+  &.platform-google { color: #EA4335; }
+  &.platform-instagram { color: #E1306C; }
+  &.platform-linkedin { color: #0A66C2; }
+  &.platform-youtube { color: #FF0000; }
+}
+
+.metric-bold-val {
+  font-weight: 700;
+  color: $ui-text-dark;
+  
+  &.text-coral { color: #EF4444; }
+}
+
+/* 🏷️ STATUS CAPSULES FLOW */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background-color: #EDF2F7;
+  color: #4A5568;
+
+  &.status-pill-active {
+    background-color: #E0F2FE;
+    color: #0369A1;
+  }
+  &.status-pill-paused {
+    background-color: #FEE2E2;
+    color: #B91C1C;
+  }
+  &.status-pill-completed {
+    background-color: #DCFCE7;
+    color: #15803D;
+    
+    .check-mark-icon {
+      font-size: 13px;
+      color: #16A34A;
+      margin-left: 2px;
+    }
+  }
+}
+
+/* 🛠️ CONTROLS LINKS ACTIONS BUTTONS WRAPPER */
+.action-buttons-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  .btn-view-action {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 12px;
+    height: 28px;
+    background-color: #FFF5E6;
+    border: 1px solid rgba($ui-orange, 0.2);
+    border-radius: 99px;
+    color: $ui-orange;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    .material-symbols-outlined { font-size: 14px; }
+    &:hover { background-color: $ui-orange; color: #FFFFFF; }
+  }
+
+  .btn-delete-action {
+    background: transparent;
+    border: none;
+    color: $ui-text-muted;
+    cursor: pointer;
+    display: flex;
+    padding: 4px;
+    border-radius: 4px;
+    
+    .material-symbols-outlined { font-size: 18px; }
+    &:hover { color: #B91C1C; background-color: #FEF2F2; }
+  }
+}
+
+/* 🪹 EMPTY RECONCILIATION SHEET STYLE */
+.empty-state-cell {
+  padding: 3rem 1.25rem !important;
+  text-align: center;
+  
+  .empty-state-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    
+    .empty-icon-squircle {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background-color: #F1F5F9;
+      color: $ui-text-muted;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+      
+      .material-symbols-outlined { font-size: 22px; }
+    }
+    
+    .empty-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: $ui-text-dark;
+      margin: 0 0 0.25rem 0;
+    }
+    
+    .empty-subtitle {
+      font-size: 0.8rem;
+      color: $ui-text-muted;
+      margin: 0 0 1.25rem 0;
+      max-width: 320px;
+      line-height: 1.4;
+    }
+  }
+}

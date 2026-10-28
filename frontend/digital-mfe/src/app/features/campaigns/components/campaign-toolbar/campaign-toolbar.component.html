@@ -1,0 +1,68 @@
+<div class="toolbar-card">
+  
+  <!-- LEFT: SEARCH CONTAINER (Orange accent on click, square-round outline shape) -->
+  <div class="search-box">
+    <label for="campaignSearchInput" class="sr-only">Search campaigns</label>
+    <span class="material-symbols-outlined search-icon">search</span>
+    <input
+      id="campaignSearchInput"
+      type="text"
+      [ngModel]="searchQuery"
+      (ngModelChange)="onSearch($event)"
+      placeholder="Search by campaign name or objective..."
+    />
+    @if (searchQuery) {
+      <button class="clear-search-btn" (click)="clearSearch()" title="Clear Search">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    }
+  </div>
+
+  <!-- RIGHT: SEGMENTED FILTERS (Converted into light tab layouts with orange fills) -->
+  <div class="segmented-tabs">
+    <button
+      type="button"
+      class="tab-pill-btn"
+      [class.active]="filterStatus === 'ALL'"
+      (click)="setFilter('ALL')"
+    >
+      All ({{ totalCampaignsCount }})
+    </button>
+
+    <button
+      type="button"
+      class="tab-pill-btn"
+      [class.active]="filterStatus === 'ACTIVE'"
+      (click)="setFilter('ACTIVE')"
+    >
+      Active ({{ activeCount }})
+    </button>
+
+    <button
+      type="button"
+      class="tab-pill-btn"
+      [class.active]="filterStatus === 'PLANNING'"
+      (click)="setFilter('PLANNING')"
+    >
+      Planning ({{ planningCount }})
+    </button>
+
+    <button
+      type="button"
+      class="tab-pill-btn"
+      [class.active]="filterStatus === 'PAUSED'"
+      (click)="setFilter('PAUSED')"
+    >
+      Paused ({{ pausedCount }})
+    </button>
+
+    <button
+      type="button"
+      class="tab-pill-btn"
+      [class.active]="filterStatus === 'COMPLETED'"
+      (click)="setFilter('COMPLETED')"
+    >
+      Completed ({{ completedCount }})
+    </button>
+  </div>
+</div>

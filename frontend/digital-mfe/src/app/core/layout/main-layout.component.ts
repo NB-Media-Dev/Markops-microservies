@@ -1,0 +1,188 @@
+import { Component, inject, signal, computed, DestroyRef, ElementRef, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
+import { AuthService } from '../services/auth.service';
+import { UserRole } from '../models/auth.model';
+import { SYSTEM_ROLES_METADATA } from '../models/user-management.model';
+import { getApiUrl } from '../utils/api-url.utils';
+import { filter } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
+export interface NavMenuItem {
+  label: string;
+  route: string;
+  icon: string;
+  badge?: string;
+  badgeType?: string;
+}
+
+export const ROLE_SIDEBAR_MENU: Record<string, NavMenuItem[]> = {
+  ADMINISTRATOR: [
+    { label: 'Campaigns', route: '/campaigns', icon: 'campaign' },
+    { label: 'Ads', route: '/ads', icon: 'ads_click' },
+    { label: 'Leads', route: '/leads', icon: 'contacts' },
+    { label: 'Downloads', route: '/downloads', icon: 'download' },
+    { label: 'Notifications', route: '/notifications', icon: 'notifications' },
+  ],
+  DIGITAL_MARKETING: [
+    { label: 'Leads', route: '/leads', icon: 'contacts' },
+    { label: 'Campaigns', route: '/campaigns', icon: 'campaign' },
+    { label: 'Ads', route: '/ads', icon: 'ads_click' },
+    { label: 'Ad Metrics', route: '/ad-metrics', icon: 'query_stats' },
+    { label: 'Lead Source', route: '/lead-source', icon: 'share' },
+    { label: 'Notifications', route: '/notifications', icon: 'notifications' },
+  ],
+};
+
+import { NotificationService } from '../services/notification.service';
+import { AccountProfileModalComponent } from './components/account-profile-modal/account-profile-modal.component';
+
+@Component({
+  selector: 'app-main-layout',
+  standalone: true,
+  imports: [CommonModule, RouterOutlet, RouterLink, AccountProfileModalComponent],
+  templateUrl: './main-layout.component.html',
+  styleUrl: './main-layout.component.scss',
+})
+export class MainLayoutComponent {
+  @ViewChild('mainContent') private readonly mainContent?: ElementRef<HTMLElement>;
+
+  readonly authService = inject(AuthService);
+  readonly notifService = inject(NotificationService);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+
+  readonly isNotificationFlyoutOpen = signal<boolean>(false);
+  readonly isProfileModalOpen = signal<boolean>(false);
+
+  openProfileModal(): void {
+    this.isProfileModalOpen.set(true);
+  }
+
+  closeProfileModal(): void {
+    this.isProfileModalOpen.set(false);
+  }
+
+  getAvatarUrl(avatarUrl?: string): string {
+    if (!avatarUrl) return '';
+    return getApiUrl(avatarUrl);
+  }
+
+  readonly activeRole = computed<UserRole>(() => {
+    return this.authService.currentUser()?.role || 'ADMINISTRATOR';
+  });
+
+  readonly roleDisplayLabel = computed<string>(() => {
+    const role = this.activeRole();
+    const meta = SYSTEM_ROLES_METADATA.find((r) => r.code === role);
+    return meta ? meta.label : role;
+  });
+
+  readonly menuItems = computed<NavMenuItem[]>(() => {
+    const role = this.activeRole();
+    return ROLE_SIDEBAR_MENU[role] || ROLE_SIDEBAR_MENU['ADMINISTRATOR'] || [];
+  });
+
+  readonly userInitials = computed<string>(() => {
+    const user = this.authService.currentUser();
+    if (!user?.fullName) return 'SA';
+    const parts = user.fullName.trim().split(' ').filter(Boolean);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return (user.fullName.slice(0, 2) || 'SA').toUpperCase();
+  });
+
+  readonly roleAction = computed<{ link: string; label: string; icon: string } | null>(() => {
+    const role = this.activeRole();
+    switch (role) {
+      case 'DIGITAL_MARKETING':
+        return { link: '/leads', label: 'Leads', icon: 'group_add' };
+      default:
+        return null;
+    }
+  });
+
+  readonly searchQuery = signal<string>('');
+
+  constructor() {
+    this.router.events
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            this.scrollPageToTop();
+          });
+        });
+      });
+  }
+
+  private scrollPageToTop(): void {
+    if (this.mainContent) {
+      this.mainContent.nativeElement.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    }
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }
+
+  onSearch(event: Event): void {
+    const query = (event.target as HTMLInputElement).value;
+    this.searchQuery.set(query);
+  }
+
+  toggleNotificationFlyout(): void {
+    this.isNotificationFlyoutOpen.update((val) => !val);
+  }
+
+  closeNotificationFlyout(): void {
+    this.isNotificationFlyoutOpen.set(false);
+  }
+
+  readonly notifFlyoutFilter = signal<'ALL' | 'UNREAD' | 'TODAY'>('ALL');
+
+  readonly flyoutNotifications = computed(() => {
+    const list = this.notifService.notifications();
+    const f = this.notifFlyoutFilter();
+    if (f === 'UNREAD') {
+      return list.filter((n) => !n.isRead);
+    }
+    if (f === 'TODAY') {
+      const startOfToday = new Date().setHours(0, 0, 0, 0);
+      return list.filter((n) => new Date(n.createdAt).getTime() >= startOfToday);
+    }
+    return list;
+  });
+
+  cleanTitle(title: string | undefined | null): string {
+    if (!title) return '';
+    return title
+      .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{2300}-\u{23FF}\u{2B50}\u{200D}]/gu, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  setFlyoutFilter(f: 'ALL' | 'UNREAD' | 'TODAY'): void {
+    this.notifFlyoutFilter.set(f);
+  }
+
+  onNotificationClick(item: any): void {
+    this.closeNotificationFlyout();
+    this.notifService.handleNotificationClick(item);
+  }
+
+  onToastClick(toast: any): void {
+    this.notifService.handleNotificationClick(toast);
+  }
+
+  onToastClose(event: Event): void {
+    event.stopPropagation();
+    this.notifService.closeToast();
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
+}

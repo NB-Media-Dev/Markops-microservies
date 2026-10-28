@@ -13,7 +13,7 @@ dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 dotenv.config({ path: path.resolve(process.cwd(), "backend/.env") });
 dotenv.config({ path: path.resolve(process.cwd(), "backend/creative-task-service/.env") });
 
-const databaseUrl = process.env.DATABASE_URL || "mysql://root:tiger@localhost:3306/designer_db";
+const databaseUrl = process.env.DATABASE_URL || "mysql://root:nb123@localhost:3306/designer_db";
 
 const dbUrl = new URL(databaseUrl);
 
@@ -54,11 +54,6 @@ export async function testConnection() {
 
 export const initDatabase = testConnection;
 
-// ==============================================================================
-// Domain Entity Interfaces (Mapped directly to Schema.sql 5 tables)
-// ==============================================================================
-
-// 1. Table: ourproducts
 export interface ProductItem {
   id: string;
   name: string;

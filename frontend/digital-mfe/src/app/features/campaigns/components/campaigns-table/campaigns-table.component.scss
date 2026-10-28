@@ -1,0 +1,289 @@
+@use 'sass:color';
+
+$ui-orange: #C2410C;
+$ui-orange-bg: #FFF5E6;
+$ui-text-dark: #1E293B;
+$ui-text-muted: #475569;
+$ui-border-color: #E2E8F0;
+$ui-light-bg: #F8FAFC;
+
+.table-card {
+  background: #FFFFFF;
+  border-radius: 12px; 
+  border: 1px solid $ui-border-color;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.01);
+  font-family: inherit;
+
+  .card-title-bar {
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #FFFFFF;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+
+    .title-with-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+
+      .title-icon-squircle {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        background: #F1F5F9;
+        color: $ui-text-dark;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        .material-symbols-outlined { font-size: 20px; }
+      }
+
+      h3 {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: $ui-text-dark;
+        margin: 0;
+      }
+
+      .table-sub-meta {
+        font-size: 0.785rem;
+        color: $ui-text-muted;
+        display: block;
+        margin-top: 2px;
+      }
+    }
+  }
+
+  .btn-action-primary-orange {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background-color: $ui-orange;
+    border: none;
+    color: #FFFFFF;
+    padding: 0 16px;
+    height: 36px;
+    border-radius: 8px;
+    font-size: 0.825rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    .material-symbols-outlined { font-size: 16px; font-weight: bold; }
+    &:hover { background-color: color.adjust($ui-orange, $lightness: -5%); }
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+    width: 100%;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+
+    /* COLUMN HEADER THEME RECONCILIATION */
+    thead th {
+      background-color: $ui-orange-bg; /* Dynamic header matching image 1 */
+      color: #E28704;
+      font-weight: 700;
+      font-size: 0.725rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.75rem 1.25rem;
+      border-bottom: 1px solid rgba($ui-orange, 0.15);
+      white-space: nowrap;
+      text-align: left;
+
+      &.text-right { text-align: right; }
+    }
+
+    tbody tr.campaign-row {
+      border-bottom: 1px solid #F1F5F9;
+
+      &:hover { background-color: $ui-light-bg; }
+      &:last-child { border-bottom: none; }
+
+      td {
+        padding: 0.85rem 1.25rem;
+        vertical-align: middle;
+        color: $ui-text-dark;
+        white-space: nowrap;
+      }
+    }
+  }
+}
+
+/* 👥 CAMPAIGN LEADING CELLS */
+.cmp-title-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  .cmp-avatar-box {
+    position: relative;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background-color: #3B82F6; // Blue background square blocks
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    .avatar-fallback-text {
+      color: #FFFFFF;
+      font-weight: 700;
+      font-size: 0.75rem;
+    }
+
+    .cmp-color-dot {
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      border: 2px solid #FFFFFF;
+      background-color: #94A3B8;
+
+      &.dot-careermate { background-color: #10B981; }
+      &.dot-classmate { background-color: #F59E0B; }
+      &.dot-jesus { background-color: #EF4444; }
+    }
+  }
+
+  .cmp-text-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    .cmp-name-text {
+      font-weight: 700;
+      color: $ui-text-dark;
+      font-size: 0.85rem;
+    }
+
+    .cmp-sub-text {
+      font-size: 0.75rem;
+      color: $ui-text-muted;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+  }
+}
+
+/* 🏷️ BADGES & TIMELINES */
+.metric-bold-val {
+  font-weight: 700;
+  color: $ui-text-dark;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background-color: #EDF2F7;
+  color: #4A5568;
+
+  &.status-pill-active {
+    background-color: #E0F2FE;
+    color: #0369A1;
+  }
+  &.status-pill-planning {
+    background-color: #FEF3C7;
+    color: #78350F;
+  }
+  &.status-pill-paused {
+    background-color: #FEE2E2;
+    color: #B91C1C;
+  }
+  &.status-pill-completed {
+    background-color: #DCFCE7;
+    color: #15803D;
+    
+    .check-mark-icon {
+      font-size: 13px;
+      color: #16A34A;
+      margin-left: 2px;
+    }
+  }
+}
+
+/* 📊 PROGRESS TIMELINE ROW COMPONENT */
+.conv-rate-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 100px;
+
+  .rate-val {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #EF4444; /* Custom indicator text */
+  }
+
+  .rate-bar-bg {
+    width: 100%;
+    height: 4px;
+    background-color: #F1F5F9;
+    border-radius: 99px;
+    overflow: hidden;
+
+    .rate-bar-fill {
+      height: 100%;
+      background-color: #EF4444; /* Custom indicator layout line */
+      border-radius: 99px;
+    }
+  }
+}
+
+/* 🛠️ ROW ACTION LINKS BUTTONS */
+.action-buttons-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  .btn-view-action {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 12px;
+    height: 28px;
+    background-color: #FFF5E6;
+    border: 1px solid rgba($ui-orange, 0.2);
+    border-radius: 99px;
+    color: $ui-orange;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    .material-symbols-outlined { font-size: 14px; }
+    &:hover { background-color: $ui-orange; color: #FFFFFF; }
+  }
+
+  .btn-delete-action {
+    background: transparent;
+    border: none;
+    color: $ui-text-muted;
+    cursor: pointer;
+    display: flex;
+    padding: 4px;
+    border-radius: 4px;
+    
+    .material-symbols-outlined { font-size: 18px; }
+    &:hover { color: #991B1B; background-color: #FEF2F2; }
+  }
+}

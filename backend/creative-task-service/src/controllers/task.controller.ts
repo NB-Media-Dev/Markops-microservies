@@ -42,7 +42,6 @@ export async function findTask(taskId: any): Promise<TaskItem | null> {
     if (Array.isArray(rows) && rows.length > 0) {
       const row: any = rows[0];
 
-      // 1. Fetch Deliverables (Briefs & Versions)
       let deliverables: DeliverableItem[] = [];
       try {
         const [dRows]: any = await dbPool.query(
@@ -63,7 +62,6 @@ export async function findTask(taskId: any): Promise<TaskItem | null> {
         console.warn("[findTask deliverables Warning]:", e?.message || e);
       }
 
-      // 2. Fetch Activities (Status changes & Comments)
       let activities: ActivityItem[] = [];
       try {
         const [aRows]: any = await dbPool.query(
@@ -85,37 +83,6 @@ export async function findTask(taskId: any): Promise<TaskItem | null> {
       } catch (e: any) {
         console.warn("[findTask activities Warning]:", e?.message || e);
       }
-
-      const mappedTask: TaskItem = {
-        id: row.id,
-        title: row.title || "Untitled Task",
-        taskType: row.task_type || "BANNER",
-        packageId: row.package_id || null,
-        packageName: row.resolved_package_name || row.package_id || "",
-        productId: row.product_id || null,
-        productName: row.product_name || row.resolved_product_name || "",
-        description: row.description || "",
-        attachmentUrl: row.attachment_url || "",
-        attachmentName: row.attachment_name || "",
-        reviewerFeedback: row.reviewer_feedback || "",
-        status: row.status || "ASSIGNED",
-        priority: row.priority || "MEDIUM",
-        createdBy: row.created_by,
-        creatorName: row.resolved_creator_name || (row.created_by === 1 ? "Admin" : "System Admin"),
-        assignedTo: row.assigned_to,
-        assigneeName: row.resolved_assignee_name || (row.assigned_to === 3 ? "swathi" : (row.assigned_to ? `Designer #${row.assigned_to}` : "Unassigned")),
-        dueDate: formatDueDate(row.due_date),
-        progressPercent: computeTaskProgress(row.status, row.progress_percent),
-        createdAt: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString(),
-        updatedAt: row.updated_at ? new Date(row.updated_at).toISOString() : new Date().toISOString(),
-        deliverables,
-        activities,
-        versions: deliverables,
-        comments: activities.filter((a) => a.comment),
-        statusHistory: activities
-      };
-
-      return mappedTask;
     }
   } catch (e: any) {
     console.error("[findTask DB Error]:", e?.message || e);
@@ -202,9 +169,9 @@ export async function getTasks(req: Request, res: Response): Promise<Response> {
         status: row.status,
         priority: row.priority,
         createdBy: row.created_by,
-        creatorName: row.resolved_creator_name || (row.created_by === 1 ? "Admin" : "System Admin"),
+        creatorName: row.resolved_creator_name ,
         assignedTo: row.assigned_to,
-        assigneeName: row.resolved_assignee_name || (row.assigned_to === 3 ? "swathi" : (row.assigned_to ? `Designer #${row.assigned_to}` : "Unassigned")),
+        assigneeName: row.resolved_assignee_name ,
         dueDate: formatDueDate(row.due_date),
         progressPercent: computeTaskProgress(row.status, row.progress_percent),
         createdAt: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString(),

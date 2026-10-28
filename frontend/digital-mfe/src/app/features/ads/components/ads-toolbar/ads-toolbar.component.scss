@@ -1,0 +1,160 @@
+$color-orange: #FF9F1C;
+$color-text-main: #2B2D42;
+$color-text-muted: #8D99AE;
+$color-border-light: #E5E7EB;
+
+.toolbar-card {
+  background: #FFFFFF;
+  border: 1px solid $color-border-light;
+  border-radius: 12px; // Rectangular rounded framing profile
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  font-family: inherit;
+
+  @media (max-width: 960px) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  /* 🔍 SEARCH CONTAINER INPUT */
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: #FFFFFF;
+    border: 1.5px solid rgba($color-orange, 0.3); // Linear matching accent line frame
+    border-radius: 8px;
+    padding: 0 0.85rem;
+    height: 38px;
+    flex: 1;
+    min-width: 280px;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+
+    @media (max-width: 960px) {
+      width: 100%;
+      min-width: unset;
+    }
+
+    &:focus-within {
+      background: #FFFFFF;
+      border-color: $color-orange;
+      box-shadow: 0 0 0 3px rgba($color-orange, 0.08);
+    }
+
+    .search-icon {
+      color: $color-text-muted;
+      font-size: 20px;
+    }
+
+    input {
+      border: none;
+      background: transparent;
+      outline: none;
+      font-size: 0.85rem;
+      width: 100%;
+      color: $color-text-main;
+      font-weight: 500;
+      height: 100%;
+
+      &::placeholder {
+        color: #CBD5E1;
+      }
+    }
+
+    .clear-search-btn {
+      border: none;
+      background: transparent;
+      padding: 0;
+      color: #94A3B8;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+
+      .material-symbols-outlined {
+        font-size: 16px;
+      }
+
+      &:hover {
+        color: $color-text-main;
+      }
+    }
+  }
+
+  /* 🎛️ PLATFORM TOGGLES CONTAINER CONTAINER */
+  .segmented-tabs {
+    display: flex;
+    align-items: center;
+    background: #FFFFFF;
+    border: 1.5px solid rgba($color-orange, 0.2); // Frame wrapper housing lines
+    border-radius: 8px;
+    padding: 3px;
+    gap: 2px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
+
+    @media (max-width: 960px) {
+      width: 100%;
+      justify-content: flex-start;
+    }
+
+    .tab-pill-btn {
+      border: none;
+      background: transparent;
+      padding: 0 0.85rem;
+      height: 32px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: $color-text-main;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+
+      /* Platform Brand Identity Dot Indicators */
+      .tab-indicator-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        transition: transform 0.15s ease;
+
+        &.dot-meta { background-color: #0064E0; }
+        &.dot-google { background-color: #EA4335; }
+        &.dot-instagram { background-color: #E1306C; }
+        &.dot-linkedin { background-color: #0A66C2; }
+        &.dot-youtube { background-color: #FF0000; }
+      }
+
+      &:hover {
+        color: $color-text-main;
+        background-color: #F8FAFC;
+      }
+
+      /* Active Selected Switch State */
+      &.active {
+        background-color: $color-orange;
+        color: #FFFFFF !important;
+        font-weight: 700;
+        box-shadow: none;
+
+        /* Turn branding dots white when button goes solid orange for visibility */
+        .tab-indicator-dot {
+          background-color: #FFFFFF !important;
+          transform: scale(1.1);
+        }
+      }
+    }
+  }
+}

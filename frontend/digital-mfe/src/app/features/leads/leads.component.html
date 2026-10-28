@@ -1,0 +1,215 @@
+<div class="leads-page" [class.embedded-view]="embedded">
+  <input
+    id="leadsFileInput"
+    aria-label="Upload leads file"
+    #leadFileInput
+    type="file"
+    accept=".xlsx,.xls,.csv"
+    hidden
+    (change)="onLeadsFileSelected($event)"
+  />
+  @if (!embedded) {
+    <header class="page-clean-branding-header">
+      <div class="header-titles-block">
+        <h1 class="page-main-orange-title">Digital Marketing</h1>
+        <div class="page-breadcrumb-subrow">
+          <a
+            (click)="onBreadcrumbNavigate('dashboard', $event)"
+            class="bc-link"
+            href="javascript:void(0)"
+          >{{ activeProductName() }}</a>
+          <span class="bc-sep">&gt;</span>
+          <a
+            (click)="onBreadcrumbNavigate('packages', $event)"
+            class="bc-link"
+            href="javascript:void(0)"
+          >Available Package</a>
+          <span class="bc-sep">&gt;</span>
+          <a
+            (click)="onBreadcrumbNavigate('operations', $event)"
+            class="bc-link"
+            href="javascript:void(0)"
+          >Department Operations</a>
+          <span class="bc-sep">&gt;</span>
+          <a routerLink="/campaigns" class="bc-link">Digital Marketing</a>
+          <span class="bc-sep">&gt;</span>
+          <span class="bc-current">Leads</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        @if (canCreateLeads()) {
+          <button
+            class="btn-lead-upload-outline"
+            type="button"
+            [disabled]="isUploadingLeads()"
+            (click)="leadFileInput.click()"
+            title="Upload leads via Excel / CSV"
+          >
+            <span class="material-symbols-outlined fs-18">upload_file</span>
+            <span>{{ isUploadingLeads() ? 'Uploading...' : 'Upload Lead' }}</span>
+          </button>
+          <button
+            class="btn-lead-create-action"
+            type="button"
+            (click)="openModal()"
+            title="Add a new lead"
+          >
+            <span class="material-symbols-outlined fs-18">person_add</span>
+            <span>Add Lead</span>
+          </button>
+        }
+        @if (!canCreateLeads() && !isTelecaller()) {
+          <div class="role-restricted-badge">
+            <span class="material-symbols-outlined text-amber">lock</span>
+            <span>Lead creation restricted to Marketing roles</span>
+          </div>
+        }
+      </div>
+    </header>
+  }
+
+  @if (leadUploadStatus()) {
+    <output class="alert-banner alert-success">
+      <div class="alert-icon-wrap">
+        <span class="material-symbols-outlined">check_circle</span>
+      </div>
+      <span class="alert-text">{{ leadUploadStatus() }}</span>
+      <button type="button" class="alert-dismiss-btn" (click)="leadUploadStatus.set(null)" title="Dismiss">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </output>
+  }
+  @if (leadUploadError()) {
+    <div class="alert-banner alert-danger" role="alert">
+      <div class="alert-icon-wrap">
+        <span class="material-symbols-outlined">error</span>
+      </div>
+      <span class="alert-text">{{ leadUploadError() }}</span>
+      <button type="button" class="alert-dismiss-btn" (click)="leadUploadError.set(null)" title="Dismiss">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+  }
+
+  @if (activeTab() === 'LEADS_LIST') {
+
+    <app-leads-toolbar
+      [searchQuery]="searchQuery()"
+      [filterStatus]="filterStatus()"
+      [filterTelecaller]="filterTelecaller()"
+      [filterCampaign]="filterCampaign()"
+      [isTelecaller]="isTelecaller()"
+      [activeTelecallers]="activeTelecallers()"
+      [availableCampaigns]="availableCampaigns()"
+      [canCreateLeads]="canCreateLeads()"
+      [isUploadingLeads]="isUploadingLeads()"
+      [embedded]="embedded"
+      [hasActiveFilters]="hasActiveFilters()"
+      [filteredLeadsCount]="filteredLeads.length"
+      [myLeadsCount]="myLeadsList().length"
+      (searchChange)="onSearchChange($event)"
+      (statusChange)="onStatusChange($event)"
+      (telecallerChange)="onTelecallerChange($event)"
+      (campaignChange)="onCampaignChange($event)"
+      (resetFilters)="resetFilters()"
+      (uploadExcel)="leadFileInput.click()"
+      (addLead)="openModal()"
+    ></app-leads-toolbar>
+
+    <app-leads-table
+      [isTelecaller]="isTelecaller()"
+      [paginatedLeads]="paginatedLeads"
+      [filteredLeads]="filteredLeads"
+      [myLeadsList]="myLeadsList()"
+      [hasActiveFilters]="hasActiveFilters()"
+      [pageSize]="pageSize()"
+      [pageSizeOptions]="pageSizeOptions"
+      [currentPage]="currentPage()"
+      [totalPages]="totalPages()"
+      [canReassignLeadFn]="canReassignLead.bind(this)"
+      [canEditOrDeleteLeadFn]="canEditOrDeleteLead.bind(this)"
+      [getStatusBadgeClassFn]="getStatusBadgeClass.bind(this)"
+      (pageSizeChange)="setPageSize($event)"
+      (pageChange)="setPage($event)"
+      (leadDetails)="openLeadDetails($event)"
+      (reassign)="assignLead($event)"
+      (edit)="openEditLeadModal($event)"
+      (delete)="deleteLead($event)"
+      (resetFilters)="resetFilters()"
+    ></app-leads-table>
+  }
+
+  @if (activeTab() === 'TELECALLING_MONITOR') {
+    <app-telecalling-monitor
+      [summary]="leadService.summary()"
+    ></app-telecalling-monitor>
+  }
+
+  <app-add-lead-modal
+    [isOpen]="showModal()"
+    [newFirstName]="newFirstName"
+    [newLastName]="newLastName"
+    [newEmail]="newEmail"
+    [newPhone]="newPhone"
+    [newSource]="newSource"
+    [newCampaignId]="newCampaignId"
+    [newAdId]="newAdId"
+    [newAssignedTelecallerId]="newAssignedTelecallerId"
+    [availableCampaigns]="availableCampaigns()"
+    [availableAds]="availableAds()"
+    [activeTelecallers]="activeTelecallers()"
+    [isCreatingLead]="isCreatingLead()"
+    (newFirstNameChange)="newFirstName = $event"
+    (newLastNameChange)="newLastName = $event"
+    (newEmailChange)="newEmail = $event"
+    (newPhoneChange)="newPhone = $event"
+    (newSourceChange)="newSource = $event"
+    (campaignChange)="onCampaignSelectChange($event)"
+    (adChange)="onAdSelectChange($event)"
+    (telecallerChange)="onTelecallerSelectChange($event)"
+    (closeModal)="closeModal()"
+    (save)="createLead()"
+  ></app-add-lead-modal>
+
+  <app-assign-lead-modal
+    [lead]="selectedLeadForAssign"
+    [selectedUserId]="selectedUserId"
+    [realUsersList]="realUsersList()"
+    (userSelected)="onUserSelected($event)"
+    (cancelAssign)="selectedLeadForAssign = null"
+    (confirm)="confirmAssign()"
+  ></app-assign-lead-modal>
+
+  <app-edit-lead-modal
+    [isOpen]="showEditModal()"
+    [lead]="editingLead()"
+    [editFirstName]="editFirstName"
+    [editLastName]="editLastName"
+    [editPhone]="editPhone"
+    [editEmail]="editEmail"
+    [editSource]="editSource"
+    [editCampaignName]="editCampaignName"
+    [editStatus]="editStatus"
+    [editAssignedTo]="editAssignedTo"
+    [editLeadError]="editLeadError()"
+    [isSavingEdit]="isSavingEdit()"
+    [realUsersList]="realUsersList()"
+    (editFirstNameChange)="editFirstName = $event"
+    (editLastNameChange)="editLastName = $event"
+    (editPhoneChange)="editPhone = $event"
+    (editEmailChange)="editEmail = $event"
+    (editSourceChange)="editSource = $event"
+    (editCampaignNameChange)="editCampaignName = $event"
+    (editStatusChange)="editStatus = $event"
+    (editAssignedToChange)="editAssignedTo = $event"
+    (closeModal)="closeEditLeadModal()"
+    (save)="saveLeadEdit()"
+  ></app-edit-lead-modal>
+
+  <app-lead-details-modal
+    [lead]="selectedLeadForDetails()"
+    [historyCalls]="getLeadHistoryCalls(selectedLeadForDetails())"
+    [getStatusBadgeClassFn]="getStatusBadgeClass.bind(this)"
+    (closeModal)="closeLeadDetails()"
+  ></app-lead-details-modal>
+</div>
