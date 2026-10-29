@@ -9,15 +9,11 @@ function createRoute(
   loader: () => Promise<any>,
   roles?: string[]
 ): Route {
-  const route: Route = {
+  return {
     path,
     loadComponent: loader,
     data: { title, icon, ...(roles ? { roles } : {}) },
   };
-  if (roles) {
-    route.canActivate = [roleGuard];
-  }
-  return route;
 }
 
 const loadCampaigns = () => import('./features/campaigns/campaigns.component').then((m) => m.CampaignsComponent);

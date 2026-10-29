@@ -1,17 +1,17 @@
 <div class="users-roles-page">
   <header class="page-header page-clean-branding-header">
     <div class="header-titles-group header-titles-block">
-      <h1 class="page-main-orange-title">Users & Roles Management</h1>
+      <h1 class="page-main-orange-title">Users &amp; Roles Management</h1>
       <div class="page-breadcrumb-subrow">
         <a routerLink="/dashboard" class="bc-link">Dashboard</a>
         <span class="bc-sep">&gt;</span>
-        <span class="bc-current">Users & Roles Management</span>
+        <span class="bc-current">Users &amp; Roles Management</span>
       </div>
     </div>
 
     <div class="header-actions">
-      <button class="btn-obsidian-action" (click)="openCreateUserModal()">
-        <span class="material-symbols-outlined btn-gold-icon">add</span>
+      <button type="button" class="btn-create-user-orange" (click)="openCreateUserModal()">
+        <span class="material-symbols-outlined btn-create-icon">add</span>
         <span>Create User</span>
       </button>
     </div>
@@ -43,23 +43,18 @@
 
   <section class="kpi-grid">
     <div class="kpi-card card-users">
-      <div class="kpi-top-row">
-        <div class="kpi-squircle-icon icon-indigo">
-          <span class="material-symbols-outlined">group</span>
-        </div>
+      <div class="kpi-squircle-icon icon-indigo">
+        <span class="material-symbols-outlined">group</span>
       </div>
       <div class="kpi-body">
         <span class="kpi-title">TOTAL USERS</span>
         <div class="kpi-value">{{ userMgmtService.totalUsersCount() }}</div>
       </div>
-
     </div>
 
     <div class="kpi-card card-active">
-      <div class="kpi-top-row">
-        <div class="kpi-squircle-icon icon-emerald">
-          <span class="material-symbols-outlined">verified_user</span>
-        </div>
+      <div class="kpi-squircle-icon icon-emerald">
+        <span class="material-symbols-outlined">verified_user</span>
       </div>
       <div class="kpi-body">
         <span class="kpi-title">ACTIVE ACCOUNTS</span>
@@ -68,10 +63,8 @@
     </div>
 
     <div class="kpi-card card-roles">
-      <div class="kpi-top-row">
-        <div class="kpi-squircle-icon icon-amber">
-          <span class="material-symbols-outlined">shield</span>
-        </div>
+      <div class="kpi-squircle-icon icon-amber">
+        <span class="material-symbols-outlined">shield</span>
       </div>
       <div class="kpi-body">
         <span class="kpi-title">SYSTEM ROLES</span>
@@ -82,12 +75,11 @@
 
   <div class="toolbar-card">
     <div class="search-box">
-      <label for="searchUsersInput" class="sr-only">Search users by name, email or department</label>
       <span class="material-symbols-outlined search-icon">search</span>
       <input
         id="searchUsersInput"
         type="text"
-        placeholder="Search users by name, email or department..."
+        placeholder="Search users by name, email..."
         [value]="userSearchQuery()"
         (input)="onSearchUser($event)"
       />
@@ -95,16 +87,18 @@
 
     <div class="filter-pills-bar">
       <button
+        type="button"
         class="filter-pill-btn"
         [class.active]="selectedRoleFilter() === 'ALL'"
         (click)="onFilterRole('ALL')"
       >
         All Roles
       </button>
-      @for (roleItem of availableRoles(); track roleItem.id) {
+      @for (roleItem of roleFilterOptions; track roleItem.id) {
         <button
+          type="button"
           class="filter-pill-btn"
-          [class.active]="selectedRoleFilter().toLowerCase() === roleItem.id.toLowerCase() || selectedRoleFilter().toUpperCase() === roleItem.name.toUpperCase()"
+          [class.active]="isRoleFilterActive(roleItem.id)"
           (click)="onFilterRole(roleItem.id)"
         >
           {{ roleItem.name }}
@@ -131,7 +125,7 @@
             <tr class="user-table-row">
               <td>
                 <div class="user-profile-cell">
-                  <div class="avatar-squircle" [ngClass]="user.role.toLowerCase()">
+                  <div class="avatar-squircle" [ngClass]="getAvatarClass(user.role)">
                     @if (user.avatarUrl) {
                       <img
                         [src]="getAvatarUrl(user.avatarUrl)"
@@ -140,7 +134,7 @@
                         (error)="$any($event.target).style.display='none'"
                       />
                     } @else {
-                      <span class="avatar-initial-char">{{ user.fullName.charAt(0).toUpperCase() }}</span>
+                      <span class="avatar-initial-char">{{ (user.fullName || 'U').charAt(0).toUpperCase() }}</span>
                     }
                   </div>
                   <div class="user-meta">
@@ -150,8 +144,8 @@
                 </div>
               </td>
               <td>
-                <span class="role-badge" [ngClass]="user.role.toLowerCase()">
-                  {{ user.role.replace('_', ' ') }}
+                <span class="role-badge" [ngClass]="getRoleBadgeClass(user.role)">
+                  {{ formatRoleBadgeText(user.role) }}
                 </span>
               </td>
               <td>
@@ -166,22 +160,24 @@
                 </button>
               </td>
               <td>
-                <span class="date-str font-mono">{{ user.lastLoginAt || 'Never' }}</span>
+                <span class="date-str">{{ formatLastLogin(user.lastLoginAt) }}</span>
               </td>
               <td>
-                <span class="date-str font-mono">{{ user.createdAt }}</span>
+                <span class="date-str">{{ formatDate(user.createdAt) }}</span>
               </td>
               <td class="text-right">
                 <div class="action-btn-group">
                   <button
-                    class="btn-icon-action btn-edit"
+                    type="button"
+                    class="btn-icon-square btn-edit"
                     (click)="openEditUserModal(user)"
                     title="Edit user details"
                   >
                     <span class="material-symbols-outlined icon-xs">edit</span>
                   </button>
                   <button
-                    class="btn-icon-action btn-delete"
+                    type="button"
+                    class="btn-icon-square btn-delete"
                     (click)="deleteUser(user)"
                     title="Delete user"
                   >

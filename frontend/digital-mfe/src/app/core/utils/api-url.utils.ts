@@ -59,19 +59,24 @@ export function getApiUrl(url: string): string {
 export function getAuthToken(): string | null {
   if (typeof window === 'undefined') return null;
   try {
-    const localToken = localStorage.getItem('markops_token');
+    const localToken =
+      localStorage.getItem('markops_token') ||
+      localStorage.getItem('token') ||
+      localStorage.getItem('accessToken');
     if (localToken?.trim()) {
       return localToken.trim();
     }
   } catch (err) { console.log('[Storage Notice]:', err); }
 
   if (typeof document !== 'undefined') {
-    const nameEQ = 'markops_token=';
+    const cookieNames = ['markops_token=', 'token=', 'accessToken='];
     const ca = document.cookie.split(';');
     for (let c of ca) {
       c = c.trim();
-      if (c.startsWith(nameEQ)) {
-        return decodeURIComponent(c.substring(nameEQ.length));
+      for (const prefix of cookieNames) {
+        if (c.startsWith(prefix)) {
+          return decodeURIComponent(c.substring(prefix.length));
+        }
       }
     }
   }

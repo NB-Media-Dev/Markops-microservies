@@ -1,4 +1,43 @@
-<div class="admin-mfe-shell-container">
-  <router-outlet></router-outlet>
-</div>
+<div class="admin-mfe-shell-container" [class.is-standalone]="!isEmbedded()">
+  @if (!isEmbedded()) {
+    <header class="top-navbar">
+      <div class="navbar-left">
+        <a routerLink="/users-roles" class="brand-link" title="MarkOps Home">
+          <img src="/favicon.png" alt="MarkOps Logo" class="brand-logo-img" />
+          <span class="brand-text">MarkOps</span>
+        </a>
+      </div>
 
+      <div class="navbar-right">
+        <div class="notification-wrapper">
+          <button type="button" class="notif-bell-btn" title="View Notifications">
+            <span class="material-symbols-outlined bell-icon">notifications</span>
+          </button>
+        </div>
+
+        <div class="navbar-divider-vertical"></div>
+
+        <div class="header-user-pill">
+          <div class="user-avatar-dark">SA</div>
+          <div class="user-info-text">
+            <span class="user-fullname">{{ authService.currentUser()?.fullName || 'System Administrator' }}</span>
+            <span class="user-role-label">Administrator</span>
+          </div>
+        </div>
+
+        <button type="button" class="header-action-manage-btn" routerLink="/users-roles">
+          <span class="material-symbols-outlined action-icon">person_add</span>
+          <span>Manage Users</span>
+        </button>
+
+        <button type="button" class="header-logout-btn" (click)="handleLogout()" title="Sign Out">
+          <span class="material-symbols-outlined fs-18">logout</span>
+        </button>
+      </div>
+    </header>
+  }
+
+  <main class="admin-main-viewport">
+    <router-outlet></router-outlet>
+  </main>
+</div>
