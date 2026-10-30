@@ -18,7 +18,7 @@ export const config = {
 <<<<<<< HEAD
   databaseUrl: process.env.DATABASE_URL || "mysql://root:Ratheesh@17@localhost:3303/markops_designer_db",
 =======
-  databaseUrl: process.env.DATABASE_URL || "mysql://root:tiger@localhost:3306/markops_designer_db",
+  databaseUrl: process.env.DATABASE_URL || "mysql://root:Ratheesh@17@localhost:3303/markops_designer_db",
 >>>>>>> f1f6db5be22570188d950de5fa2d49d227647a47
   dbHost: process.env.DB_HOST || "localhost",
   dbPort: parseInt(process.env.DB_PORT || "3303", 10),
@@ -26,7 +26,7 @@ export const config = {
 <<<<<<< HEAD
   dbPassword: process.env.DB_PASSWORD || "Ratheesh@17",
 =======
-  dbPassword: process.env.DB_PASSWORD || "tiger",
+  dbPassword: process.env.DB_PASSWORD || "Ratheesh@17",
 >>>>>>> f1f6db5be22570188d950de5fa2d49d227647a47
   dbName: process.env.DB_NAME || "markops_designer_db",
   uploadDir: path.resolve(process.env.UPLOAD_DIR || path.join(__dirname, "../../uploads")),
