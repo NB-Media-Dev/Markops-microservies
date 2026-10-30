@@ -9,7 +9,11 @@ dotenv.config();
 
 async function initializeDatabase() {
   console.log("Connecting to the MySQL instance from environment...");
+<<<<<<< HEAD
   const connectionString = process.env.DATABASE_URL || "mysql://root:Ratheesh@17@localhost:3303/designer_db";
+=======
+  const connectionString = process.env.DATABASE_URL || "mysql://root:tiger@localhost:3306/designer_db";
+>>>>>>> f1f6db5be22570188d950de5fa2d49d227647a47
   
   let connection;
   try {

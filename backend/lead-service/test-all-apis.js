@@ -8,7 +8,11 @@ dotenv.config({ path: path.resolve(__dirname, '.env') });
 dotenv.config();
 
 const BASE_URL = `http://localhost:${process.env.PORT || 4004}`;
+<<<<<<< HEAD
 const DB_URL = process.env.DATABASE_URL || "mysql://root:Ratheesh@17@localhost:3303/telecaller_db";
+=======
+const DB_URL = process.env.DATABASE_URL || "mysql://root:tiger@localhost:3306/telecaller_db";
+>>>>>>> f1f6db5be22570188d950de5fa2d49d227647a47
 
 async function runTestSuite() {
   console.log("==================================================================");
