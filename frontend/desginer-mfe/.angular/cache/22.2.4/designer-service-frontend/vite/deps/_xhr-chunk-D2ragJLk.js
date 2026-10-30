@@ -1,5 +1,5 @@
-import { Al as ɵɵdefineInjectable, Fn as Injectable, Pl as ɵɵinject, Wi as setClassMetadata, _c as DOCUMENT, dl as inject, dr as Service, kc as InjectionToken, so as ɵɵdefineService } from "./core-C-VIZten.js";
-//#region ../node_modules/@angular/common/fesm2022/_platform_location-chunk.mjs
+import { Al as ɵɵdefineInjectable, Fn as Injectable, Pl as ɵɵinject, Wi as setClassMetadata, _c as DOCUMENT, dl as inject, dr as Service, kc as InjectionToken, so as ɵɵdefineService } from "./core-CRaHG5tp.js";
+// ../node_modules/@angular/common/fesm2022/_platform_location-chunk.mjs
 /**
 * @license Angular v22.2.3
 * (c) 2010-2026 Google LLC. https://angular.dev/
@@ -118,8 +118,7 @@ var BrowserPlatformLocation = class BrowserPlatformLocation extends PlatformLoca
 		}]
 	}], () => [], null);
 })();
-//#endregion
-//#region ../node_modules/@angular/common/fesm2022/_xhr-chunk.mjs
+// ../node_modules/@angular/common/fesm2022/_xhr-chunk.mjs
 /**
 * @license Angular v22.2.3
 * (c) 2010-2026 Google LLC. https://angular.dev/
@@ -179,5 +178,4 @@ var XhrFactory = class XhrFactory {
 		}]
 	}], null, null);
 })();
-//#endregion
 export { LOCATION_INITIALIZED as a, setRootDomAdapter as c, DomAdapter as i, parseCookieValue as n, PlatformLocation as o, BrowserPlatformLocation as r, getDOM as s, XhrFactory as t };

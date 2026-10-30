@@ -1,9 +1,9 @@
-import { $n as Output, $o as ɵɵloadQuery, Ac as Injector, Al as ɵɵdefineInjectable, Bo as ɵɵinjectAttribute, Bt as computed, Cc as EventEmitter, Cl as runInInjectionContext, Di as provideAppInitializer, Ei as performanceMarkFeature, En as ElementRef, Er as ViewContainerRef, Fn as Injectable, In as Input, Kc as RuntimeError, Ls as ɵɵsanitizeUrlOrResourceUrl, Mi as publishNonCoreGlobalUtil, Mn as IS_HYDRATION_DOM_REUSE_ENABLED, Mr as afterNextRender, O as booleanAttribute, Oa as ɵɵcontentQuery, Oc as INTERNAL_APPLICATION_ERROR_HANDLER, Pl as ɵɵinject, Qo as ɵɵlistener, Rc as NgZone, Tl as signal, Wc as PendingTasksInternal, Wi as setClassMetadata, Wt as linkedSignal, X as input, Xc as Version, Yn as NgModuleFactory$1, Yt as APP_BOOTSTRAP_LISTENER, Zo as ɵɵinvalidFactory, _c as DOCUMENT, _l as makeEnvironmentProviders, a as ContentChildren, al as formatRuntimeError, an as ChangeDetectionStrategy, ao as ɵɵdefineNgModule, cn as Component, co as ɵɵdirectiveInject, dl as inject, dr as Service, el as assertInInjectionContext, et as maybeUnwrapDefaultExport, f as HostAttributeToken, fn as Console, ft as reflectComponentType, hl as isStandalone, il as effect, io as ɵɵdefineDirective, ir as Renderer2, jl as ɵɵdefineInjector, jn as IS_ENABLED_BLOCKING_INITIAL_NAVIGATION, kc as InjectionToken, kn as HostListener, la as ɵɵNgOnChangesFeature, nn as Attribute, on as Compiler, pl as isInjectable, pt as resourceFromSnapshots, qn as NgModule, qr as createEnvironmentInjector, qt as untracked, r as ChangeDetectorRef, ro as ɵɵdefineComponent, so as ɵɵdefineService, tn as ApplicationRef, vc as DestroyRef, vi as isNgModule, vo as ɵɵelement, wn as Directive, xc as EnvironmentInjector, xl as provideEnvironmentInitializer, xs as ɵɵqueryRefresh, ya as ɵɵattribute, yc as ENVIRONMENT_INITIALIZER, yi as isPromise, yl as promiseWithResolvers } from "./core-CNjJsE2e.js";
-import { An as throwError, Ct as take, Dn as isObservable, En as EmptyError, In as EMPTY, Lt as catchError, Mn as from, Qn as Subject, Xt as filter, Zn as BehaviorSubject, b as switchMap, dn as concat, et as takeLast, g as takeUntil, hn as combineLatest, ir as pipe, jn as of, jt as concatMap, m as tap, mn as mergeMap, ot as finalize, pn as mergeAll, rr as Observable, rt as first, un as defer, ur as Subscription, vn as map, x as startWith } from "./esm5-cmvpcM3J.js";
-import { a as LOCATION_INITIALIZED, o as PlatformLocation } from "./_xhr-chunk-DjcptqSM.js";
-import { Mt as LocationStrategy, Pt as PathLocationStrategy, jt as Location, k as HashLocationStrategy, l as ViewportScroller, n as NavigationAdapterForLocation, v as PRECOMMIT_HANDLER_SUPPORTED, y as PlatformNavigation } from "./common-CMVP8Yjq.js";
-import { s as Title } from "./platform-browser-gzYHFeEr.js";
-//#region ../node_modules/@angular/router/fesm2022/_router-chunk.mjs
+import { $n as Output, $o as ɵɵloadQuery, Ac as Injector, Al as ɵɵdefineInjectable, Bo as ɵɵinjectAttribute, Bt as computed, Cc as EventEmitter, Cl as runInInjectionContext, Di as provideAppInitializer, Ei as performanceMarkFeature, En as ElementRef, Er as ViewContainerRef, Fn as Injectable, In as Input, Kc as RuntimeError, Ls as ɵɵsanitizeUrlOrResourceUrl, Mi as publishNonCoreGlobalUtil, Mn as IS_HYDRATION_DOM_REUSE_ENABLED, Mr as afterNextRender, O as booleanAttribute, Oa as ɵɵcontentQuery, Oc as INTERNAL_APPLICATION_ERROR_HANDLER, Pl as ɵɵinject, Qo as ɵɵlistener, Rc as NgZone, Tl as signal, Wc as PendingTasksInternal, Wi as setClassMetadata, Wt as linkedSignal, X as input, Xc as Version, Yn as NgModuleFactory$1, Yt as APP_BOOTSTRAP_LISTENER, Zo as ɵɵinvalidFactory, _c as DOCUMENT, _l as makeEnvironmentProviders, a as ContentChildren, al as formatRuntimeError, an as ChangeDetectionStrategy, ao as ɵɵdefineNgModule, cn as Component, co as ɵɵdirectiveInject, dl as inject, dr as Service, el as assertInInjectionContext, et as maybeUnwrapDefaultExport, f as HostAttributeToken, fn as Console, ft as reflectComponentType, hl as isStandalone, il as effect, io as ɵɵdefineDirective, ir as Renderer2, jl as ɵɵdefineInjector, jn as IS_ENABLED_BLOCKING_INITIAL_NAVIGATION, kc as InjectionToken, kn as HostListener, la as ɵɵNgOnChangesFeature, nn as Attribute, on as Compiler, pl as isInjectable, pt as resourceFromSnapshots, qn as NgModule, qr as createEnvironmentInjector, qt as untracked, r as ChangeDetectorRef, ro as ɵɵdefineComponent, so as ɵɵdefineService, tn as ApplicationRef, vc as DestroyRef, vi as isNgModule, vo as ɵɵelement, wn as Directive, xc as EnvironmentInjector, xl as provideEnvironmentInitializer, xs as ɵɵqueryRefresh, ya as ɵɵattribute, yc as ENVIRONMENT_INITIALIZER, yi as isPromise, yl as promiseWithResolvers } from "./core-CqYqrg3J.js";
+import { An as throwError, Ct as take, Dn as isObservable, En as EmptyError, In as EMPTY, Lt as catchError, Mn as from, Qn as Subject, Xt as filter, Zn as BehaviorSubject, b as switchMap, dn as concat, et as takeLast, g as takeUntil, hn as combineLatest, ir as pipe, jn as of, jt as concatMap, m as tap, mn as mergeMap, ot as finalize, pn as mergeAll, rr as Observable, rt as first, un as defer, ur as Subscription, vn as map, x as startWith } from "./esm5-sVPx2E-k.js";
+import { a as LOCATION_INITIALIZED, o as PlatformLocation } from "./_xhr-chunk-sBaWxn4Z.js";
+import { Mt as LocationStrategy, Pt as PathLocationStrategy, jt as Location, k as HashLocationStrategy, l as ViewportScroller, n as NavigationAdapterForLocation, v as PRECOMMIT_HANDLER_SUPPORTED, y as PlatformNavigation } from "./common-DdVQVZhg.js";
+import { s as Title } from "./platform-browser-DgGalA6y.js";
+// ../node_modules/@angular/router/fesm2022/_router-chunk.mjs
 /**
 * @license Angular v22.2.3
 * (c) 2010-2026 Google LLC. https://angular.dev/
@@ -3782,8 +3782,7 @@ function validateCommands(commands) {
 		if (cmd == null) throw new RuntimeError(4008, (typeof ngDevMode === "undefined" || ngDevMode) && `The requested path contains ${cmd} segment at index ${i}`);
 	}
 }
-//#endregion
-//#region ../node_modules/@angular/router/fesm2022/_router_module-chunk.mjs
+// ../node_modules/@angular/router/fesm2022/_router_module-chunk.mjs
 /**
 * @license Angular v22.2.3
 * (c) 2010-2026 Google LLC. https://angular.dev/
@@ -5213,8 +5212,7 @@ function provideRouterInitializer() {
 		useExisting: ROUTER_INITIALIZER
 	}];
 }
-//#endregion
-//#region ../node_modules/@angular/router/fesm2022/router.mjs
+// ../node_modules/@angular/router/fesm2022/router.mjs
 /**
 * @license Angular v22.2.3
 * (c) 2010-2026 Google LLC. https://angular.dev/
@@ -5236,5 +5234,4 @@ function mapToResolve(provider) {
 	return (...params) => inject(provider).resolve(...params);
 }
 var VERSION = /* @__PURE__ */ new Version("22.2.3");
-//#endregion
 export { ActivatedRoute, ActivatedRouteSnapshot, ActivationEnd, ActivationStart, BaseRouteReuseStrategy, ChildActivationEnd, ChildActivationStart, ChildrenOutletContexts, DefaultTitleStrategy, DefaultUrlSerializer, EventType, GuardsCheckEnd, GuardsCheckStart, NavigationCancel, NavigationCancellationCode, NavigationEnd, NavigationError, NavigationSkipped, NavigationSkippedCode, NavigationStart, NoPreloading, OutletContext, PRIMARY_OUTLET, PreloadAllModules, PreloadingStrategy, ROUTER_CONFIGURATION, ROUTER_INITIALIZER, ROUTER_OUTLET_DATA, ROUTES, RedirectCommand, ResolveEnd, ResolveStart, RouteConfigLoadEnd, RouteConfigLoadStart, RouteReuseStrategy, Router, RouterEvent, RouterLink, RouterLink as RouterLinkWithHref, RouterLinkActive, RouterModule, RouterOutlet, RouterPreloader, RouterState, RouterStateSnapshot, RoutesRecognized, Scroll, TitleStrategy, UrlHandlingStrategy, UrlSegment, UrlSegmentGroup, UrlSerializer, UrlTree, VERSION, containsTree, convertToParamMap, createUrlTreeFromSnapshot, defaultUrlMatcher, destroyDetachedRouteHandle, isActive, mapToCanActivate, mapToCanActivateChild, mapToCanDeactivate, mapToCanMatch, mapToResolve, nonBlocking, provideRouter, withAutoCleanupInjectors, withComponentInputBinding, withDebugTracing, withDisabledInitialNavigation, withEnabledBlockingInitialNavigation, withExperimentalAutoCleanupInjectors, withExperimentalPlatformNavigation, withHashLocation, withInMemoryScrolling, withNavigationErrorHandler, withPreloading, withRouterConfig, withRouterResources, withViewTransitions, ɵEmptyOutletComponent, ROUTER_PROVIDERS as ɵROUTER_PROVIDERS, afterNextNavigation as ɵafterNextNavigation, loadChildren as ɵloadChildren };

@@ -1,11 +1,11 @@
-//#region \0rolldown/runtime.js
+// \0rolldown/runtime.js
 var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __commonJSMin = (cb, mod) => () => (mod || (cb((mod = { exports: {} }).exports, mod), cb = null), mod.exports);
+var __commonJSMin = (cb, mod) => () => (mod || (cb((mod = { exports: {} }).exports, mod, mod.exports), cb = null), mod.exports);
 var __exportAll = (all, no_symbols) => {
 	let target = {};
 	for (var name in all) __defProp(target, name, {
@@ -29,8 +29,7 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 	value: mod,
 	enumerable: true
 }) : target, mod));
-//#endregion
-//#region ../node_modules/engine.io-parser/build/esm/commons.js
+// ../node_modules/engine.io-parser/build/esm/commons.js
 var PACKET_TYPES = Object.create(null);
 PACKET_TYPES["open"] = "0";
 PACKET_TYPES["close"] = "1";
@@ -47,8 +46,7 @@ var ERROR_PACKET = {
 	type: "error",
 	data: "parser error"
 };
-//#endregion
-//#region ../node_modules/engine.io-parser/build/esm/encodePacket.browser.js
+// ../node_modules/engine.io-parser/build/esm/encodePacket.browser.js
 var withNativeBlob$1 = typeof Blob === "function" || typeof Blob !== "undefined" && Object.prototype.toString.call(Blob) === "[object BlobConstructor]";
 var withNativeArrayBuffer$2 = typeof ArrayBuffer === "function";
 var isView$1 = (obj) => {
@@ -86,8 +84,7 @@ function encodePacketToBinary(packet, callback) {
 		callback(TEXT_ENCODER.encode(encoded));
 	});
 }
-//#endregion
-//#region ../node_modules/engine.io-parser/build/esm/contrib/base64-arraybuffer.js
+// ../node_modules/engine.io-parser/build/esm/contrib/base64-arraybuffer.js
 var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 var lookup$1 = typeof Uint8Array === "undefined" ? [] : /* @__PURE__ */ new Uint8Array(256);
 for (let i = 0; i < 64; i++) lookup$1[chars.charCodeAt(i)] = i;
@@ -109,8 +106,7 @@ var decode$1 = (base64) => {
 	}
 	return arraybuffer;
 };
-//#endregion
-//#region ../node_modules/engine.io-parser/build/esm/decodePacket.browser.js
+// ../node_modules/engine.io-parser/build/esm/decodePacket.browser.js
 var withNativeArrayBuffer$1 = typeof ArrayBuffer === "function";
 var decodePacket = (encodedPacket, binaryType) => {
 	if (typeof encodedPacket !== "string") return {
@@ -143,8 +139,7 @@ var mapBinary = (data, binaryType) => {
 		else return data.buffer;
 	}
 };
-//#endregion
-//#region ../node_modules/engine.io-parser/build/esm/index.js
+// ../node_modules/engine.io-parser/build/esm/index.js
 var SEPARATOR = String.fromCharCode(30);
 var encodePayload = (packets, callback) => {
 	const length = packets.length;
@@ -256,8 +251,7 @@ function createPacketDecoderStream(maxPayload, binaryType) {
 		}
 	} });
 }
-//#endregion
-//#region ../node_modules/@socket.io/component-emitter/lib/esm/index.js
+// ../node_modules/@socket.io/component-emitter/lib/esm/index.js
 /**
 * Initialize a new `Emitter`.
 *
@@ -379,8 +373,7 @@ Emitter.prototype.listeners = function(event) {
 Emitter.prototype.hasListeners = function(event) {
 	return !!this.listeners(event).length;
 };
-//#endregion
-//#region ../node_modules/engine.io-client/build/esm/globals.js
+// ../node_modules/engine.io-client/build/esm/globals.js
 var nextTick = (() => {
 	if (typeof Promise === "function" && typeof Promise.resolve === "function") return (cb) => Promise.resolve().then(cb);
 	else return (cb, setTimeoutFn) => setTimeoutFn(cb, 0);
@@ -391,8 +384,7 @@ var globalThisShim = (() => {
 	else return Function("return this")();
 })();
 var defaultBinaryType = "arraybuffer";
-//#endregion
-//#region ../node_modules/engine.io-client/build/esm/util.js
+// ../node_modules/engine.io-client/build/esm/util.js
 function pick(obj, ...attr) {
 	return attr.reduce((acc, k) => {
 		if (obj.hasOwnProperty(k)) acc[k] = obj[k];
@@ -435,8 +427,7 @@ function utf8Length(str) {
 function randomString() {
 	return Date.now().toString(36).substring(3) + Math.random().toString(36).substring(2, 5);
 }
-//#endregion
-//#region ../node_modules/engine.io-client/build/esm/contrib/parseqs.js
+// ../node_modules/engine.io-client/build/esm/contrib/parseqs.js
 /**
 * Compiles a querystring
 * Returns string representation of the object
@@ -467,8 +458,7 @@ function decode(qs) {
 	}
 	return qry;
 }
-//#endregion
-//#region ../node_modules/engine.io-client/build/esm/transport.js
+// ../node_modules/engine.io-client/build/esm/transport.js
 var TransportError = class extends Error {
 	constructor(reason, description, context) {
 		super(reason);
@@ -591,8 +581,7 @@ var Transport = class extends Emitter {
 		return encodedQuery.length ? "?" + encodedQuery : "";
 	}
 };
-//#endregion
-//#region ../node_modules/engine.io-client/build/esm/transports/polling.js
+// ../node_modules/engine.io-client/build/esm/transports/polling.js
 var Polling = class extends Transport {
 	constructor() {
 		super(...arguments);
@@ -709,15 +698,13 @@ var Polling = class extends Transport {
 		return this.createUri(schema, query);
 	}
 };
-//#endregion
-//#region ../node_modules/engine.io-client/build/esm/contrib/has-cors.js
+// ../node_modules/engine.io-client/build/esm/contrib/has-cors.js
 var value = false;
 try {
 	value = typeof XMLHttpRequest !== "undefined" && "withCredentials" in new XMLHttpRequest();
 } catch (err) {}
 var hasCORS = value;
-//#endregion
-//#region ../node_modules/engine.io-client/build/esm/transports/polling-xhr.js
+// ../node_modules/engine.io-client/build/esm/transports/polling-xhr.js
 function empty() {}
 var BaseXHR = class extends Polling {
 	/**
@@ -924,8 +911,7 @@ function newRequest(opts) {
 		return new globalThisShim[["Active"].concat("Object").join("X")]("Microsoft.XMLHTTP");
 	} catch (e) {}
 }
-//#endregion
-//#region ../node_modules/engine.io-client/build/esm/transports/websocket.js
+// ../node_modules/engine.io-client/build/esm/transports/websocket.js
 var isReactNative = typeof navigator !== "undefined" && typeof navigator.product === "string" && navigator.product.toLowerCase() === "reactnative";
 var BaseWS = class extends Transport {
 	get name() {
@@ -1015,8 +1001,7 @@ var WS = class extends BaseWS {
 		this.ws.send(data);
 	}
 };
-//#endregion
-//#region ../node_modules/engine.io-client/build/esm/transports/webtransport.js
+// ../node_modules/engine.io-client/build/esm/transports/webtransport.js
 /**
 * WebTransport transport based on the built-in `WebTransport` object.
 *
@@ -1079,15 +1064,13 @@ var WT = class extends Transport {
 		(_a = this._transport) === null || _a === void 0 || _a.close();
 	}
 };
-//#endregion
-//#region ../node_modules/engine.io-client/build/esm/transports/index.js
+// ../node_modules/engine.io-client/build/esm/transports/index.js
 var transports = {
 	websocket: WS,
 	webtransport: WT,
 	polling: XHR
 };
-//#endregion
-//#region ../node_modules/engine.io-client/build/esm/contrib/parseuri.js
+// ../node_modules/engine.io-client/build/esm/contrib/parseuri.js
 /**
 * Parses a URI
 *
@@ -1152,8 +1135,7 @@ function queryKey(uri, query) {
 	});
 	return data;
 }
-//#endregion
-//#region ../node_modules/engine.io-client/build/esm/socket.js
+// ../node_modules/engine.io-client/build/esm/socket.js
 var withEventListeners = typeof addEventListener === "function" && typeof removeEventListener === "function";
 var OFFLINE_EVENT_LISTENERS = [];
 if (withEventListeners) addEventListener("offline", () => {
@@ -1659,8 +1641,7 @@ var Socket$1 = class Socket$1 extends Emitter {
 	}
 };
 Socket$1.protocol = 4;
-//#endregion
-//#region ../node_modules/engine.io-client/build/esm/transports/polling-fetch.js
+// ../node_modules/engine.io-client/build/esm/transports/polling-fetch.js
 /**
 * HTTP long-polling based on the built-in `fetch()` method.
 *
@@ -1706,8 +1687,7 @@ var Fetch = class extends Polling {
 	}
 };
 Socket$1.protocol;
-//#endregion
-//#region ../node_modules/socket.io-client/build/esm/url.js
+// ../node_modules/socket.io-client/build/esm/url.js
 /**
 * URL parser.
 *
@@ -1742,8 +1722,7 @@ function url(uri, path = "", loc) {
 	obj.href = obj.protocol + "://" + host + (loc && loc.port === obj.port ? "" : ":" + obj.port);
 	return obj;
 }
-//#endregion
-//#region ../node_modules/socket.io-parser/build/esm-debug/is-binary.js
+// ../node_modules/socket.io-parser/build/esm-debug/is-binary.js
 var withNativeArrayBuffer = typeof ArrayBuffer === "function";
 var isView = (obj) => {
 	return typeof ArrayBuffer.isView === "function" ? ArrayBuffer.isView(obj) : obj.buffer instanceof ArrayBuffer;
@@ -1770,8 +1749,7 @@ function hasBinary(obj, toJSON) {
 	for (const key in obj) if (Object.prototype.hasOwnProperty.call(obj, key) && hasBinary(obj[key])) return true;
 	return false;
 }
-//#endregion
-//#region ../node_modules/socket.io-parser/build/esm-debug/binary.js
+// ../node_modules/socket.io-parser/build/esm-debug/binary.js
 /**
 * Replaces every Buffer | ArrayBuffer | Blob | File in packet with a numbered placeholder.
 *
@@ -1835,8 +1813,7 @@ function _reconstructPacket(data, buffers) {
 	}
 	return data;
 }
-//#endregion
-//#region ../node_modules/ms/index.js
+// ../node_modules/ms/index.js
 var require_ms = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	/**
 	* Helpers.
@@ -1953,8 +1930,7 @@ var require_ms = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		return Math.round(ms / n) + " " + name + (isPlural ? "s" : "");
 	}
 }));
-//#endregion
-//#region ../node_modules/debug/src/common.js
+// ../node_modules/debug/src/common.js
 var require_common = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	/**
 	* This is the common logic for both the Node.js and web browser
@@ -2156,8 +2132,7 @@ var require_common = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	}
 	module.exports = setup;
 }));
-//#endregion
-//#region ../node_modules/debug/src/browser.js
+// ../node_modules/debug/src/browser.js
 var require_browser = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	/**
 	* This is the web browser implementation of `debug()`.
@@ -2352,8 +2327,7 @@ var require_browser = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		}
 	};
 }));
-//#endregion
-//#region ../node_modules/socket.io-parser/build/esm-debug/index.js
+// ../node_modules/socket.io-parser/build/esm-debug/index.js
 var esm_debug_exports = /* @__PURE__ */ __exportAll({
 	Decoder: () => Decoder,
 	Encoder: () => Encoder,
@@ -2627,16 +2601,14 @@ function isDataValid(type, payload) {
 function isPacketValid(packet) {
 	return isNamespaceValid(packet.nsp) && isAckIdValid(packet.id) && isDataValid(packet.type, packet.data);
 }
-//#endregion
-//#region ../node_modules/socket.io-client/build/esm/on.js
+// ../node_modules/socket.io-client/build/esm/on.js
 function on(obj, ev, fn) {
 	obj.on(ev, fn);
 	return function subDestroy() {
 		obj.off(ev, fn);
 	};
 }
-//#endregion
-//#region ../node_modules/socket.io-client/build/esm/socket.js
+// ../node_modules/socket.io-client/build/esm/socket.js
 /**
 * Internal events.
 * These events can't be emitted by the user.
@@ -3420,8 +3392,7 @@ var Socket = class extends Emitter {
 		}
 	}
 };
-//#endregion
-//#region ../node_modules/socket.io-client/build/esm/contrib/backo2.js
+// ../node_modules/socket.io-client/build/esm/contrib/backo2.js
 /**
 * Initialize backoff timer with `opts`.
 *
@@ -3488,8 +3459,7 @@ Backoff.prototype.setMax = function(max) {
 Backoff.prototype.setJitter = function(jitter) {
 	this.jitter = jitter;
 };
-//#endregion
-//#region ../node_modules/socket.io-client/build/esm/manager.js
+// ../node_modules/socket.io-client/build/esm/manager.js
 var Manager = class extends Emitter {
 	constructor(uri, opts) {
 		var _a;
@@ -3796,8 +3766,7 @@ var Manager = class extends Emitter {
 		this.emitReserved("reconnect", attempt);
 	}
 };
-//#endregion
-//#region ../node_modules/socket.io-client/build/esm/index.js
+// ../node_modules/socket.io-client/build/esm/index.js
 /**
 * Managers cache.
 */
@@ -3829,5 +3798,4 @@ Object.assign(lookup, {
 	io: lookup,
 	connect: lookup
 });
-//#endregion
 export { Fetch, Manager, WS as NodeWebSocket, WS as WebSocket, XHR as NodeXHR, XHR, Socket, WT as WebTransport, lookup as connect, lookup as default, lookup as io, protocol };
