@@ -22222,7 +22222,7 @@ function discoverDiGraph(roots) {
 	});
 	return {
 		elementInjectorRoots: rootLViews.map((rootLView) => walkElementInjectors(rootLView)),
-		environmentInjectorRoot: collectEnvInjectors(rootLViews)
+		environmentInjector collectEnvInjectors(rootLViews)
 	};
 }
 function walkElementInjectors(rootLView) {
@@ -22261,8 +22261,8 @@ function collectEnvInjectors(rootLViews) {
 		if (parentInjector) serializeAncestors(parentInjector).children.push(serialized);
 		else if (!rootEnvInjector) rootEnvInjector = serialized;
 		else if (rootEnvInjector !== serialized) throw new Error("Expected only one root environment injector, but found multiple.", { cause: {
-			firstRoot: rootEnvInjector,
-			secondRoot: serialized
+			first rootEnvInjector,
+			second serialized
 		} });
 		return serialized;
 	}

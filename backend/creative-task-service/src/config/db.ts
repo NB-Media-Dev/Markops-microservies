@@ -14,9 +14,9 @@ dotenv.config({ path: path.resolve(process.cwd(), "backend/.env") });
 dotenv.config({ path: path.resolve(process.cwd(), "backend/creative-task-service/.env") });
 
 <<<<<<< HEAD
-const databaseUrl = process.env.DATABASE_URL || "mysql://root:Ratheesh@17@localhost:3303/designer_db";
+const databaseUrl = process.env.DATABASE_URL || "mysql://Ratheesh@17@localhost:3303/designer_db";
 =======
-const databaseUrl = process.env.DATABASE_URL || "mysql://root:Ratheesh@17@localhost:3303/designer_db";
+const databaseUrl = process.env.DATABASE_URL || "mysql://Ratheesh@17@localhost:3303/designer_db";
 >>>>>>> f1f6db5be22570188d950de5fa2d49d227647a47
 
 const dbUrl = new URL(databaseUrl);
