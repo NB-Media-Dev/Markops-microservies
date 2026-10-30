@@ -5,7 +5,8 @@
   "description": "Telecalling module - frontend micro-frontend only (no backend, no login)",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --port 4205",
+    "start": "ng serve --port 4205 --host 0.0.0.0",
+    "dev": "ng serve --port 4205 --host 0.0.0.0 --open",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "lint": "ng lint"

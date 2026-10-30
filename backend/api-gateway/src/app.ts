@@ -108,6 +108,7 @@ const routeList = [
   { path: "/telecaller-targets", handler: telecallingRoutes },
   { path: "/targets", handler: telecallingRoutes },
   { path: "/follow-ups", handler: telecallingRoutes },
+  { path: "/followups", handler: telecallingRoutes },
   { path: "/telecalling", handler: telecallingRoutes }
 ];
 

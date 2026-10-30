@@ -1343,6 +1343,10 @@
       <section id="view-digital-mfe" class="designer-mfe-viewport-section">
         <iframe id="digital-frame" class="designer-mfe-iframe" src="http://localhost:4204" onload="if(typeof syncAuthToDigitalFrame==='function')syncAuthToDigitalFrame()" allow="clipboard-read; clipboard-write"></iframe>
       </section>
+      <!-- PAGE 6: Telecaller Microfrontend Container (:4205) -->
+      <section id="view-telecaller-mfe" class="designer-mfe-viewport-section">
+        <iframe id="telecaller-frame" class="designer-mfe-iframe" src="http://localhost:4205" onload="if(typeof syncAuthToTelecallerFrame==='function')syncAuthToTelecallerFrame()" allow="clipboard-read; clipboard-write"></iframe>
+      </section>
 
 
 
@@ -2065,6 +2069,7 @@
       document.getElementById('view-designer-mfe').style.display = 'none';
       const adminV = document.getElementById('view-admin-mfe'); if (adminV) adminV.style.display = 'none';
       const digiV = document.getElementById('view-digital-mfe'); if (digiV) digiV.style.display = 'none';
+      const teleV = document.getElementById('view-telecaller-mfe'); if (teleV) teleV.style.display = 'none';
       if (!dbProducts || dbProducts.length === 0) fetchProductsFromDb();
       if (!dbRoles || dbRoles.length === 0) fetchRolesFromDb();
       updateDesignerBreadcrumb(null);
@@ -2081,6 +2086,7 @@
       document.getElementById('view-designer-mfe').style.display = 'none';
       const adminV = document.getElementById('view-admin-mfe'); if (adminV) adminV.style.display = 'none';
       const digiV = document.getElementById('view-digital-mfe'); if (digiV) digiV.style.display = 'none';
+      const teleV = document.getElementById('view-telecaller-mfe'); if (teleV) teleV.style.display = 'none';
 
       document.getElementById('avail-bc-product').textContent = currentProduct;
       fetchPackagesFromDb();
@@ -2125,6 +2131,7 @@
       document.getElementById('view-designer-mfe').style.display = 'none';
       const adminV = document.getElementById('view-admin-mfe'); if (adminV) adminV.style.display = 'none';
       const digiV = document.getElementById('view-digital-mfe'); if (digiV) digiV.style.display = 'none';
+      const teleV = document.getElementById('view-telecaller-mfe'); if (teleV) teleV.style.display = 'none';
       updateDesignerBreadcrumb(null);
       applyRoleDepartmentPermissions();
       window.scrollTo(0, 0);
@@ -2173,6 +2180,8 @@
       document.getElementById('view-package-works').style.display = 'none';
       document.getElementById('view-designer-mfe').style.display = 'none';
       const adminV = document.getElementById('view-admin-mfe'); if (adminV) adminV.style.display = 'none';
+      const digiV = document.getElementById('view-digital-mfe'); if (digiV) digiV.style.display = 'none';
+      const teleV = document.getElementById('view-telecaller-mfe'); if (teleV) teleV.style.display = 'none';
       const adminView = document.getElementById('view-admin-mfe');
       if (adminView) {
         adminView.style.display = 'flex';
@@ -2196,7 +2205,24 @@
       }
     }
 
-    function syncAuthToDigitalFrame(targetRoute) {
+    
+    function syncAuthToTelecallerFrame(targetRoute) {
+      const frame = document.getElementById('telecaller-frame');
+      const token = localStorage.getItem('markops_token') || localStorage.getItem('token') || 'mo_jwt_default';
+      const user = getUser();
+      if (frame && frame.contentWindow) {
+        frame.contentWindow.postMessage({
+          type: 'MARKOPS_AUTH_UPDATE',
+          token,
+          user,
+          product: currentProduct,
+          package: currentPackage,
+          productId: currentProductId,
+          route: targetRoute || '/telecalling'
+        }, '*');
+      }
+    }
+function syncAuthToDigitalFrame(targetRoute) {
       const frame = document.getElementById('digital-frame');
       const token = localStorage.getItem('markops_token') || localStorage.getItem('token') || 'mo_jwt_default';
       const user = getUser();
@@ -2265,19 +2291,34 @@
         document.getElementById('view-package-works').style.display = 'none';
         const adminV = document.getElementById('view-admin-mfe'); if (adminV) adminV.style.display = 'none';
         const digiV = document.getElementById('view-digital-mfe'); if (digiV) digiV.style.display = 'none';
+      const teleV = document.getElementById('view-telecaller-mfe'); if (teleV) teleV.style.display = 'none';
         document.getElementById('view-designer-mfe').style.display = 'flex';
         syncAuthToDesignerFrame();
         window.scrollTo(0, 0);
-      } else if (deptId === 'DIGITAL_MARKETING' || deptId === 'TELECALLING') {
+      } else if (deptId === 'DIGITAL_MARKETING') {
         document.getElementById('view-dashboard').style.display = 'none';
         const avail = document.getElementById('view-available-packages'); if (avail) avail.style.display = 'none';
         document.getElementById('view-package-works').style.display = 'none';
         const desV = document.getElementById('view-designer-mfe'); if (desV) desV.style.display = 'none';
         const adminV = document.getElementById('view-admin-mfe'); if (adminV) adminV.style.display = 'none';
+        const teleV = document.getElementById('view-telecaller-mfe'); if (teleV) teleV.style.display = 'none';
         const digiView = document.getElementById('view-digital-mfe');
         if (digiView) {
           digiView.style.display = 'flex';
-          syncAuthToDigitalFrame(deptId === 'TELECALLING' ? '/leads' : '/campaigns');
+          syncAuthToDigitalFrame('/campaigns');
+        }
+        window.scrollTo(0, 0);
+      } else if (deptId === 'TELECALLING') {
+        document.getElementById('view-dashboard').style.display = 'none';
+        const avail = document.getElementById('view-available-packages'); if (avail) avail.style.display = 'none';
+        document.getElementById('view-package-works').style.display = 'none';
+        const desV = document.getElementById('view-designer-mfe'); if (desV) desV.style.display = 'none';
+        const adminV = document.getElementById('view-admin-mfe'); if (adminV) adminV.style.display = 'none';
+        const digiV = document.getElementById('view-digital-mfe'); if (digiV) digiV.style.display = 'none';
+        const teleView = document.getElementById('view-telecaller-mfe');
+        if (teleView) {
+          teleView.style.display = 'flex';
+          syncAuthToTelecallerFrame('/telecalling');
         }
         window.scrollTo(0, 0);
       } else {

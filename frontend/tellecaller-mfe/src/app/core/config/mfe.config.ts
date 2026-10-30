@@ -16,9 +16,24 @@ export function getMfeConfig(): MfeConfig {
 
 export function redirectToHostLogin(reason?: string): void {
   if (typeof window === 'undefined') return;
+
+  // Prevent recursive redirect loop
+  if (window.location.pathname.startsWith('/login') || window.location.search.includes('returnUrl=')) {
+    console.warn('[tellecaller-mfe] Redirect loop prevented. Already at login or returnUrl detected.');
+    return;
+  }
+
   const { hostLoginUrl } = getMfeConfig();
-  const sep = hostLoginUrl.includes('?') ? '&' : '?';
-  const returnUrl = encodeURIComponent(window.location.href);
+  let targetUrl = hostLoginUrl;
+
+  // If running standalone on port 4205, redirect to shell host on port 4200
+  if (window.location.port === '4205' && hostLoginUrl.startsWith('/')) {
+    targetUrl = `http://localhost:4200${hostLoginUrl}`;
+  }
+
+  const sep = targetUrl.includes('?') ? '&' : '?';
+  // Use origin + pathname only to prevent query parameter explosion
+  const returnUrl = encodeURIComponent(window.location.origin + window.location.pathname);
   const tail = reason ? `&reason=${encodeURIComponent(reason)}` : '';
-  window.location.assign(`${hostLoginUrl}${sep}returnUrl=${returnUrl}${tail}`);
+  window.location.assign(`${targetUrl}${sep}returnUrl=${returnUrl}${tail}`);
 }

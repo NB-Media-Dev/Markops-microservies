@@ -17,6 +17,8 @@ const server = app.listen(PORT, "0.0.0.0", () => {
   console.log(`=========================================`);
 });
 
+
+server.setMaxListeners(25)
 // Graceful shutdown handling
 process.on("SIGTERM", () => {
   console.log("SIGTERM received, shutting down API Gateway gracefully...");

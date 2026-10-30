@@ -42,11 +42,11 @@ export async function createCallLog(req: Request, res: Response): Promise<Respon
   const targetLeadId = leadId || lead_id ? parseInt(String(leadId || lead_id), 10) : null;
   const user = (req as any).user;
   const targetTelecallerId = telecallerId || telecaller_id ? parseInt(String(telecallerId || telecaller_id), 10) : (user?.id || 1);
-  const targetOutcome = (callOutcome || call_outcome || "").trim();
+  const targetOutcome = (callOutcome || call_outcome || (req.body as any)?.outcome || "").trim();
   const targetDuration = durationSeconds !== undefined ? parseInt(String(durationSeconds), 10) : (duration_seconds !== undefined ? parseInt(String(duration_seconds), 10) : 0);
-  const targetRemarks = callRemarks || call_remarks || null;
-  const targetFollowUpReq = followUpRequired === true || follow_up_required === true || followUpRequired === 1 || follow_up_required === 1 ? 1 : 0;
-  const targetFollowUpTime = (targetFollowUpReq && (followUpTime || follow_up_time)) ? toMysqlDatetime(followUpTime || follow_up_time) : null;
+  const targetRemarks = callRemarks || call_remarks || (req.body as any)?.remarks || (req.body as any)?.notes || null;
+  const targetFollowUpReq = followUpRequired === true || follow_up_required === true || followUpRequired === 1 || follow_up_required === 1 || Boolean((req.body as any)?.followUpDate || (req.body as any)?.followUpTime) ? 1 : 0;
+  const targetFollowUpTime = (targetFollowUpReq && (followUpTime || follow_up_time || (req.body as any)?.followUpDate)) ? toMysqlDatetime(followUpTime || follow_up_time || (req.body as any)?.followUpDate) : null;
 
   if (!targetLeadId) {
     return res.status(400).json({ success: false, error: "'leadId' is required" });
@@ -105,6 +105,8 @@ export async function createCallLog(req: Request, res: Response): Promise<Respon
     return res.status(201).json({
       success: true,
       message: "Call log recorded and lead status updated successfully",
+      call: created?.[0],
+      lead: leads?.[0],
       data: created?.[0]
     });
 

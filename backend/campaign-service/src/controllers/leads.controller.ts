@@ -810,3 +810,46 @@ export async function reassignTelecallerLeads(req: Request, res: Response): Prom
     return res.status(500).json({ success: false, error: "Failed to reassign telecaller leads" });
   }
 }
+
+export async function getTelecallingSummary(_req: Request, res: Response): Promise<Response> {
+  try {
+    const [totalRows]: any = await dbPool.query("SELECT COUNT(*) as total FROM leads");
+    const [assignedRows]: any = await dbPool.query("SELECT COUNT(*) as assigned FROM leads WHERE assigned_telecaller_id IS NOT NULL");
+    const [statusRows]: any = await dbPool.query("SELECT status, COUNT(*) as count FROM leads GROUP BY status");
+    const statusBreakdown: Record<string, number> = {};
+    for (const r of (statusRows || [])) {
+      statusBreakdown[r.status] = Number(r.count);
+    }
+    const totalLeads = Number(totalRows?.[0]?.total || 0);
+    const assignedLeads = Number(assignedRows?.[0]?.assigned || 0);
+    return res.json({
+      success: true,
+      totalLeads,
+      assignedLeads,
+      unassignedLeads: Math.max(0, totalLeads - assignedLeads),
+      totalCallsLogged: 0,
+      statusBreakdown,
+      telecallerMetrics: []
+    });
+  } catch (err: any) {
+    console.error("[getTelecallingSummary Error]:", err?.message || err);
+    return res.status(500).json({ success: false, error: "Failed to fetch telecalling summary" });
+  }
+}
+
+export async function assignLead(req: Request, res: Response): Promise<Response> {
+  const { id } = req.params;
+  const { assignedTo, assignedTelecallerId, assigneeName } = req.body;
+  const telecallerId = parseInt(String(assignedTo || assignedTelecallerId), 10) || null;
+  try {
+    await dbPool.query(
+      "UPDATE leads SET assigned_telecaller_id = ?, assignment_status = ?, updated_at = NOW() WHERE id = ?",
+      [telecallerId, telecallerId ? "ASSIGNED" : "UNASSIGNED", id]
+    );
+    const [rows]: any = await dbPool.query("SELECT * FROM leads WHERE id = ? LIMIT 1", [id]);
+    return res.json({ success: true, lead: rows?.[0], data: rows?.[0] });
+  } catch (err: any) {
+    console.error("[assignLead Error]:", err?.message || err);
+    return res.status(500).json({ success: false, error: "Failed to assign lead" });
+  }
+}

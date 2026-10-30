@@ -9,7 +9,6 @@ import { CampaignService } from '../../core/services/campaign.service';
 import { isItemForPackage } from '../../core/models/package.model';
 import { PackageService } from '../../core/services/package.service';
 
-import { TelecallingKpisComponent } from './components/telecalling-kpis/telecalling-kpis.component';
 import { TelecallingPipelineStripComponent } from './components/telecalling-pipeline-strip/telecalling-pipeline-strip.component';
 import { TelecallingQueueTableComponent } from './components/telecalling-queue-table/telecalling-queue-table.component';
 import { CallHistoryModalComponent } from './components/modals/call-history-modal/call-history-modal.component';
@@ -215,7 +214,6 @@ export function parseFollowUpDateTime(dateStr?: string, timeStr?: string): Date 
     CommonModule,
     FormsModule,
     RouterModule,
-    TelecallingKpisComponent,
     TelecallingPipelineStripComponent,
     TelecallingQueueTableComponent,
     CallHistoryModalComponent,
@@ -264,6 +262,28 @@ export class TelecallingComponent implements OnInit, OnDestroy {
   readonly selectedLeadForHistory = signal<LeadItem | null>(null);
   readonly queueFilter = signal<'MY_LEADS' | 'ALL_LEADS'>('ALL_LEADS');
   readonly currentTime = signal<number>(Date.now());
+
+  // Main UI Tab: 'MEMBERS' (Telecalling Member Details) or 'TARGETS' (Targets)
+  readonly activeMainTab = signal<'MEMBERS' | 'TARGETS'>('MEMBERS');
+  setActiveMainTab(tab: 'MEMBERS' | 'TARGETS') {
+    this.activeMainTab.set(tab);
+  }
+
+  // Targets Filter Signals
+  readonly targetSearchQuery = signal<string>('');
+  readonly targetStatusFilter = signal<'ALL' | 'ON_TRACK' | 'ACHIEVED' | 'BEHIND'>('ALL');
+  setTargetStatusFilter(f: 'ALL' | 'ON_TRACK' | 'ACHIEVED' | 'BEHIND') {
+    this.targetStatusFilter.set(f);
+  }
+
+  // Target Edit Modal State
+  readonly selectedTargetForEdit = signal<any | null>(null);
+  readonly showBulkTargetModal = signal<boolean>(false);
+  editCallsTarget = 30;
+  editInterestedTarget = 5;
+  editTalkTimeMinutes = 60;
+  bulkCallsTarget = 30;
+  bulkInterestedTarget = 5;
 
   readonly isAdmin = computed(() => this.authService.currentUser()?.role === 'ADMINISTRATOR');
   readonly isManager = computed(() => this.authService.currentUser()?.role === 'MARKETING_MANAGER');
@@ -353,6 +373,89 @@ export class TelecallingComponent implements OnInit, OnDestroy {
         conversionRate: this.calculateConversionRate(assigned.length, uniqueLeadsCalled.size, uniqueInterestedLeads.size),
       };
     });
+  });
+
+  readonly telecallerTargetsWithStats = computed(() => {
+    const targets = this.leadService.targets();
+    const calls = this.leadService.calls();
+    const todayStr = this.todayDate;
+
+    return targets.map((t) => {
+      const tcCallsToday = calls.filter((c) => {
+        const cDate = c.calledAt ? String(c.calledAt).split('T')[0] : '';
+        if (cDate !== todayStr) return false;
+        const cId = String(c.telecallerId || '').trim().toLowerCase();
+        const cEmail = String(c.telecallerEmail || '').trim().toLowerCase();
+        const cName = String(c.telecallerName || '').trim().toLowerCase();
+        const tId = String(t.telecallerId || '').trim().toLowerCase();
+        const tEmail = String(t.telecallerEmail || '').trim().toLowerCase();
+        const tName = String(t.telecallerName || '').trim().toLowerCase();
+        return (cId && tId && cId === tId) || (cEmail && tEmail && cEmail === tEmail) || (cName && tName && (cName === tName || cName.includes(tName)));
+      });
+
+      const callsCompleted = tcCallsToday.length;
+      const interestedCompleted = tcCallsToday.filter((c) =>
+        ['INTERESTED', 'QUALIFIED', 'PAID'].includes(String(c.outcome || '').toUpperCase())
+      ).length;
+
+      const callsTarget = Number(t.dailyCallsTarget || 1);
+      const interestedTarget = Number(t.dailyInterestedTarget || 0);
+      const achievementPercent = callsTarget > 0 ? Math.round((callsCompleted / callsTarget) * 100) : 0;
+
+      let status: 'ACHIEVED' | 'ON_TRACK' | 'BEHIND_TARGET' | 'CRITICAL_DEFICIT' = 'CRITICAL_DEFICIT';
+      if (achievementPercent >= 100) {
+        status = 'ACHIEVED';
+      } else if (achievementPercent >= 80) {
+        status = 'ON_TRACK';
+      } else if (achievementPercent >= 50) {
+        status = 'BEHIND_TARGET';
+      } else {
+        status = 'CRITICAL_DEFICIT';
+      }
+
+      return {
+        ...t,
+        callsCompleted,
+        interestedCompleted,
+        achievementPercent,
+        status,
+      };
+    });
+  });
+
+  readonly filteredTargets = computed(() => {
+    let list = this.telecallerTargetsWithStats();
+    const q = this.targetSearchQuery().trim().toLowerCase();
+    if (q) {
+      list = list.filter((t) =>
+        t.telecallerName.toLowerCase().includes(q) ||
+        t.telecallerEmail.toLowerCase().includes(q)
+      );
+    }
+    const sf = this.targetStatusFilter();
+    if (sf === 'ON_TRACK') {
+      list = list.filter((t) => t.status === 'ON_TRACK');
+    } else if (sf === 'ACHIEVED') {
+      list = list.filter((t) => t.status === 'ACHIEVED');
+    } else if (sf === 'BEHIND') {
+      list = list.filter((t) => t.status === 'BEHIND_TARGET' || t.status === 'CRITICAL_DEFICIT');
+    }
+    return list;
+  });
+
+  readonly targetMetrics = computed(() => {
+    const list = this.telecallerTargetsWithStats();
+    const total = list.length;
+    const onTrackOrAchieved = list.filter((t) => t.status === 'ON_TRACK' || t.status === 'ACHIEVED').length;
+    const deficits = list.filter((t) => t.status === 'CRITICAL_DEFICIT' || t.status === 'BEHIND_TARGET').length;
+    const complianceRate = total > 0 ? Math.round((onTrackOrAchieved / total) * 100) : 0;
+
+    return {
+      activeTelecallers: total,
+      complianceRate,
+      onTrackOrAchieved,
+      deficits,
+    };
   });
 
   readonly dateFilter = signal<'ALL' | 'TODAY' | 'YESTERDAY' | 'CUSTOM'>('ALL');
@@ -823,6 +926,7 @@ export class TelecallingComponent implements OnInit, OnDestroy {
     this.leadService.loadCalls().subscribe();
     this.leadService.loadFollowUps().subscribe();
     this.leadService.loadSummary().subscribe();
+    this.leadService.loadTargets().subscribe();
     this.userService.loadUsersFromDatabase();
     this.campaignService.loadCampaigns().subscribe();
     this.packageService.loadPackages().subscribe();
@@ -830,6 +934,78 @@ export class TelecallingComponent implements OnInit, OnDestroy {
     this.clockInterval = setInterval(() => {
       this.currentTime.set(Date.now());
     }, 2000);
+  }
+
+  openSetTargetModal(target: any) {
+    this.selectedTargetForEdit.set(target);
+    this.editCallsTarget = target.dailyCallsTarget || 30;
+    this.editInterestedTarget = target.dailyInterestedTarget || 5;
+    this.editTalkTimeMinutes = target.dailyDurationTargetSeconds ? Math.round(target.dailyDurationTargetSeconds / 60) : 60;
+  }
+
+  closeSetTargetModal() {
+    this.selectedTargetForEdit.set(null);
+  }
+
+  saveTargetModal() {
+    const target = this.selectedTargetForEdit();
+    if (!target) return;
+    this.leadService.saveTarget({
+      telecallerId: target.telecallerId,
+      telecallerName: target.telecallerName,
+      telecallerEmail: target.telecallerEmail,
+      dailyCallsTarget: this.editCallsTarget,
+      dailyInterestedTarget: this.editInterestedTarget,
+      dailyDurationTargetSeconds: this.editTalkTimeMinutes * 60,
+    }).subscribe({
+      next: () => {
+        this.closeSetTargetModal();
+      },
+      error: (e) => console.error('Failed to save target:', e)
+    });
+  }
+
+  openBulkTargetModal() {
+    this.showBulkTargetModal.set(true);
+    this.bulkCallsTarget = 30;
+    this.bulkInterestedTarget = 5;
+  }
+
+  closeBulkTargetModal() {
+    this.showBulkTargetModal.set(false);
+  }
+
+  saveBulkTargetsModal() {
+    const all = this.leadService.targets();
+    if (all.length === 0) {
+      this.closeBulkTargetModal();
+      return;
+    }
+    const promises = all.map((t) =>
+      this.leadService.saveTarget({
+        telecallerId: t.telecallerId,
+        telecallerName: t.telecallerName,
+        telecallerEmail: t.telecallerEmail,
+        dailyCallsTarget: this.bulkCallsTarget,
+        dailyInterestedTarget: this.bulkInterestedTarget,
+        dailyDurationTargetSeconds: 3600,
+      }).toPromise()
+    );
+    Promise.all(promises).then(() => {
+      this.leadService.loadTargets().subscribe();
+      this.closeBulkTargetModal();
+    });
+  }
+
+  checkTargetCompliance() {
+    this.leadService.loadCalls().subscribe();
+    this.leadService.loadTargets().subscribe();
+    const metrics = this.targetMetrics();
+    alert(`Target Compliance Checked: ${metrics.complianceRate}% compliance across ${metrics.activeTelecallers} telecallers.`);
+  }
+
+  handleLogout() {
+    this.authService.logout();
   }
 
   ngOnDestroy() {

@@ -67,10 +67,11 @@ export class CampaignService {
 
   loadCampaigns() {
     this.loading.set(true);
-    return this.http.get<CampaignItem[]>('/api/campaigns').pipe(
+    return this.http.get<any>('/api/campaigns').pipe(
       tap({
-        next: (data) => {
-          this.campaigns.set(data);
+        next: (res) => {
+          const list: any[] = Array.isArray(res) ? res : (res?.data || res?.campaigns || []);
+          this.campaigns.set(list);
           this.loading.set(false);
         },
         error: (err) => {
@@ -134,10 +135,11 @@ export class CampaignService {
 
   loadAds() {
     this.loading.set(true);
-    return this.http.get<AdItem[]>('/api/ads').pipe(
+    return this.http.get<any>('/api/ads').pipe(
       tap({
-        next: (data) => {
-          this.ads.set(data);
+        next: (res) => {
+          const list: any[] = Array.isArray(res) ? res : (res?.data || res?.ads || []);
+          this.ads.set(list);
           this.loading.set(false);
         },
         error: (err) => {

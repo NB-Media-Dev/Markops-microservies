@@ -1,7 +1,8 @@
 import { Injectable, inject, signal, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { tap } from 'rxjs/operators';
+import { tap, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 import { io, Socket } from 'socket.io-client';
 import { getBackendBaseUrl, getAuthToken } from '../utils/api-url.utils';
 
@@ -91,6 +92,17 @@ export interface TelecallingSummary {
   telecallerMetrics: TelecallerMetric[];
 }
 
+export interface TelecallerTarget {
+  telecallerId: string;
+  telecallerName: string;
+  telecallerEmail: string;
+  dailyCallsTarget: number;
+  dailyInterestedTarget: number;
+  dailyDurationTargetSeconds: number;
+  updatedBy?: string;
+  updatedAt?: string;
+}
+
 export interface LeadBatchImportResponse {
   success: boolean;
   message: string;
@@ -163,6 +175,7 @@ export class LeadTelecallingService {
   readonly leads = signal<LeadItem[]>([]);
   readonly calls = signal<CallActivityItem[]>([]);
   readonly followUps = signal<FollowUpItem[]>([]);
+  readonly targets = signal<TelecallerTarget[]>([]);
   readonly summary = signal<TelecallingSummary | null>(null);
   readonly loading = signal<boolean>(false);
   readonly error = signal<string | null>(null);
@@ -252,12 +265,29 @@ export class LeadTelecallingService {
 
   loadLeads() {
     this.loading.set(true);
-    return this.http.get<LeadItem[]>('/api/leads').pipe(
+    return this.http.get<any>('/api/leads').pipe(
       tap({
-        next: (data) => {
-          const normalized = (data || []).map((l) => ({
+        next: (res) => {
+          const list: any[] = Array.isArray(res) ? res : (res?.data || res?.leads || []);
+          const normalized: LeadItem[] = list.map((l: any) => ({
             ...l,
-            status: l.status === 'QUALIFIED' ? 'PAID' : l.status,
+            id: String(l.id),
+            firstName: l.firstName || l.first_name || '',
+            lastName: l.lastName || l.last_name || '',
+            phone: l.phone || '',
+            email: l.email || '',
+            source: l.source || 'Direct',
+            campaignId: String(l.campaignId || l.campaign_id || ''),
+            campaignName: l.campaignName || l.campaign || '',
+            adId: l.adId || l.ad_id,
+            adName: l.adName || l.ad,
+            status: l.status === 'QUALIFIED' ? 'PAID' : (l.status || 'NEW'),
+            assignedTo: l.assignedTo ?? l.assigned_telecaller_id ?? null,
+            assigneeName: l.assigneeName || l.assignedToName || '',
+            remarks: l.remarks || l.call_disposition || '',
+            notes: l.notes || l.remarks || '',
+            createdAt: l.createdAt || l.created_at || new Date().toISOString(),
+            updatedAt: l.updatedAt || l.updated_at || new Date().toISOString()
           }));
           this.leads.set(normalized);
           this.loading.set(false);
@@ -266,18 +296,25 @@ export class LeadTelecallingService {
           this.error.set(err.message || 'Failed to load leads.');
           this.loading.set(false);
         },
+      }),
+      catchError((err) => {
+        this.loading.set(false);
+        return of([]);
       })
     );
   }
 
   createLead(payload: Partial<LeadItem>) {
     this.loading.set(true);
-    return this.http.post<LeadItem>('/api/leads', payload).pipe(
+    return this.http.post<any>('/api/leads', payload).pipe(
       tap({
-        next: (newLead) => {
-          this.leads.update((list) => [newLead, ...list]);
+        next: (res) => {
+          const newLead: LeadItem = res?.data || res?.lead || res;
+          if (newLead?.id) {
+            this.leads.update((list) => [newLead, ...list]);
+          }
           this.loading.set(false);
-          this.loadSummary();
+          this.loadSummary().subscribe();
         },
         error: (err) => {
           this.error.set(err.message || 'Failed to create lead.');
@@ -299,7 +336,7 @@ export class LeadTelecallingService {
   }) {
     return this.http.post<LeadBatchImportResponse>('/api/leads/batch-import', payload).pipe(
       tap({
-        next: (response) => {
+        next: (_response) => {
           this.loadLeads().subscribe();
           this.loadSummary().subscribe();
         },
@@ -308,12 +345,15 @@ export class LeadTelecallingService {
   }
 
   assignLead(leadId: string, assignedTo: string, assigneeName: string, meta?: { creatorName?: string; productName?: string; packageName?: string }) {
-    return this.http.post<LeadItem>(`/api/leads/${leadId}/assign`, { assignedTo, assigneeName, ...meta }).pipe(
+    return this.http.post<any>(`/api/leads/${leadId}/assign`, { assignedTo, assigneeName, ...meta }).pipe(
       tap({
-        next: (updatedLead) => {
-          this.leads.update((list) =>
-            list.map((l) => (String(l.id).trim() === String(updatedLead.id).trim() ? updatedLead : l))
-          );
+        next: (res) => {
+          const updatedLead = res?.lead || res?.data || res;
+          if (updatedLead?.id) {
+            this.leads.update((list) =>
+              list.map((l) => (String(l.id).trim() === String(updatedLead.id).trim() ? { ...l, ...updatedLead } : l))
+            );
+          }
           this.loadSummary().subscribe();
         },
       })
@@ -359,62 +399,132 @@ export class LeadTelecallingService {
   }
 
   loadCalls() {
-    return this.http.get<CallActivityItem[]>('/api/calls').pipe(
+    return this.http.get<any>('/api/calls').pipe(
       tap({
-        next: (data) => {
+        next: (res) => {
+          const rawList: any[] = Array.isArray(res) ? res : (res?.data || []);
           const unique: CallActivityItem[] = [];
-          for (const rawItem of (data || [])) {
-            const outcome = (rawItem.outcome === 'QUALIFIED' || rawItem.outcome === 'PAID') ? 'PAID' : rawItem.outcome;
-            const item: CallActivityItem = { ...rawItem, outcome };
+          for (const rawItem of (rawList || [])) {
+            const rawOutcome = (rawItem.outcome || rawItem.callOutcome || rawItem.call_outcome || 'CONNECTED');
+            const outcome = (rawOutcome === 'QUALIFIED' || rawOutcome === 'PAID') ? 'PAID' : rawOutcome;
+            const item: CallActivityItem = {
+              id: String(rawItem.id),
+              leadId: String(rawItem.leadId || rawItem.lead_id || ''),
+              leadName: rawItem.leadName || `${rawItem.leadFirstName || ''} ${rawItem.leadLastName || ''}`.trim() || 'Lead',
+              leadPhone: rawItem.leadPhone || rawItem.lead_phone || rawItem.phone || '',
+              phone: rawItem.phone || rawItem.leadPhone || '',
+              telecallerId: String(rawItem.telecallerId || rawItem.telecaller_id || ''),
+              telecallerName: rawItem.telecallerName || rawItem.telecaller_name || '',
+              telecallerEmail: rawItem.telecallerEmail || rawItem.telecaller_email || '',
+              outcome,
+              durationSeconds: Number(rawItem.durationSeconds || rawItem.duration_seconds || 0),
+              remarks: rawItem.remarks || rawItem.callRemarks || rawItem.call_remarks || '',
+              nextAction: rawItem.nextAction || '',
+              followUpDate: rawItem.followUpDate || rawItem.followUpTime || rawItem.follow_up_time || '',
+              followUpTime: rawItem.followUpTime || rawItem.follow_up_time || '',
+              calledAt: rawItem.calledAt || rawItem.createdAt || rawItem.created_at || new Date().toISOString()
+            };
             if (!unique.some((existing) => isClientDuplicateCall(existing, item))) {
               unique.push(item);
             }
           }
           this.calls.set(unique);
         },
-      })
+      }),
+      catchError(() => of([]))
     );
   }
 
-  logCall(payload: { leadId: string; leadPhone?: string; phone?: string; leadName?: string; firstName?: string; lastName?: string; outcome: string; durationSeconds: number; remarks: string; nextAction: string; followUpDate?: string; followUpTime?: string; amount?: number; telecallerId?: string; telecallerName?: string; telecallerEmail?: string }) {
-    return this.http.post<{ call: CallActivityItem; lead: LeadItem }>('/api/calls', payload).pipe(
+  logCall(payload: {
+    leadId: string;
+    leadPhone?: string;
+    phone?: string;
+    leadName?: string;
+    firstName?: string;
+    lastName?: string;
+    outcome: string;
+    durationSeconds: number;
+    remarks: string;
+    nextAction: string;
+    followUpDate?: string;
+    followUpTime?: string;
+    amount?: number;
+    telecallerId?: string;
+    telecallerName?: string;
+    telecallerEmail?: string;
+  }) {
+    const body = {
+      ...payload,
+      lead_id: payload.leadId,
+      callOutcome: payload.outcome,
+      call_outcome: payload.outcome,
+      callRemarks: payload.remarks,
+      call_remarks: payload.remarks,
+      durationSeconds: payload.durationSeconds,
+      duration_seconds: payload.durationSeconds,
+      followUpRequired: Boolean(payload.followUpDate || payload.followUpTime),
+      follow_up_required: Boolean(payload.followUpDate || payload.followUpTime),
+      followUpTime: payload.followUpDate || payload.followUpTime || null,
+      follow_up_time: payload.followUpDate || payload.followUpTime || null,
+    };
+
+    return this.http.post<any>('/api/calls', body).pipe(
       tap({
         next: (res) => {
-          const rawCall = res.call || ({} as any);
-          const callOutcome = (rawCall.outcome === 'QUALIFIED' || rawCall.outcome === 'PAID' || payload.outcome === 'QUALIFIED' || payload.outcome === 'PAID') ? 'PAID' : rawCall.outcome;
-          const normalizedCall: CallActivityItem = { ...rawCall, outcome: callOutcome };
+          const rawCall = res?.call || res?.data || res || ({} as any);
+          const rawOutcome = rawCall.outcome || rawCall.callOutcome || payload.outcome || 'BUSY';
+          const callOutcome = (rawOutcome === 'QUALIFIED' || rawOutcome === 'PAID') ? 'PAID' : rawOutcome;
+          const normalizedCall: CallActivityItem = {
+            id: String(rawCall.id || Date.now()),
+            leadId: String(rawCall.leadId || rawCall.lead_id || payload.leadId),
+            leadName: rawCall.leadName || payload.leadName || 'Lead',
+            leadPhone: rawCall.leadPhone || payload.leadPhone || payload.phone || '',
+            phone: rawCall.phone || payload.phone || payload.leadPhone || '',
+            telecallerId: String(rawCall.telecallerId || rawCall.telecaller_id || payload.telecallerId || ''),
+            telecallerName: rawCall.telecallerName || payload.telecallerName || '',
+            telecallerEmail: rawCall.telecallerEmail || payload.telecallerEmail || '',
+            outcome: callOutcome,
+            durationSeconds: Number(rawCall.durationSeconds || rawCall.duration_seconds || payload.durationSeconds || 0),
+            remarks: rawCall.remarks || rawCall.callRemarks || payload.remarks || '',
+            nextAction: payload.nextAction || '',
+            followUpDate: payload.followUpDate || '',
+            followUpTime: payload.followUpTime || '',
+            calledAt: rawCall.calledAt || rawCall.createdAt || new Date().toISOString()
+          };
+
           this.calls.update((c) => [normalizedCall, ...c.filter((item) => !isClientDuplicateCall(item, normalizedCall))]);
           const targetOutcome = String(payload.outcome || 'BUSY').toUpperCase().replace(/\s+/g, '_');
           let finalStatus = targetOutcome === 'BUSY' ? 'LINE_BUSY' : targetOutcome;
           if (finalStatus === 'QUALIFIED') finalStatus = 'PAID';
           const targetPhone = String(payload.leadPhone || payload.phone || '').replace(/\D/g, '');
 
+          const resLead = res?.lead;
           this.leads.update((l) =>
             l.map((item) => {
               const itemPhone = String(item.phone || '').replace(/\D/g, '');
               const matches =
-                (res.lead && String(item.id).trim() === String(res.lead.id).trim()) ||
+                (resLead && String(item.id).trim() === String(resLead.id).trim()) ||
                 String(item.id).trim() === String(payload.leadId).trim() ||
                 (targetPhone && itemPhone && itemPhone === targetPhone);
 
               if (matches) {
                 const updatedLead: LeadItem = {
                   ...item,
-                  ...res.lead,
-                  campaignName: (res.lead?.campaignName && res.lead.campaignName !== 'Digital Ad Campaign')
-                    ? res.lead.campaignName
-                    : (item.campaignName || res.lead?.campaignName || ''),
-                  campaignId: (res.lead?.campaignId && res.lead.campaignId !== 'cmp_default')
-                    ? res.lead.campaignId
-                    : (item.campaignId || res.lead?.campaignId || ''),
-                  source: (res.lead?.source && res.lead.source !== 'Digital Ads Lead Form')
-                    ? res.lead.source
-                    : (item.source || res.lead?.source || ''),
-                  assignedTo: res.lead?.assignedTo || item.assignedTo,
-                  assigneeName: res.lead?.assigneeName || item.assigneeName,
+                  ...(resLead || {}),
+                  campaignName: (resLead?.campaignName && resLead.campaignName !== 'Digital Ad Campaign')
+                    ? resLead.campaignName
+                    : (item.campaignName || resLead?.campaignName || ''),
+                  campaignId: (resLead?.campaignId && resLead.campaignId !== 'cmp_default')
+                    ? resLead.campaignId
+                    : (item.campaignId || resLead?.campaignId || ''),
+                  source: (resLead?.source && resLead.source !== 'Digital Ads Lead Form')
+                    ? resLead.source
+                    : (item.source || resLead?.source || ''),
+                  assignedTo: resLead?.assignedTo ?? resLead?.assigned_telecaller_id ?? item.assignedTo,
+                  assigneeName: resLead?.assigneeName || item.assigneeName,
                   status: finalStatus as any,
-                  remarks: payload.remarks || (res.lead as any)?.remarks || (item as any)?.remarks || '',
-                  notes: payload.remarks || (res.lead as any)?.notes || (item as any)?.notes || '',
+                  remarks: payload.remarks || (resLead as any)?.remarks || (item as any)?.remarks || '',
+                  notes: payload.remarks || (resLead as any)?.notes || (item as any)?.notes || '',
                   updatedAt: new Date().toISOString(),
                 };
                 return updatedLead;
@@ -430,10 +540,27 @@ export class LeadTelecallingService {
   }
 
   loadFollowUps() {
-    return this.http.get<FollowUpItem[]>('/api/followups').pipe(
+    return this.http.get<any>('/api/follow-ups').pipe(
       tap({
-        next: (data) => this.followUps.set(data),
-      })
+        next: (res) => {
+          const rawList = Array.isArray(res) ? res : (res?.data || []);
+          const normalized: FollowUpItem[] = rawList.map((f: any) => ({
+            id: String(f.callLogId || f.id),
+            leadId: String(f.leadId || f.lead_id),
+            leadName: f.leadName || `${f.leadFirstName || ''} ${f.leadLastName || ''}`.trim() || 'Lead',
+            leadPhone: f.leadPhone || f.phone || '',
+            telecallerId: String(f.telecallerId || f.telecaller_id || ''),
+            telecallerName: f.telecallerName || '',
+            dueDate: f.scheduledTime || f.dueDate || f.follow_up_time || '',
+            dueTime: f.dueTime || '',
+            status: f.followUpStatus === 'OVERDUE' ? 'OVERDUE' : (f.status || 'PENDING'),
+            notes: f.lastCallRemarks || f.callRemarks || f.notes || '',
+            createdAt: f.loggedAt || f.createdAt || new Date().toISOString()
+          }));
+          this.followUps.set(normalized);
+        },
+      }),
+      catchError(() => of([]))
     );
   }
 
@@ -441,7 +568,64 @@ export class LeadTelecallingService {
     return this.http.get<TelecallingSummary>('/api/leads/telecalling-summary').pipe(
       tap({
         next: (data) => this.summary.set(data),
+      }),
+      catchError(() => of(null))
+    );
+  }
+
+  loadTargets() {
+    return this.http.get<any>('/api/targets').pipe(
+      tap({
+        next: (res) => {
+          const rawList: any[] = Array.isArray(res) ? res : (res?.data || []);
+          const normalized: TelecallerTarget[] = rawList.map((t: any) => ({
+            telecallerId: String(t.telecallerId || t.telecaller_id || ''),
+            telecallerName: t.telecallerName || t.telecaller_name || 'Telecaller',
+            telecallerEmail: t.telecallerEmail || t.telecaller_email || '',
+            dailyCallsTarget: Number(t.dailyCallsTarget ?? t.daily_calls_target ?? 30),
+            dailyInterestedTarget: Number(t.dailyInterestedTarget ?? t.daily_interested_target ?? 5),
+            dailyDurationTargetSeconds: Number(t.dailyDurationTargetSeconds ?? t.daily_duration_target_seconds ?? 3600),
+            updatedBy: t.updatedBy || t.updated_by,
+            updatedAt: t.updatedAt || t.updated_at,
+          }));
+          this.targets.set(normalized);
+        },
+      }),
+      catchError(() => of([]))
+    );
+  }
+
+  saveTarget(payload: Partial<TelecallerTarget>) {
+    const body = {
+      telecallerId: payload.telecallerId,
+      telecallerName: payload.telecallerName,
+      telecallerEmail: payload.telecallerEmail,
+      dailyCallsTarget: payload.dailyCallsTarget,
+      dailyInterestedTarget: payload.dailyInterestedTarget,
+      dailyDurationTargetSeconds: payload.dailyDurationTargetSeconds,
+      talkTimeTargetMinutes: payload.dailyDurationTargetSeconds ? Math.round(payload.dailyDurationTargetSeconds / 60) : undefined,
+    };
+
+    return this.http.post<any>('/api/targets', body).pipe(
+      tap({
+        next: () => {
+          this.loadTargets().subscribe();
+        },
       })
     );
+  }
+
+  setBulkTargets(telecallers: Array<{ telecallerId: string; telecallerName: string; telecallerEmail: string }>, dailyCallsTarget: number, dailyInterestedTarget: number) {
+    const requests = telecallers.map((tc) =>
+      this.saveTarget({
+        telecallerId: tc.telecallerId,
+        telecallerName: tc.telecallerName,
+        telecallerEmail: tc.telecallerEmail,
+        dailyCallsTarget,
+        dailyInterestedTarget,
+        dailyDurationTargetSeconds: 3600,
+      })
+    );
+    return requests;
   }
 }

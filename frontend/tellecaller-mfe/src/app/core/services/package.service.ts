@@ -38,11 +38,11 @@ export class PackageService {
     const path = productId ? `/api/packages?productId=${encodeURIComponent(productId)}` : '/api/packages';
     const url = getApiUrl(path);
 
-    return this.http.get<ProductPackage[]>(url).pipe(
+    return this.http.get<any>(url).pipe(
       tap({
-        next: (data) => {
+        next: (res) => {
+          const data: ProductPackage[] = Array.isArray(res) ? res : (res?.data || res?.packages || []);
           if (productId) {
-
             this.packages.update((current) => {
               const other = current.filter((p) => p.productId !== productId);
               return [...data, ...other];
@@ -62,10 +62,11 @@ export class PackageService {
 
   loadAllPackages() {
     this.loading.set(true);
-    return this.http.get<ProductPackage[]>(getApiUrl('/api/packages')).pipe(
+    return this.http.get<any>(getApiUrl('/api/packages')).pipe(
       tap({
-        next: (data) => {
-          this.packages.set(data);
+        next: (res) => {
+          const list: ProductPackage[] = Array.isArray(res) ? res : (res?.data || res?.packages || []);
+          this.packages.set(list);
           this.loading.set(false);
         },
         error: (err) => {

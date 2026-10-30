@@ -137,7 +137,26 @@ export class UserManagementService {
         if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
           const data = JSON.parse(text);
           if (Array.isArray(data) && data.length > 0) {
-            this._users.set(data);
+            const normalizedUsers: ManagedUser[] = data.map((u: any) => {
+              const rawRole = String(u.roleName || u.role || '').toUpperCase();
+              let role = rawRole;
+              if (rawRole === 'ADMIN' || rawRole === 'ADMINISTRATOR') role = 'ADMINISTRATOR';
+              else if (rawRole.includes('TELECALLER')) role = 'TELECALLER';
+              else if (rawRole.includes('DESIGNER')) role = 'DESIGNER';
+              else if (rawRole.includes('DIGITAL')) role = 'DIGITAL_MARKETING';
+              return {
+                id: String(u.id),
+                email: u.email || '',
+                fullName: u.fullName || u.name || '',
+                role: role as any,
+                department: u.department || 'Operations',
+                isActive: u.isActive !== false,
+                avatarUrl: u.avatarUrl,
+                lastLoginAt: u.lastLoginAt || 'Recently',
+                createdAt: u.createdAt || new Date().toISOString()
+              };
+            });
+            this._users.set(normalizedUsers);
             return;
           }
         }
