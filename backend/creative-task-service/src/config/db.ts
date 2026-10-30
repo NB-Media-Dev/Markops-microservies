@@ -13,13 +13,13 @@ dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 dotenv.config({ path: path.resolve(process.cwd(), "backend/.env") });
 dotenv.config({ path: path.resolve(process.cwd(), "backend/creative-task-service/.env") });
 
-const databaseUrl = process.env.DATABASE_URL || "mysql://root:nb123@localhost:3306/designer_db";
+const databaseUrl = process.env.DATABASE_URL || "mysql://root:Ratheesh@17@localhost:3303/designer_db";
 
 const dbUrl = new URL(databaseUrl);
 
 export const pool: Pool = mysql.createPool({
   host: dbUrl.hostname,
-  port: Number(dbUrl.port || 3306),
+  port: Number(dbUrl.port || 3303),
   user: decodeURIComponent(dbUrl.username),
   password: decodeURIComponent(dbUrl.password),
   database: dbUrl.pathname.slice(1),

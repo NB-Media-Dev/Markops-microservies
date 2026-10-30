@@ -10,7 +10,7 @@ services:
       MYSQL_USER: app_user
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-local_app_password}
     ports:
-      - "3306:3306"
+      - "3303:3303"
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:

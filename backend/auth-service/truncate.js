@@ -4,7 +4,7 @@ import 'dotenv/config';
 async function truncateDatabaseTables() {
   console.log("Connecting to the MySQL Workbench instance to clear data...");
 
-  const connectionString = process.env.DATABASE_URL || "mysql://root:password@localhost:3306/auth_db";
+  const connectionString = process.env.DATABASE_URL || "mysql://root:password@localhost:3303/auth_db";
   
   let connection;
   try {
