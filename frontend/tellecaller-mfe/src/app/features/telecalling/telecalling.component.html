@@ -1,0 +1,98 @@
+<div class="telecalling-page" [class.embedded-view]="embedded">
+  @if (!embedded) {
+    <header class="page-header page-clean-branding-header">
+      <div class="header-titles-group header-titles-block">
+        <h1 class="page-main-orange-title">Telecalling Operations</h1>
+        <div class="page-breadcrumb-subrow">
+          <a routerLink="/dashboard" class="bc-link">Dashboard</a>
+          <span class="bc-sep">&gt;</span>
+          <span class="bc-current">Telecalling Operations</span>
+        </div>
+      </div>
+    </header>
+  }
+
+  <app-telecalling-kpis
+    [embedded]="embedded"
+    [isTelecaller]="isTelecaller()"
+    [myStats]="myStats()"
+    [teamSummaryKpis]="teamSummaryKpis()"
+  ></app-telecalling-kpis>
+
+  <app-telecalling-pipeline-strip
+    [viewMode]="viewMode"
+    [dateFilter]="dateFilter()"
+    [customDate]="customDate()"
+    [todayDate]="todayDate"
+    [selectedCampaign]="selectedCampaign()"
+    [availableCampaigns]="availableCampaigns()"
+    [assignedLeadsCount]="assignedLeads().length"
+    [pipelineStatusFilter]="pipelineStatusFilter()"
+    [pipelineCounts]="pipelineCounts()"
+    (dateFilterChange)="setDateFilter($event)"
+    (customDateChange)="setCustomDate($event)"
+    (campaignChange)="selectCampaign($event)"
+    (resetFilters)="resetAllFilters()"
+    (pipelineFilterChange)="setPipelineFilter($event)"
+  ></app-telecalling-pipeline-strip>
+
+  <app-telecalling-queue-table
+    [isTelecaller]="isTelecaller()"
+    [queueFilter]="queueFilter()"
+    [totalLeadsCount]="leadService.leads().length"
+    [myLeadsCount]="myLeads().length"
+    [paginatedLeads]="paginatedLeads()"
+    [filteredAssignedLeads]="filteredAssignedLeads()"
+    [pipelineStatusFilter]="pipelineStatusFilter()"
+    [searchQuery]="searchQuery()"
+    [pipelineFilterLabel]="getPipelineFilterLabel()"
+    [canLogCalls]="canLogCalls()"
+    [selectedCampaign]="selectedCampaign()"
+    [dateFilter]="dateFilter()"
+    [getStatusBadgeClassFn]="getStatusBadgeClassFn"
+    [formatStatusLabelFn]="formatStatusLabelFn"
+    [getLeadCurrentStatusFn]="getLeadCurrentStatusFn"
+    [hasScheduledCallbackFn]="hasScheduledCallbackFn"
+    [getFollowUpTimeLabelFn]="getFollowUpTimeLabelFn"
+    [isFollowUpDueFn]="isFollowUpDueFn"
+    [getLeadCreatorNameFn]="getLeadCreatorNameFn"
+    [getLeadMetricsFn]="getLeadMetricsFn"
+    [currentPage]="currentPage()"
+    [pageSize]="pageSize()"
+    [totalPages]="totalPages()"
+    [pageNumbers]="getPageNumbers()"
+    (queueFilterChange)="setQueueFilter($event)"
+    (searchQueryChange)="setSearchQuery($event)"
+    (pipelineFilterChange)="setPipelineFilter($event)"
+    (resetAllFilters)="resetAllFilters()"
+    (openCallDrawer)="openCallDrawer($event)"
+    (openLeadHistory)="openLeadHistory($event)"
+    (pageChange)="setPage($event)"
+    (nextPage)="nextPage()"
+    (prevPage)="prevPage()"
+  ></app-telecalling-queue-table>
+
+  <app-call-history-modal
+    [lead]="currentLeadForHistory()"
+    [leadHistoryCalls]="currentLeadHistoryCalls()"
+    [canLogCalls]="canLogCalls()"
+    [getStatusBadgeClassFn]="getStatusBadgeClassFn"
+    [formatStatusLabelFn]="formatStatusLabelFn"
+    [getLeadCurrentStatusFn]="getLeadCurrentStatusFn"
+    (closeModal)="closeLeadHistory()"
+    (openCallDrawer)="openCallDrawer($event)"
+  ></app-call-history-modal>
+
+  <app-call-log-modal
+    [lead]="selectedLeadForCall()"
+    [(callOutcome)]="callOutcome"
+    [(callDuration)]="callDuration"
+    [(callRemarks)]="callRemarks"
+    [(enableReminder)]="enableReminder"
+    [(followUpDate)]="followUpDate"
+    [(followUpTime)]="followUpTime"
+    [todayDate]="todayDate"
+    (closeModal)="closeDrawer()"
+    (saveCallLog)="submitCallLog()"
+  ></app-call-log-modal>
+</div>
