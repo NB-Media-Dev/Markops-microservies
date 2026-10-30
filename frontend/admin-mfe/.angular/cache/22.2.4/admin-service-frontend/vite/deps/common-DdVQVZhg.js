@@ -1,7 +1,7 @@
-import { $i as unwrapSafeValue, $r as findLocaleData, Ac as Injector, Al as ɵɵdefineInjectable, Bn as LOCALE_ID, Bo as ɵɵinjectAttribute, Dl as stringify, Dn as Host, Ei as performanceMarkFeature, En as ElementRef, Er as ViewContainerRef, Fn as Injectable, Hs as ɵɵstyleProp, In as Input, Jr as createNgModule, Kc as RuntimeError, O as booleanAttribute, Oc as INTERNAL_APPLICATION_ERROR_HANDLER, Pi as registerLocaleData$1, Pl as ɵɵinject, Pn as Inject, Qn as Optional, Rc as NgZone, Tc as IMAGE_CONFIG_DEFAULTS, Vn as LocaleDataIndex, Wi as setClassMetadata, Xc as Version, Zn as NgModuleRef$1, _c as DOCUMENT, al as formatRuntimeError, ao as ɵɵdefineNgModule, bi as isSubscribable, co as ɵɵdirectiveInject, di as getLocaleCurrencyCode$1, dl as inject, dr as Service, er as Pipe, fi as getLocalePluralCase$1, io as ɵɵdefineDirective, ir as Renderer2, jl as ɵɵdefineInjector, jo as ɵɵgetInheritedFactory, kc as InjectionToken, la as ɵɵNgOnChangesFeature, m as KeyValueDiffers, ml as isSignal, mn as DEFAULT_CURRENCY_CODE, nn as Attribute, oo as ɵɵdefinePipe, or as RendererStyleFlags2, p as IterableDiffers, qn as NgModule, qt as untracked, r as ChangeDetectorRef, rt as numberAttribute, so as ɵɵdefineService, tn as ApplicationRef, vc as DestroyRef, vr as TemplateRef, wc as IMAGE_CONFIG, wn as Directive, yi as isPromise } from "./core-CNjJsE2e.js";
-import { Qn as Subject } from "./esm5-cmvpcM3J.js";
-import { o as PlatformLocation } from "./_xhr-chunk-DjcptqSM.js";
-//#region ../node_modules/@angular/common/fesm2022/_location-chunk.mjs
+import { $i as unwrapSafeValue, $r as findLocaleData, Ac as Injector, Al as ɵɵdefineInjectable, Bn as LOCALE_ID, Bo as ɵɵinjectAttribute, Dl as stringify, Dn as Host, Ei as performanceMarkFeature, En as ElementRef, Er as ViewContainerRef, Fn as Injectable, Hs as ɵɵstyleProp, In as Input, Jr as createNgModule, Kc as RuntimeError, O as booleanAttribute, Oc as INTERNAL_APPLICATION_ERROR_HANDLER, Pi as registerLocaleData$1, Pl as ɵɵinject, Pn as Inject, Qn as Optional, Rc as NgZone, Tc as IMAGE_CONFIG_DEFAULTS, Vn as LocaleDataIndex, Wi as setClassMetadata, Xc as Version, Zn as NgModuleRef$1, _c as DOCUMENT, al as formatRuntimeError, ao as ɵɵdefineNgModule, bi as isSubscribable, co as ɵɵdirectiveInject, di as getLocaleCurrencyCode$1, dl as inject, dr as Service, er as Pipe, fi as getLocalePluralCase$1, io as ɵɵdefineDirective, ir as Renderer2, jl as ɵɵdefineInjector, jo as ɵɵgetInheritedFactory, kc as InjectionToken, la as ɵɵNgOnChangesFeature, m as KeyValueDiffers, ml as isSignal, mn as DEFAULT_CURRENCY_CODE, nn as Attribute, oo as ɵɵdefinePipe, or as RendererStyleFlags2, p as IterableDiffers, qn as NgModule, qt as untracked, r as ChangeDetectorRef, rt as numberAttribute, so as ɵɵdefineService, tn as ApplicationRef, vc as DestroyRef, vr as TemplateRef, wc as IMAGE_CONFIG, wn as Directive, yi as isPromise } from "./core-CqYqrg3J.js";
+import { Qn as Subject } from "./esm5-sVPx2E-k.js";
+import { o as PlatformLocation } from "./_xhr-chunk-sBaWxn4Z.js";
+// ../node_modules/@angular/common/fesm2022/_location-chunk.mjs
 /**
 * @license Angular v22.2.3
 * (c) 2010-2026 Google LLC. https://angular.dev/
@@ -290,8 +290,7 @@ function _stripOrigin(baseHref) {
 	}
 	return baseHref;
 }
-//#endregion
-//#region ../node_modules/@angular/common/fesm2022/_common_module-chunk.mjs
+// ../node_modules/@angular/common/fesm2022/_common_module-chunk.mjs
 /**
 * @license Angular v22.2.3
 * (c) 2010-2026 Google LLC. https://angular.dev/
@@ -3086,8 +3085,7 @@ var CommonModule = class CommonModule {
 		}]
 	}], null, null);
 })();
-//#endregion
-//#region ../node_modules/@angular/common/fesm2022/_platform_navigation-chunk.mjs
+// ../node_modules/@angular/common/fesm2022/_platform_navigation-chunk.mjs
 /**
 * @license Angular v22.2.3
 * (c) 2010-2026 Google LLC. https://angular.dev/
@@ -3115,8 +3113,7 @@ var PlatformNavigation = class PlatformNavigation {
 		}]
 	}], null, null);
 })();
-//#endregion
-//#region ../node_modules/@angular/common/fesm2022/common.mjs
+// ../node_modules/@angular/common/fesm2022/common.mjs
 /**
 * @license Angular v22.2.3
 * (c) 2010-2026 Google LLC. https://angular.dev/
@@ -4241,5 +4238,4 @@ function booleanOrUrlAttribute(value) {
 	if (typeof value === "string" && value !== "true" && value !== "false" && value !== "") return value;
 	return booleanAttribute(value);
 }
-//#endregion
 export { Plural as $, I18nPluralPipe as A, APP_BASE_HREF as At, NgIfContext as B, DATE_PIPE_DEFAULT_OPTIONS as C, getLocaleMonthNames as Ct, FormStyle as D, getLocaleTimeFormat as Dt, DecimalPipe as E, getLocalePluralCase as Et, NgClass as F, TrailingSlashPathLocationStrategy as Ft, NgStyle as G, NgLocalization as H, NgComponentOutlet as I, normalizeQueryParams as It, NgSwitchDefault as J, NgSwitch as K, NgForOf as L, JsonPipe as M, LocationStrategy as Mt, KeyValuePipe as N, NoTrailingSlashPathLocationStrategy as Nt, FormatWidth as O, getLocaleWeekEndRange as Ot, LowerCasePipe as P, PathLocationStrategy as Pt, PercentPipe as Q, NgForOfContext as R, CurrencyPipe as S, getLocaleId as St, DatePipe as T, getLocaleNumberSymbol as Tt, NgPlural as U, NgLocaleLocalization as V, NgPluralCase as W, NumberFormatStyle as X, NgTemplateOutlet as Y, NumberSymbol as Z, registerLocaleData as _, getLocaleDirection as _t, PLATFORM_BROWSER_ID as a, formatCurrency as at, AsyncPipe as b, getLocaleExtraDayPeriods as bt, VERSION as c, formatPercent as ct, isPlatformServer as d, getLocaleCurrencyName as dt, SlicePipe as et, provideCloudflareLoader as f, getLocaleCurrencySymbol as ft, provideNetlifyLoader as g, getLocaleDayPeriods as gt, provideImgixLoader as h, getLocaleDayNames as ht, NullViewportScroller as i, WeekDay as it, I18nSelectPipe as j, Location as jt, HashLocationStrategy as k, getNumberOfCurrencyDigits as kt, ViewportScroller as l, getCurrencySymbol as lt, provideImageKitLoader as m, getLocaleDateTimeFormat as mt, NavigationAdapterForLocation as n, TranslationWidth as nt, PLATFORM_SERVER_ID as o, formatDate as ot, provideCloudinaryLoader as p, getLocaleDateFormat as pt, NgSwitchCase as q, NgOptimizedImage as r, UpperCasePipe as rt, PRECONNECT_CHECK_BLOCKLIST as s, formatNumber as st, IMAGE_LOADER as t, TitleCasePipe as tt, isPlatformBrowser as u, getLocaleCurrencyCode as ut, PRECOMMIT_HANDLER_SUPPORTED as v, getLocaleEraNames as vt, DATE_PIPE_DEFAULT_TIMEZONE as w, getLocaleNumberFormat as wt, CommonModule as x, getLocaleFirstDayOfWeek as xt, PlatformNavigation as y, getLocaleExtraDayPeriodRules as yt, NgIf as z };
