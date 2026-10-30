@@ -8,7 +8,9 @@
         [ngModel]="searchQuery"
         (ngModelChange)="onSearch($event)"
         placeholder="Search by name, phone, email, campaign, assignee..."
-        id="leadsToolbarSearch" aria-label="Search leads" class="filter-search-input"
+        id="leadsToolbarSearch"
+        aria-label="Search leads"
+        class="filter-search-input"
       />
       @if (searchQuery) {
         <button
@@ -23,11 +25,10 @@
     </div>
 
     <div class="filters-row-wrap">
-
       <div class="filter-group">
         <label class="filter-label" for="leadsStatusSelect">
           <span class="material-symbols-outlined filter-icon">flag</span>
-          <span>Status:</span>
+          <span class="label-prefix">Status:</span>
         </label>
         <select
           id="leadsStatusSelect"
@@ -38,7 +39,7 @@
           <option value="ALL">All Statuses</option>  
           <option value="ASSIGNED">Assigned</option>
           <option value="INTERESTED">Interested</option>
-          <option value="QUALIFIED"> Paid</option>
+          <option value="QUALIFIED">Paid</option>
           <option value="FOLLOW_UP">Follow-up</option>
           <option value="NO_ANSWER">No Answer</option>
           <option value="LINE_BUSY">Busy / Line Busy</option>
@@ -51,7 +52,7 @@
         <div class="filter-group">
           <label class="filter-label" for="leadsTelecallerSelect">
             <span class="material-symbols-outlined filter-icon">headset_mic</span>
-            <span>Telecaller:</span>
+            <span class="label-prefix">Telecaller:</span>
           </label>
           <select
             id="leadsTelecallerSelect"
@@ -68,28 +69,26 @@
         </div>
       }
 
-      @if (availableCampaigns.length > 0) {
-        <div class="filter-group">
-          <label class="filter-label" for="leadsCampaignSelect">
-            <span class="material-symbols-outlined filter-icon">campaign</span>
-            <span>Campaign:</span>
-          </label>
-          <select
-            id="leadsCampaignSelect"
-            [ngModel]="filterCampaign"
-            (ngModelChange)="onCampaign($event)"
-            class="filter-select"
-          >
-            <option value="ALL">All Campaigns</option>
-            @for (c of availableCampaigns; track c.name) {
-              <option [value]="c.name">{{ c.name }}</option>
-            }
-          </select>
-        </div>
-      }
+      <div class="filter-group">
+        <label class="filter-label" for="leadsCampaignSelect">
+          <span class="material-symbols-outlined filter-icon">campaign</span>
+          <span class="label-prefix">Campaign:</span>
+        </label>
+        <select
+          id="leadsCampaignSelect"
+          [ngModel]="filterCampaign"
+          (ngModelChange)="onCampaign($event)"
+          class="filter-select"
+        >
+          <option value="ALL">All Campaigns</option>
+          @for (c of availableCampaigns; track c.name) {
+            <option [value]="c.name">{{ c.name }}</option>
+          }
+        </select>
+      </div>
     </div>
 
-    @if (canCreateLeads && embedded) {
+    @if (canCreateLeads) {
       <div class="toolbar-actions-wrap">
         <button
           type="button"
@@ -117,18 +116,19 @@
 
   <div class="quick-stats-group">
     <div class="stats-pills-left">
-      @if (hasActiveFilters) {
-        <span class="stat-badge-pill stat-matching">
-          <strong class="text-amber">{{ filteredLeadsCount }}</strong> Matching
-        </span>
-      }
       <span class="stat-badge-pill">
-        <strong class="text-amber">{{ myLeadsCount }}</strong>
-        {{ isTelecaller ? 'My Assigned Leads' : 'Total Leads' }}
+        <strong class="text-lead-count">{{ myLeadsCount }}</strong>
+        <span class="stat-label">Total Leads</span>
       </span>
       @if (!isTelecaller) {
         <span class="stat-badge-pill">
-          <strong class="text-emerald">{{ activeTelecallers.length }}</strong> Active Telecallers
+          <strong class="text-tc-count">{{ activeTelecallers.length }}</strong>
+          <span class="stat-label">Active Telecallers</span>
+        </span>
+      }
+      @if (hasActiveFilters) {
+        <span class="stat-badge-pill stat-matching">
+          <strong>{{ filteredLeadsCount }}</strong> Matching
         </span>
       }
     </div>

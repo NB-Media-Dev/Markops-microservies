@@ -3,6 +3,13 @@
   min-height: 100vh;
   width: 100%;
   background-color: var(--mo-bg-body);
+
+  &.is-embedded-mfe {
+    .content-viewport {
+      margin-top: 0 !important;
+      padding-top: 1rem !important;
+    }
+  }
 }
 
 .mo-main-content {

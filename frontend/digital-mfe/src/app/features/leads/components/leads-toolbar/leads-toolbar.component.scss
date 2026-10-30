@@ -1,12 +1,12 @@
 .toolbar-card {
   background: #FFFFFF;
-  border: 1.5px solid #E2E8F0;
+  border: 1px solid #E2E8F0;
   border-radius: 16px;
-  padding: 0.75rem 1rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+  padding: 1rem 1.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: 0.85rem;
 
   .toolbar-main-row {
     display: flex;
@@ -14,48 +14,55 @@
     gap: 0.65rem;
     flex-wrap: wrap;
 
-    @media (max-width: 900px) {
+    @media (max-width: 960px) {
       flex-direction: column;
       align-items: stretch;
+      gap: 0.75rem;
     }
   }
 
   .filter-search-box {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    background: #F8FAFC;
-    border: 1.5px solid #E2E8F0;
-    border-radius: 999px;
-    padding: 0.45rem 0.85rem;
+    gap: 0.65rem;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 9999px;
+    padding: 0.48rem 1rem;
     flex: 1;
-    min-width: 220px;
-    transition: all 0.18s ease;
+    min-width: 260px;
+    max-width: 320px;
+    transition: all 0.2s ease;
+
+    @media (max-width: 960px) {
+      max-width: 100%;
+      width: 100%;
+    }
 
     &:focus-within {
-      background: #FFFFFF;
-      border-color: #FF9F1C;
-      box-shadow: 0 0 0 3px rgba(255, 159, 28, 0.15);
+      border-color: #F59E0B;
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
 
       .search-icon {
-        color: #FF9F1C;
+        color: #C2410C;
       }
     }
 
     .search-icon {
       color: #94A3B8;
-      font-size: 18px;
-      transition: color 0.15s ease;
+      font-size: 19px;
+      transition: color 0.2s ease;
     }
 
     .filter-search-input {
       border: none;
       background: transparent;
       outline: none;
-      font-size: 0.8125rem;
+      font-size: 0.8rem;
       width: 100%;
       color: #0F172A;
       font-weight: 500;
+      font-family: inherit;
 
       &::placeholder {
         color: #94A3B8;
@@ -80,58 +87,58 @@
   .filters-row-wrap {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.55rem;
     flex-wrap: wrap;
 
     .filter-group {
       display: flex;
       align-items: center;
-      gap: 0.35rem;
-      background: #F8FAFC;
+      gap: 0.45rem;
+      background: #FFFFFF;
       border: 1px solid #E2E8F0;
-      border-radius: 999px;
-      padding: 0.3rem 0.75rem;
-      transition: all 0.15s ease;
+      border-radius: 9999px;
+      padding: 0.45rem 1.1rem;
+      transition: all 0.18s ease;
 
       &:hover {
-        border-color: rgba(255, 159, 28, 0.45);
-        background: #FFF5E6;
-
-        .filter-label .filter-icon {
-          color: #FF9F1C;
-        }
+        border-color: #CBD5E1;
       }
 
       &:focus-within {
-        border-color: #FF9F1C;
-        background: #FFFFFF;
-        box-shadow: 0 0 0 2px rgba(255, 159, 28, 0.15);
+        border-color: #F59E0B;
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
       }
 
       .filter-label {
-        font-size: 0.72rem;
-        font-weight: 700;
+        font-size: 0.8rem;
         color: #64748B;
+        font-weight: 500;
         display: flex;
         align-items: center;
-        gap: 0.25rem;
+        gap: 0.35rem;
         margin: 0;
+        cursor: pointer;
 
         .filter-icon {
-          font-size: 15px;
-          color: #B45309;
-          transition: color 0.15s ease;
+          font-size: 16px;
+          color: #64748B;
+        }
+
+        .label-prefix {
+          color: #64748B;
+          font-weight: 500;
         }
       }
 
       .filter-select {
         border: none;
         background: transparent;
-        font-size: 0.76rem;
+        font-size: 0.8rem;
         font-weight: 700;
         color: #0F172A;
         outline: none;
         cursor: pointer;
+        font-family: inherit;
       }
     }
   }
@@ -139,10 +146,10 @@
   .toolbar-actions-wrap {
     display: flex;
     align-items: center;
-    gap: 0.45rem;
+    gap: 0.55rem;
     margin-left: auto;
 
-    @media (max-width: 900px) {
+    @media (max-width: 960px) {
       margin-left: 0;
       justify-content: flex-end;
     }
@@ -150,32 +157,28 @@
     .btn-toolbar-secondary {
       display: inline-flex;
       align-items: center;
-      gap: 0.35rem;
-      padding: 0.42rem 0.95rem;
-      border-radius: 999px;
-      background: #FFF5E6;
-      border: 1px solid rgba(255, 159, 28, 0.45);
-      color: #B45309;
-      font-size: 0.76rem;
+      gap: 0.4rem;
+      padding: 0.48rem 1.15rem;
+      border-radius: 9999px;
+      background: #FFFDF8;
+      border: 1.5px solid #FDBA74;
+      color: #9A3412;
+      font-size: 0.82rem;
       font-weight: 700;
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: all 0.18s ease;
+      white-space: nowrap;
 
       .icon-btn {
-        font-size: 16px;
-        color: #B45309;
-        transition: color 0.15s ease;
+        font-size: 18px;
+        color: #9A3412;
       }
 
       &:hover:not(:disabled) {
-        background: #C2410C;
-        color: #FFFFFF;
-        border-color: #FF9F1C;
-        box-shadow: 0 2px 8px rgba(255, 159, 28, 0.25);
-
-        .icon-btn {
-          color: #FFFFFF;
-        }
+        background: #FFF7ED;
+        border-color: #FB923C;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.18);
       }
 
       &:disabled {
@@ -187,28 +190,28 @@
     .btn-toolbar-primary {
       display: inline-flex;
       align-items: center;
-      gap: 0.35rem;
-      padding: 0.42rem 1.05rem;
-      border-radius: 999px;
-      background: #C2410C;
+      gap: 0.4rem;
+      padding: 0.52rem 1.25rem;
+      border-radius: 9999px;
+      background: #9A3412;
       color: #FFFFFF;
-      border: 1px solid #C2410C;
-      font-size: 0.76rem;
-      font-weight: 800;
+      border: none;
+      font-size: 0.82rem;
+      font-weight: 700;
       cursor: pointer;
-      box-shadow: 0 3px 10px rgba(255, 159, 28, 0.28);
-      transition: all 0.15s ease;
+      box-shadow: 0 2px 8px rgba(154, 52, 18, 0.25);
+      transition: all 0.18s ease;
+      white-space: nowrap;
 
       .icon-btn {
-        font-size: 16px;
+        font-size: 18px;
         color: #FFFFFF;
       }
 
       &:hover {
-        background: #E28704;
-        border-color: #E28704;
+        background: #853700;
         transform: translateY(-1px);
-        box-shadow: 0 5px 14px rgba(255, 159, 28, 0.38);
+        box-shadow: 0 4px 12px rgba(154, 52, 18, 0.35);
       }
     }
   }
@@ -217,36 +220,45 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.5rem;
+    gap: 0.65rem;
     flex-wrap: wrap;
-    border-top: 1px solid #F1F5F9;
-    padding-top: 0.5rem;
+    padding-top: 0.15rem;
 
     .stats-pills-left {
       display: flex;
       align-items: center;
-      gap: 0.45rem;
+      gap: 0.65rem;
       flex-wrap: wrap;
 
       .stat-badge-pill {
-        font-size: 0.72rem;
+        font-size: 0.78rem;
         font-weight: 600;
         color: #64748B;
-        background: #FFFBF5;
-        border: 1px solid rgba(255, 159, 28, 0.25);
-        padding: 0.2rem 0.6rem;
-        border-radius: 6px;
+        background: #FFFDF8;
+        border: 1px solid #FED7AA;
+        padding: 0.3rem 0.75rem;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
 
         strong {
           font-weight: 800;
+          font-size: 0.82rem;
 
-          &.text-amber { color: #E28704; }
-          &.text-emerald { color: #059669; }
+          &.text-lead-count { color: #9A3412; }
+          &.text-tc-count { color: #047857; }
+        }
+
+        .stat-label {
+          color: #64748B;
+          font-weight: 600;
         }
 
         &.stat-matching {
-          background: #FFF5E6;
-          border-color: rgba(255, 159, 28, 0.45);
+          background: #FFF7ED;
+          border-color: #FDBA74;
+          strong { color: #C2410C; }
         }
       }
     }
@@ -255,9 +267,9 @@
       border: 1px solid #FECDD3;
       background: #FFF1F2;
       color: #BE123C;
-      border-radius: 999px;
-      padding: 0.22rem 0.65rem;
-      font-size: 0.72rem;
+      border-radius: 9999px;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.73rem;
       font-weight: 700;
       display: inline-flex;
       align-items: center;

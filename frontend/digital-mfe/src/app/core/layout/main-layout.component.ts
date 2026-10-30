@@ -55,6 +55,10 @@ export class MainLayoutComponent {
   readonly isNotificationFlyoutOpen = signal<boolean>(false);
   readonly isProfileModalOpen = signal<boolean>(false);
 
+  readonly isEmbedded = computed<boolean>(() => {
+    return typeof window !== 'undefined' && window.parent && window.parent !== window;
+  });
+
   openProfileModal(): void {
     this.isProfileModalOpen.set(true);
   }

@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --port 4204 --host 0.0.0.0 --allowed-hosts",
-    "dev": "ng serve --port 4204 --host 0.0.0.0 --allowed-hosts --open",
+    "start": "ng serve --port 4204 --host 0.0.0.0",
+    "dev": "ng serve --port 4204 --host 0.0.0.0 --open",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",

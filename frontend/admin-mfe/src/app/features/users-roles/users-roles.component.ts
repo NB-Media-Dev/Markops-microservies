@@ -20,8 +20,26 @@ export class UsersRolesComponent {
   readonly authService = inject(AuthService);
   readonly userMgmtService = inject(UserManagementService);
 
+  readonly roleFilterOptions = [
+    { id: 'ADMINISTRATOR', name: 'Admin' },
+    { id: 'DIGITAL_MARKETING', name: 'Digital Marketing' },
+    { id: 'BDM', name: 'BDM' },
+    { id: 'DESIGNER', name: 'Designer' },
+    { id: 'TELECALLER', name: 'Telecaller' }
+  ];
+
   readonly availableRoles = computed(() => {
-    return this.userMgmtService.roles().map((r: any) => ({
+    const loaded = this.userMgmtService.roles();
+    if (!loaded || loaded.length === 0) {
+      return [
+        { id: 'ADMINISTRATOR', name: 'Admin' },
+        { id: 'DIGITAL_MARKETING', name: 'Digital Marketing' },
+        { id: 'BDM', name: 'BDM' },
+        { id: 'DESIGNER', name: 'Designer' },
+        { id: 'TELECALLER', name: 'Telecaller' }
+      ];
+    }
+    return loaded.map((r: any) => ({
       id: r.id,
       code: r.id,
       name: r.name,
@@ -32,6 +50,57 @@ export class UsersRolesComponent {
 
   readonly userSearchQuery = signal<string>('');
   readonly selectedRoleFilter = signal<string>('ALL');
+
+  isRoleFilterActive(roleId: string): boolean {
+    const current = this.selectedRoleFilter().toUpperCase().replace(/[\s-]/g, '_');
+    const target = roleId.toUpperCase().replace(/[\s-]/g, '_');
+    if (current === target) return true;
+    if (target === 'ADMINISTRATOR' && (current === 'ADMIN' || current === 'ADMINISTRATOR')) return true;
+    return false;
+  }
+
+  getAvatarClass(role: string): string {
+    const r = (role || '').toUpperCase().replace(/[\s-]/g, '_');
+    if (r.includes('ADMIN')) return 'avatar-admin';
+    if (r.includes('DESIGN')) return 'avatar-designer';
+    if (r.includes('BDM')) return 'avatar-bdm';
+    if (r.includes('TELE')) return 'avatar-telecaller';
+    if (r.includes('DIGITAL') || r.includes('MARKET')) return 'avatar-digital';
+    return 'avatar-default';
+  }
+
+  getRoleBadgeClass(role: string): string {
+    const r = (role || '').toUpperCase().replace(/[\s-]/g, '_');
+    if (r.includes('ADMIN')) return 'role-administrator';
+    if (r.includes('DESIGN')) return 'role-designer';
+    if (r.includes('BDM')) return 'role-bdm';
+    if (r.includes('TELE')) return 'role-telecaller';
+    if (r.includes('DIGITAL') || r.includes('MARKET')) return 'role-digital-marketing';
+    return 'role-default';
+  }
+
+  formatRoleBadgeText(role: string): string {
+    const r = (role || '').toUpperCase().replace(/[\s-]/g, '_');
+    if (r.includes('ADMIN')) return 'ADMINISTRATOR';
+    if (r.includes('DESIGN')) return 'DESIGNER';
+    if (r.includes('BDM')) return 'BDM';
+    if (r.includes('TELE')) return 'TELECALLER';
+    if (r.includes('DIGITAL')) return 'DIGITAL MARKETING';
+    return (role || '').replace(/_/g, ' ').toUpperCase();
+  }
+
+  formatLastLogin(val?: string): string {
+    if (!val || val === 'Never' || val.toLowerCase() === 'never') return 'Recently';
+    return val;
+  }
+
+  formatDate(dateStr?: string): string {
+    if (!dateStr) return '2026-10-15';
+    if (dateStr.includes('T')) {
+      return dateStr.split('T')[0];
+    }
+    return dateStr;
+  }
 
   trackById(_index: number, user: ManagedUser): string {
     return user.id;
@@ -77,7 +146,7 @@ export class UsersRolesComponent {
   readonly filteredUsers = computed(() => {
     const allUsers = this.userMgmtService.users();
     const query = this.userSearchQuery().toLowerCase().trim();
-    const roleFilter = this.selectedRoleFilter();
+    const roleFilter = (this.selectedRoleFilter() || 'ALL').toUpperCase().replace(/[\s-]/g, '_');
 
     return allUsers.filter((user) => {
       const matchesSearch =
@@ -85,10 +154,13 @@ export class UsersRolesComponent {
         user.fullName.toLowerCase().includes(query) ||
         user.email.toLowerCase().includes(query);
 
+      const userRoleNorm = (user.role || '').toUpperCase().replace(/[\s-]/g, '_');
+
       const matchesRole =
         roleFilter === 'ALL' ||
-        user.role.toUpperCase() === roleFilter.toUpperCase() ||
-        user.role.toUpperCase().replace('-', '_') === roleFilter.toUpperCase();
+        userRoleNorm === roleFilter ||
+        (roleFilter === 'ADMINISTRATOR' && (userRoleNorm === 'ADMIN' || userRoleNorm === 'ADMINISTRATOR')) ||
+        (roleFilter === 'ADMIN' && (userRoleNorm === 'ADMIN' || userRoleNorm === 'ADMINISTRATOR'));
 
       return matchesSearch && matchesRole;
     });

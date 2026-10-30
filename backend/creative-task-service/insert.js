@@ -150,13 +150,13 @@ async function initializeDatabase() {
     `;
 
     const productValues = [
-      'prod_carrement', 'carrement',
+      'prod_carrement', 'carrermate',
       'prod_classmate', 'classmate',
       'prod_jesus_messenger', 'the jesus messager'
     ];
 
     await connection.query(insertProductsQuery, productValues);
-    console.log('✅ Rows successfully added: "carrement", "classmate", and "the jesus messager"!');
+    console.log('✅ Rows successfully added: "carrermate", "classmate", and "the jesus messager"!');
 
   } catch (error) {
     console.error('❌ Error executing initialization/seeding:', error);

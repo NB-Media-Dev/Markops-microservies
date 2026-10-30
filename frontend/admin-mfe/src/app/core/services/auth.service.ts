@@ -64,5 +64,17 @@ export class AuthService {
       // Ignore network errors
     }
   }
+
+  logout(): void {
+    if (this.isBrowser) {
+      try {
+        localStorage.removeItem('markops_token');
+        localStorage.removeItem('markops_user');
+        sessionStorage.removeItem('markops_token');
+        sessionStorage.removeItem('markops_user');
+      } catch {}
+    }
+    this._currentUser.set(null);
+  }
 }
 

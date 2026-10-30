@@ -34,13 +34,13 @@
     <table class="data-table">
       <thead>
         <tr>
-          <th>Lead Name</th>
-          <th>Contact Info</th>
-          <th>Source</th>
-          <th>Campaign</th>
-          <th>Status</th>
-          <th>Assigned Telecaller</th>
-          <th class="text-right">Actions</th>
+          <th>LEAD NAME</th>
+          <th>CONTACT INFO</th>
+          <th>SOURCE</th>
+          <th>CAMPAIGN</th>
+          <th>STATUS</th>
+          <th>ASSIGNED TELECALLER</th>
+          <th class="text-right">ACTIONS</th>
         </tr>
       </thead>
       <tbody>
@@ -163,7 +163,7 @@
               <div class="empty-state-box">
                 <div class="empty-icon-squircle">
                   <span class="material-symbols-outlined">{{
-                    hasActiveFilters ? 'filter_list_off' : 'contacts'
+                    hasActiveFilters ? 'filter_list_off' : 'badge'
                   }}</span>
                 </div>
                 <h4 class="empty-title">
@@ -175,20 +175,15 @@
                         : 'No leads found'
                   }}
                 </h4>
-                @if (hasActiveFilters) {
-                  <p class="empty-subtitle">
-                    Try adjusting your search query, status, telecaller or campaign filter.
-                  </p>
-                }
-                @if (!hasActiveFilters) {
-                  <p class="empty-subtitle">
-                    {{
-                      isTelecaller
+                <p class="empty-subtitle">
+                  {{
+                    hasActiveFilters
+                      ? 'Try adjusting your search query, status, telecaller or campaign filter.'
+                      : isTelecaller
                         ? 'New leads assigned by Digital Marketing will appear here.'
                         : 'New Meta leads and manually added leads will appear here.'
-                    }}
-                  </p>
-                }
+                  }}
+                </p>
                 @if (hasActiveFilters) {
                   <button class="btn-action-secondary btn-sm" (click)="resetFilters.emit()">
                     <span class="material-symbols-outlined fs-15">restart_alt</span>
