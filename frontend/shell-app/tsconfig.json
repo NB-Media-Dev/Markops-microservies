@@ -9,7 +9,8 @@
       "@login/*": ["../login-mfe/src/app/*"],
       "@designer/*": ["../desginer-mfe/src/app/*"],
       "@admin/*": ["../admin-mfe/src/app/*"],
-      "@digital/*": ["../digital-mfe/src/app/*"]      
+      "@digital/*": ["../digital-mfe/src/app/*"],
+      "@telecaller/*": ["../tellecaller-mfe/src/app/*"],      
     }
   },
   "include": ["src/**/*"]

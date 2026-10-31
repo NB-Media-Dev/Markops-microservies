@@ -12,12 +12,12 @@ dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 dotenv.config({ path: path.resolve(process.cwd(), "backend/.env") });
 dotenv.config({ path: path.resolve(process.cwd(), "backend/campaign-service/.env") });
 
-const databaseUrl = process.env.DATABASE_URL || "mysql://root:tiger@localhost:3306/digital_db";
+const databaseUrl = process.env.DATABASE_URL || "";
 const dbUrl = new URL(databaseUrl);
 
 export const pool: Pool = mysql.createPool({
   host: dbUrl.hostname,
-  port: Number(dbUrl.port || 3306),
+  port: Number(dbUrl.port || 3303),
   user: decodeURIComponent(dbUrl.username),
   password: decodeURIComponent(dbUrl.password),
   database: dbUrl.pathname.slice(1),

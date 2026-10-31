@@ -1,0 +1,38 @@
+{
+  "name": "tellecaller-mfe",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Telecalling module - frontend micro-frontend only (no backend, no login)",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve --port 4205 --host 0.0.0.0",
+    "dev": "ng serve --port 4205 --host 0.0.0.0 --open",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "lint": "ng lint"
+  },
+  "dependencies": {
+    "@angular/common": "^22.1.0",
+    "@angular/compiler": "^22.1.0",
+    "@angular/core": "^22.1.0",
+    "@angular/forms": "^22.1.0",
+    "@angular/platform-browser": "^22.1.0",
+    "@angular/router": "^22.1.0",
+    "rxjs": "~7.8.0",
+    "socket.io-client": "^4.8.3",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular-eslint/builder": "22.5.0",
+    "@angular/build": "^22.1.7",
+    "@angular/cli": "^22.1.7",
+    "@angular/compiler-cli": "^22.1.0",
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^20.17.19",
+    "angular-eslint": "22.5.0",
+    "eslint": "^10.9.1",
+    "prettier": "^3.8.1",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "8.69.0"
+  }
+}

@@ -1,0 +1,433 @@
+<div class="telecalling-page" [class.embedded-view]="embedded">
+  <!-- @if (!embedded) {
+    <header class="top-navbar">
+      <div class="navbar-left">
+        <a routerLink="/telecalling" class="brand-link" title="MarkOps Home">
+          <img src="/favicon.png" alt="MarkOps Logo" class="brand-logo-img" />
+          <span class="brand-text">MarkOps</span>
+        </a>
+      </div>
+
+      <div class="navbar-right">
+        <div class="notification-wrapper">
+          <button type="button" class="notif-bell-btn" title="View Notifications">
+            <span class="material-symbols-outlined bell-icon">notifications</span>
+          </button>
+        </div>
+
+        <div class="header-user-pill">
+          <div class="user-avatar-dark">SA</div>
+          <div class="user-info-text">
+            <span class="user-fullname">{{ authService.currentUser()?.fullName || 'System Administrator' }}</span>
+            <span class="user-role-label">Administrator</span>
+          </div>
+        </div>
+
+        <button type="button" class="header-action-manage-btn" routerLink="/users-roles">
+          <span class="material-symbols-outlined action-icon">person_add</span>
+          <span>Manage Users</span>
+        </button>
+
+        <button type="button" class="header-logout-btn" (click)="handleLogout()" title="Sign Out">
+          <span class="material-symbols-outlined fs-18">logout</span>
+        </button>
+      </div>
+    </header>
+  } -->
+
+  <div class="telecalling-content-wrapper">
+    <!-- Breadcrumb & Title matching Image 1 & Image 2 -->
+    <header class="page-header page-clean-branding-header">
+      <div class="header-titles-group header-titles-block">
+        <h1 class="page-main-orange-title">Telecalling</h1>
+        <div class="page-breadcrumb-subrow">
+          <span class="bc-link">Careermate</span>
+          <span class="bc-sep">&gt;</span>
+          <span class="bc-link">Available Package</span>
+          <span class="bc-sep">&gt;</span>
+          <span class="bc-link">Department Operations</span>
+          <span class="bc-sep">&gt;</span>
+          <span class="bc-current">Telecalling</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Top Two Tabs: Telecalling Member Details & Targets -->
+    <div class="telecalling-main-tabs-bar">
+      <button
+        type="button"
+        class="main-tab-pill-btn"
+        [class.active]="activeMainTab() === 'MEMBERS'"
+        (click)="setActiveMainTab('MEMBERS')"
+      >
+        <span class="material-symbols-outlined tab-icon">badge</span>
+        <span>Telecalling Member Details</span>
+      </button>
+
+      <button
+        type="button"
+        class="main-tab-pill-btn"
+        [class.active]="activeMainTab() === 'TARGETS'"
+        (click)="setActiveMainTab('TARGETS')"
+      >
+        <span class="material-symbols-outlined tab-icon">target</span>
+        <span>Targets</span>
+      </button>
+    </div>
+
+    <!-- TAB 1: Telecalling Member Details (Image 1) -->
+    @if (activeMainTab() === 'MEMBERS') {
+      <app-telecalling-pipeline-strip
+        [viewMode]="viewMode"
+        [dateFilter]="dateFilter()"
+        [customDate]="customDate()"
+        [todayDate]="todayDate"
+        [selectedCampaign]="selectedCampaign()"
+        [availableCampaigns]="availableCampaigns()"
+        [assignedLeadsCount]="assignedLeads().length"
+        [pipelineStatusFilter]="pipelineStatusFilter()"
+        [pipelineCounts]="pipelineCounts()"
+        (dateFilterChange)="setDateFilter($event)"
+        (customDateChange)="setCustomDate($event)"
+        (campaignChange)="selectCampaign($event)"
+        (resetFilters)="resetAllFilters()"
+        (pipelineFilterChange)="setPipelineFilter($event)"
+      ></app-telecalling-pipeline-strip>
+
+      <app-telecalling-queue-table
+        [isTelecaller]="isTelecaller()"
+        [queueFilter]="queueFilter()"
+        [totalLeadsCount]="leadService.leads().length"
+        [myLeadsCount]="myLeads().length"
+        [paginatedLeads]="paginatedLeads()"
+        [filteredAssignedLeads]="filteredAssignedLeads()"
+        [pipelineStatusFilter]="pipelineStatusFilter()"
+        [searchQuery]="searchQuery()"
+        [pipelineFilterLabel]="getPipelineFilterLabel()"
+        [canLogCalls]="canLogCalls()"
+        [selectedCampaign]="selectedCampaign()"
+        [dateFilter]="dateFilter()"
+        [getStatusBadgeClassFn]="getStatusBadgeClassFn"
+        [formatStatusLabelFn]="formatStatusLabelFn"
+        [getLeadCurrentStatusFn]="getLeadCurrentStatusFn"
+        [hasScheduledCallbackFn]="hasScheduledCallbackFn"
+        [getFollowUpTimeLabelFn]="getFollowUpTimeLabelFn"
+        [isFollowUpDueFn]="isFollowUpDueFn"
+        [getLeadCreatorNameFn]="getLeadCreatorNameFn"
+        [getLeadMetricsFn]="getLeadMetricsFn"
+        [currentPage]="currentPage()"
+        [pageSize]="pageSize()"
+        [totalPages]="totalPages()"
+        [pageNumbers]="getPageNumbers()"
+        (queueFilterChange)="setQueueFilter($event)"
+        (searchQueryChange)="setSearchQuery($event)"
+        (pipelineFilterChange)="setPipelineFilter($event)"
+        (resetAllFilters)="resetAllFilters()"
+        (openCallDrawer)="openCallDrawer($event)"
+        (openLeadHistory)="openLeadHistory($event)"
+        (pageChange)="setPage($event)"
+        (nextPage)="nextPage()"
+        (prevPage)="prevPage()"
+      ></app-telecalling-queue-table>
+    }
+
+    <!-- TAB 2: Targets (Image 2) -->
+    @if (activeMainTab() === 'TARGETS') {
+      <div class="targets-view-section">
+        <!-- Top Action Buttons -->
+        <div class="targets-action-row">
+          <button type="button" class="btn-set-all-targets" (click)="openBulkTargetModal()">
+            <span class="material-symbols-outlined fs-18">settings</span>
+            <span>Set Target for All Telecallers</span>
+          </button>
+          <button type="button" class="btn-check-compliance" (click)="checkTargetCompliance()">
+            <span class="material-symbols-outlined fs-18">alarm</span>
+            <span>Check Target Compliance</span>
+          </button>
+        </div>
+
+        <!-- 4 KPI Cards Matching Image 2 -->
+        <div class="targets-kpis-grid">
+          <div class="target-kpi-card border-blue">
+            <div class="kpi-top-row">
+              <div class="kpi-squircle-icon icon-blue">
+                <span class="material-symbols-outlined">group</span>
+              </div>
+              <div class="kpi-text-block">
+                <span class="kpi-label">ACTIVE TELECALLERS</span>
+                <div class="kpi-val">{{ targetMetrics().activeTelecallers }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="target-kpi-card border-green">
+            <div class="kpi-top-row">
+              <div class="kpi-squircle-icon icon-green">
+                <span class="material-symbols-outlined">verified</span>
+              </div>
+              <div class="kpi-text-block">
+                <span class="kpi-label">COMPLIANCE RATE</span>
+                <div class="kpi-val">{{ targetMetrics().complianceRate }}%</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="target-kpi-card border-orange card-navigable">
+            <div class="kpi-top-row">
+              <div class="kpi-squircle-icon icon-orange">
+                <span class="material-symbols-outlined">trending_up</span>
+              </div>
+              <div class="kpi-text-block">
+                <span class="kpi-label">ON-TRACK / ACHIEVED</span>
+                <div class="kpi-val">{{ targetMetrics().onTrackOrAchieved }}</div>
+              </div>
+            </div>
+            <span class="kpi-chevron-right">&gt;</span>
+          </div>
+
+          <div class="target-kpi-card border-red">
+            <div class="kpi-top-row">
+              <div class="kpi-squircle-icon icon-red">
+                <span class="material-symbols-outlined">warning</span>
+              </div>
+              <div class="kpi-text-block">
+                <span class="kpi-label">TARGET DEFICITS</span>
+                <div class="kpi-val">{{ targetMetrics().deficits }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Targets Filter Row -->
+        <div class="targets-filter-row">
+          <div class="targets-search-wrap">
+            <span class="material-symbols-outlined search-icon">search</span>
+            <input
+              type="text"
+              class="targets-search-input"
+              placeholder="Search telecallers by name, email, or department..."
+              [ngModel]="targetSearchQuery()"
+              (ngModelChange)="targetSearchQuery.set($event)"
+            />
+          </div>
+
+          <div class="targets-pills-wrap">
+            <button
+              type="button"
+              class="target-pill-btn"
+              [class.active]="targetStatusFilter() === 'ALL'"
+              (click)="setTargetStatusFilter('ALL')"
+            >
+              All Telecallers
+            </button>
+            <button
+              type="button"
+              class="target-pill-btn"
+              [class.active]="targetStatusFilter() === 'ON_TRACK'"
+              (click)="setTargetStatusFilter('ON_TRACK')"
+            >
+              On Track
+            </button>
+            <button
+              type="button"
+              class="target-pill-btn"
+              [class.active]="targetStatusFilter() === 'ACHIEVED'"
+              (click)="setTargetStatusFilter('ACHIEVED')"
+            >
+              Achieved
+            </button>
+            <button
+              type="button"
+              class="target-pill-btn"
+              [class.active]="targetStatusFilter() === 'BEHIND'"
+              (click)="setTargetStatusFilter('BEHIND')"
+            >
+              Behind Target
+            </button>
+          </div>
+        </div>
+
+        <!-- Targets Table Card -->
+        <div class="table-card targets-table-card">
+          <div class="card-title-bar">
+            <div class="title-with-badge">
+              <div class="title-icon-squircle icon-blue">
+                <span class="material-symbols-outlined">target</span>
+              </div>
+              <div class="title-meta-group">
+                <h3>Telecaller Daily Target Performance & Quotas</h3>
+                <span class="table-sub-meta">{{ filteredTargets().length }} telecaller accounts monitored</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table targets-data-table">
+              <thead>
+                <tr>
+                  <th>TELECALLER</th>
+                  <th>DAILY CALLS TARGET</th>
+                  <th>CALLS COMPLETED TODAY</th>
+                  <th>INTERESTED LEADS GOAL</th>
+                  <th>CALLS ACHIEVEMENT %</th>
+                  <th>STATUS</th>
+                  <th class="text-right">ACTIONS</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (tc of filteredTargets(); track tc.telecallerId) {
+                  <tr class="target-row">
+                    <td>
+                      <div class="tc-name-cell">
+                        <span class="tc-name">{{ tc.telecallerName }}</span>
+                        <span class="tc-email">{{ tc.telecallerEmail }}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="badge-target-calls">{{ tc.dailyCallsTarget }} Calls</span>
+                    </td>
+                    <td>
+                      <span class="completed-calls-text">{{ tc.callsCompleted }} Calls</span>
+                    </td>
+                    <td>
+                      <span class="interested-goal-text">{{ tc.interestedCompleted }}/{{ tc.dailyInterestedTarget }}</span>
+                    </td>
+                    <td>
+                      <div class="achievement-cell">
+                        <span class="achievement-val">{{ tc.achievementPercent }}%</span>
+                        <div class="progress-bar-wrap">
+                          <div
+                            class="progress-bar-fill"
+                            [style.width.%]="tc.achievementPercent > 100 ? 100 : tc.achievementPercent"
+                          ></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="status-pill-target" [ngClass]="'status-' + tc.status.toLowerCase()">
+                        ● {{ tc.status }}
+                      </span>
+                    </td>
+                    <td class="text-right">
+                      <button type="button" class="btn-set-target-action" (click)="openSetTargetModal(tc)">
+                        <span class="material-symbols-outlined fs-14">edit</span>
+                        <span>Set Target</span>
+                      </button>
+                    </td>
+                  </tr>
+                }
+                @if (filteredTargets().length === 0) {
+                  <tr>
+                    <td colspan="7" class="empty-state-cell text-center" style="padding: 3rem 1rem;">
+                      <span class="material-symbols-outlined fs-36 text-muted">person_off</span>
+                      <h4>No telecallers match criteria</h4>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Call History Modal -->
+  <app-call-history-modal
+    [lead]="currentLeadForHistory()"
+    [leadHistoryCalls]="currentLeadHistoryCalls()"
+    [canLogCalls]="canLogCalls()"
+    [getStatusBadgeClassFn]="getStatusBadgeClassFn"
+    [formatStatusLabelFn]="formatStatusLabelFn"
+    [getLeadCurrentStatusFn]="getLeadCurrentStatusFn"
+    (closeModal)="closeLeadHistory()"
+    (openCallDrawer)="openCallDrawer($event)"
+  ></app-call-history-modal>
+
+  <!-- Call Log Modal -->
+  <app-call-log-modal
+    [lead]="selectedLeadForCall()"
+    [(callOutcome)]="callOutcome"
+    [(callDuration)]="callDuration"
+    [(callRemarks)]="callRemarks"
+    [(enableReminder)]="enableReminder"
+    [(followUpDate)]="followUpDate"
+    [(followUpTime)]="followUpTime"
+    [todayDate]="todayDate"
+    (closeModal)="closeDrawer()"
+    (saveCallLog)="submitCallLog()"
+  ></app-call-log-modal>
+
+  <!-- Set Target Modal -->
+  @if (selectedTargetForEdit()) {
+    <div class="mo-modal-backdrop" (click)="closeSetTargetModal()">
+      <div class="mo-modal-card" (click)="$event.stopPropagation()">
+        <div class="mo-modal-header">
+          <div class="mo-modal-title-wrap">
+            <span class="material-symbols-outlined fs-20 text-orange">target</span>
+            <h3>Configure Daily Target</h3>
+          </div>
+          <button type="button" class="btn-modal-close" (click)="closeSetTargetModal()">✕</button>
+        </div>
+        <div class="mo-modal-body">
+          <div class="target-agent-info">
+            <div class="agent-avatar-sq">{{ (selectedTargetForEdit()?.telecallerName?.[0] || 'T') | uppercase }}</div>
+            <div>
+              <strong>{{ selectedTargetForEdit()?.telecallerName }}</strong>
+              <div class="text-muted fs-12">{{ selectedTargetForEdit()?.telecallerEmail }}</div>
+            </div>
+          </div>
+          <div class="form-group mt-3">
+            <label class="form-label">Daily Calls Target</label>
+            <input type="number" min="1" max="500" class="mo-input" [(ngModel)]="editCallsTarget" />
+            <span class="form-hint">Number of outbound calls agent should complete daily</span>
+          </div>
+          <div class="form-group mt-3">
+            <label class="form-label">Interested Leads Goal</label>
+            <input type="number" min="0" max="100" class="mo-input" [(ngModel)]="editInterestedTarget" />
+            <span class="form-hint">Number of interested/qualified leads to generate daily</span>
+          </div>
+          <div class="form-group mt-3">
+            <label class="form-label">Talk Time Target (Minutes)</label>
+            <input type="number" min="10" max="600" class="mo-input" [(ngModel)]="editTalkTimeMinutes" />
+            <span class="form-hint">Expected cumulative talk time per day</span>
+          </div>
+        </div>
+        <div class="mo-modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeSetTargetModal()">Cancel</button>
+          <button type="button" class="btn-save" (click)="saveTargetModal()">Save Target</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Bulk Set Target Modal -->
+  @if (showBulkTargetModal()) {
+    <div class="mo-modal-backdrop" (click)="closeBulkTargetModal()">
+      <div class="mo-modal-card" (click)="$event.stopPropagation()">
+        <div class="mo-modal-header">
+          <div class="mo-modal-title-wrap">
+            <span class="material-symbols-outlined fs-20 text-orange">settings</span>
+            <h3>Set Target for All Telecallers</h3>
+          </div>
+          <button type="button" class="btn-modal-close" (click)="closeBulkTargetModal()">✕</button>
+        </div>
+        <div class="mo-modal-body">
+          <p class="fs-13 text-muted">This will update the daily quota for all active telecaller agents in the database.</p>
+          <div class="form-group mt-3">
+            <label class="form-label">Daily Calls Target</label>
+            <input type="number" min="1" max="500" class="mo-input" [(ngModel)]="bulkCallsTarget" />
+          </div>
+          <div class="form-group mt-3">
+            <label class="form-label">Interested Leads Goal</label>
+            <input type="number" min="0" max="100" class="mo-input" [(ngModel)]="bulkInterestedTarget" />
+          </div>
+        </div>
+        <div class="mo-modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeBulkTargetModal()">Cancel</button>
+          <button type="button" class="btn-save" (click)="saveBulkTargetsModal()">Save for All</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

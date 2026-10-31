@@ -32,14 +32,12 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // Health endpoint
   if (req.url === "/api/health") {
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ status: "healthy", service: "shell-host", port: PORT, timestamp: new Date().toISOString() }));
     return;
   }
 
-  // File resolution: serve static assets from public/ and SPA fallback to src/index.html
   const cleanUrl = req.url.split("?")[0];
   let filePath = path.join(PUBLIC_DIR, cleanUrl === "/" ? "index.html" : cleanUrl);
 
@@ -66,6 +64,6 @@ server.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 MarkOps Enterprise Portal Active!`);
   console.log(`👉 Primary URL : http://localhost:${PORT}`);
   console.log(`👉 Source HTML : ${SRC_INDEX}`);
-  console.log(`👉 Remote MFEs : Login (4201) | Designer (4202) | Admin (4203) | Digital (4204)`);
+  console.log(`👉 Remote MFEs : Login (4201) | Designer (4202) | Admin (4203) | Digital (4204) | tellecaller (4205)`);
   console.log(`======================================================\n`);
 });
