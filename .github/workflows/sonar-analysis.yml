@@ -25,7 +25,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-      # Step 3: Fetch Live Metrics and Errors list via Bearer Header
+      # Step 3: Fetch Total Branch Metrics and Full Issues List via Bearer Header
       - name: Fetch Metrics and Generate Detailed Summary
         run: |
           echo "Waiting for SonarCloud server synchronization processing..."
@@ -33,12 +33,12 @@ jobs:
           
           PROJECT_KEY="NB-Media-Dev_Markops-microservies"
           
-          # 1. Fetch Numerical Counts using standard Bearer Token Authentication Scheme
-          METRICS_JSON=$(curl -sL -H "Authorization: Bearer ${{ secrets.SONAR_TOKEN }}" "https://sonarcloud.io{PROJECT_KEY}&metricKeys=software_quality_reliability_issues,software_quality_security_issues,software_quality_maintainability_issues,duplicated_lines_density,security_hotspots" || echo "{}")
+          # 1. Fetch Total Structural Counts (Querying base metrics instead of new_code scopes)
+          METRICS_JSON=$(curl -sL -H "Authorization: Bearer ${{ secrets.SONAR_TOKEN }}" "https://sonarcloud.io{PROJECT_KEY}&metricKeys=bugs,vulnerabilities,code_smells,duplicated_lines_density,security_hotspots" || echo "{}")
           
-          BUGS=$(echo "$METRICS_JSON" | jq -r '.component.measures[] | select(.metric=="software_quality_reliability_issues") | .value' 2>/dev/null || echo "0")
-          VULNS=$(echo "$METRICS_JSON" | jq -r '.component.measures[] | select(.metric=="software_quality_security_issues") | .value' 2>/dev/null || echo "0")
-          SMELLS=$(echo "$METRICS_JSON" | jq -r '.component.measures[] | select(.metric=="software_quality_maintainability_issues") | .value' 2>/dev/null || echo "0")
+          BUGS=$(echo "$METRICS_JSON" | jq -r '.component.measures[] | select(.metric=="bugs") | .value' 2>/dev/null || echo "0")
+          VULNS=$(echo "$METRICS_JSON" | jq -r '.component.measures[] | select(.metric=="vulnerabilities") | .value' 2>/dev/null || echo "0")
+          SMELLS=$(echo "$METRICS_JSON" | jq -r '.component.measures[] | select(.metric=="code_smells") | .value' 2>/dev/null || echo "0")
           HOTSPOTS=$(echo "$METRICS_JSON" | jq -r '.component.measures[] | select(.metric=="security_hotspots") | .value' 2>/dev/null || echo "0")
           DUP_PERCENT=$(echo "$METRICS_JSON" | jq -r '.component.measures[] | select(.metric=="duplicated_lines_density") | .value' 2>/dev/null || echo "0.0")
 
@@ -60,7 +60,7 @@ jobs:
           echo "| 🔵 **Duplication Density** | Repeated Code Fragments & Lines | **$DUP_PERCENT%** |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          # 3. Fetch itemized detailed list of active bugs/vulnerabilities
+          # 3. Fetch itemized detailed list of all unresolved bugs/vulnerabilities
           echo "### 🔍 Itemized Code Defects & Errors List (Top 100)" >> $GITHUB_STEP_SUMMARY
           ISSUES_JSON=$(curl -sL -H "Authorization: Bearer ${{ secrets.SONAR_TOKEN }}" "https://sonarcloud.io{PROJECT_KEY}&resolved=false&ps=100" || echo "{\"total\":0,\"issues\":[]}")
           
@@ -77,16 +77,16 @@ jobs:
             # Loop safely through parsed array
             echo "$ISSUES_JSON" | jq -c '.issues[]' 2>/dev/null | while read -r issue; do
               if [ -n "$issue" ]; then
-                TYPE=$(echo "$issue" | jq -r '.impacts[0].softwareQuality // .type // "MAINTAINABILITY"' 2>/dev/null)
-                SEVERITY=$(echo "$issue" | jq -r '.impacts[0].severity // .severity // "MEDIUM"' 2>/dev/null)
+                TYPE=$(echo "$issue" | jq -r '.type // "CODE_SMELL"' 2>/dev/null)
+                SEVERITY=$(echo "$issue" | jq -r '.severity // "MEDIUM"' 2>/dev/null)
                 COMPONENT=$(echo "$issue" | jq -r '.component // ""' 2>/dev/null | sed "s/^${PROJECT_KEY}://")
                 LINE=$(echo "$issue" | jq -r '.line // "N/A"' 2>/dev/null)
                 MESSAGE=$(echo "$issue" | jq -r '.message // ""' 2>/dev/null)
                 
                 TYPE_EMOJI="🟢 MAINTAINABILITY"
-                if [ "$TYPE" = "RELIABILITY" ] || [ "$TYPE" = "BUG" ]; then
+                if [ "$TYPE" = "BUG" ]; then
                   TYPE_EMOJI="🔴 RELIABILITY"
-                elif [ "$TYPE" = "SECURITY" ] || [ "$TYPE" = "VULNERABILITY" ]; then
+                elif [ "$TYPE" = "VULNERABILITY" ]; then
                   TYPE_EMOJI="🛡️ SECURITY"
                 fi
                 
