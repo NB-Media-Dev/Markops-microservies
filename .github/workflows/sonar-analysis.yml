@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Clone the repository
+      # Step 1: Clone the repository into the environment
       - name: Checkout Code Repository
         uses: actions/checkout@v4
         with:
@@ -25,7 +25,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-      # Step 3: Fetch Live Metrics and Detailed Errors List using Clean Code Taxonomy
+      # Step 3: Fetch Live Metrics and Errors list via Bearer Header
       - name: Fetch Metrics and Generate Detailed Summary
         run: |
           echo "Waiting for SonarCloud server synchronization processing..."
@@ -33,8 +33,8 @@ jobs:
           
           PROJECT_KEY="NB-Media-Dev_Markops-microservies"
           
-          # 1. Fetch Numerical Counts using modern SonarCloud Software Quality Keys
-          METRICS_JSON=$(curl -sL -u "${{ secrets.SONAR_TOKEN }}:" "https://sonarcloud.io{PROJECT_KEY}&metricKeys=software_quality_reliability_issues,software_quality_security_issues,software_quality_maintainability_issues,duplicated_lines_density,security_hotspots" || echo "{}")
+          # 1. Fetch Numerical Counts using standard Bearer Token Authentication Scheme
+          METRICS_JSON=$(curl -sL -H "Authorization: Bearer ${{ secrets.SONAR_TOKEN }}" "https://sonarcloud.io{PROJECT_KEY}&metricKeys=software_quality_reliability_issues,software_quality_security_issues,software_quality_maintainability_issues,duplicated_lines_density,security_hotspots" || echo "{}")
           
           BUGS=$(echo "$METRICS_JSON" | jq -r '.component.measures[] | select(.metric=="software_quality_reliability_issues") | .value' 2>/dev/null || echo "0")
           VULNS=$(echo "$METRICS_JSON" | jq -r '.component.measures[] | select(.metric=="software_quality_security_issues") | .value' 2>/dev/null || echo "0")
@@ -42,14 +42,14 @@ jobs:
           HOTSPOTS=$(echo "$METRICS_JSON" | jq -r '.component.measures[] | select(.metric=="security_hotspots") | .value' 2>/dev/null || echo "0")
           DUP_PERCENT=$(echo "$METRICS_JSON" | jq -r '.component.measures[] | select(.metric=="duplicated_lines_density") | .value' 2>/dev/null || echo "0.0")
 
-          # Sanitize fallbacks
+          # Sanitize fallback defaults
           [ -z "$BUGS" ] || [ "$BUGS" = "null" ] && BUGS="0"
           [ -z "$VULNS" ] || [ "$VULNS" = "null" ] && VULNS="0"
           [ -z "$SMELLS" ] || [ "$SMELLS" = "null" ] && SMELLS="0"
           [ -z "$HOTSPOTS" ] || [ "$HOTSPOTS" = "null" ] && HOTSPOTS="0"
           [ -z "$DUP_PERCENT" ] || [ "$DUP_PERCENT" = "null" ] && DUP_PERCENT="0.0"
 
-          # 2. Output Summary Metric Count Table
+          # 2. Output Summary Metric Count Table Grid
           echo "### 📊 Live SonarCloud Quality Metrics Table" >> $GITHUB_STEP_SUMMARY
           echo "| Quality Pillar | Target Category / Structural Module | Detected Value Count |" >> $GITHUB_STEP_SUMMARY
           echo "| :--- | :--- | :--- |" >> $GITHUB_STEP_SUMMARY
@@ -62,7 +62,7 @@ jobs:
 
           # 3. Fetch itemized detailed list of active bugs/vulnerabilities
           echo "### 🔍 Itemized Code Defects & Errors List (Top 100)" >> $GITHUB_STEP_SUMMARY
-          ISSUES_JSON=$(curl -sL -u "${{ secrets.SONAR_TOKEN }}:" "https://sonarcloud.io{PROJECT_KEY}&resolved=false&ps=100" || echo "{\"total\":0,\"issues\":[]}")
+          ISSUES_JSON=$(curl -sL -H "Authorization: Bearer ${{ secrets.SONAR_TOKEN }}" "https://sonarcloud.io{PROJECT_KEY}&resolved=false&ps=100" || echo "{\"total\":0,\"issues\":[]}")
           
           TOTAL_ISSUES_FOUND=$(echo "$ISSUES_JSON" | jq -r '.total // 0' 2>/dev/null || echo "0")
 
@@ -74,10 +74,9 @@ jobs:
             echo "| Impact Type | Severity | Component File Path (Line Number) | Description Error Message |" >> $GITHUB_STEP_SUMMARY
             echo "| :--- | :--- | :--- | :--- |" >> $GITHUB_STEP_SUMMARY
             
-            # Safely loop through issues array
+            # Loop safely through parsed array
             echo "$ISSUES_JSON" | jq -c '.issues[]' 2>/dev/null | while read -r issue; do
               if [ -n "$issue" ]; then
-                # Parse both new taxonomy quality types and legacy type strings cleanly
                 TYPE=$(echo "$issue" | jq -r '.impacts[0].softwareQuality // .type // "MAINTAINABILITY"' 2>/dev/null)
                 SEVERITY=$(echo "$issue" | jq -r '.impacts[0].severity // .severity // "MEDIUM"' 2>/dev/null)
                 COMPONENT=$(echo "$issue" | jq -r '.component // ""' 2>/dev/null | sed "s/^${PROJECT_KEY}://")
