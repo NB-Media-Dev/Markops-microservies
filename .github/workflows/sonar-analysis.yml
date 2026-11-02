@@ -25,7 +25,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-      # Step 3: Fetch Live Metrics and Detailed Errors List from API
+      # Step 3: Fetch Live Metrics and Detailed Errors List from API natively
       - name: Fetch Metrics and Generate Detailed Summary
         run: |
           echo "Waiting for SonarCloud server synchronization processing..."
@@ -33,8 +33,8 @@ jobs:
           
           PROJECT_KEY="NB-Media-Dev_Markops-microservies"
           
-          # 1. Fetch Numerical Counts
-          METRICS_JSON=$(curl -s "https://sonarcloud.io{PROJECT_KEY}&metricKeys=bugs,vulnerabilities,code_smells,duplicated_lines_density,security_hotspots")
+          # 1. Fetch Numerical Counts (Passing SONAR_TOKEN securely via HTTP Basic Authentication)
+          METRICS_JSON=$(curl -s -u "${{ secrets.SONAR_TOKEN }}:" "https://sonarcloud.io{PROJECT_KEY}&metricKeys=bugs,vulnerabilities,code_smells,duplicated_lines_density,security_hotspots")
           
           BUGS=$(echo "$METRICS_JSON" | jq -r '.component.measures[] | select(.metric=="bugs") | .value' || echo "0")
           VULNS=$(echo "$METRICS_JSON" | jq -r '.component.measures[] | select(.metric=="vulnerabilities") | .value' || echo "0")
@@ -55,10 +55,10 @@ jobs:
 
           # 3. Fetch the Raw List of Individual Code Bugs & Structural Flaws
           echo "### 🔍 Itemized Code Defects & Errors List" >> $GITHUB_STEP_SUMMARY
-          ISSUES_JSON=$(curl -s "https://sonarcloud.io{PROJECT_KEY}&resolved=false&ps=100")
-          TOTAL_ISSUES_FOUND=$(echo "$ISSUES_JSON" | jq '.total')
+          ISSUES_JSON=$(curl -s -u "${{ secrets.SONAR_TOKEN }}:" "https://sonarcloud.io{PROJECT_KEY}&resolved=false&ps=100")
+          TOTAL_ISSUES_FOUND=$(echo "$ISSUES_JSON" | jq '.total // 0')
 
-          if [ "$TOTAL_ISSUES_FOUND" -eq "0" ]; then
+          if [ "$TOTAL_ISSUES_FOUND" -eq "0" ] || [ -z "$TOTAL_ISSUES_FOUND" ]; then
             echo "✅ **Flawless Scan:** No unresolved bugs, vulnerabilities, or code smells found inside this project branch configuration!" >> $GITHUB_STEP_SUMMARY
           else
             echo "The scanner isolated the following unresolved code defects inside your source folders:" >> $GITHUB_STEP_SUMMARY
