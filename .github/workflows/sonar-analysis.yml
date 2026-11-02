@@ -1,0 +1,25 @@
+name: SonarCloud Scan Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  sonarcloud:
+    name: Code Analysis Scan
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Pull your microservices repository code into the runner
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Step 2: Trigger SonarCloud to analyze your project code text
+      - name: Execute SonarCloud Analysis
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Built-in GitHub token
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   # The token secret you added in Step 1
