@@ -25,7 +25,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-      # Step 3: Fetch Live Metrics and Detailed Errors List from API safely
+      # Step 3: Fetch Live Metrics and Detailed Errors List using Clean Code Taxonomy
       - name: Fetch Metrics and Generate Detailed Summary
         run: |
           echo "Waiting for SonarCloud server synchronization processing..."
@@ -33,16 +33,16 @@ jobs:
           
           PROJECT_KEY="NB-Media-Dev_Markops-microservies"
           
-          # 1. Fetch Numerical Counts safely (using || true to prevent shell crashes)
-          METRICS_JSON=$(curl -sL -u "${{ secrets.SONAR_TOKEN }}:" "https://sonarcloud.io{PROJECT_KEY}&metricKeys=bugs,vulnerabilities,code_smells,duplicated_lines_density,security_hotspots" || echo "{}")
+          # 1. Fetch Numerical Counts using modern SonarCloud Software Quality Keys
+          METRICS_JSON=$(curl -sL -u "${{ secrets.SONAR_TOKEN }}:" "https://sonarcloud.io{PROJECT_KEY}&metricKeys=software_quality_reliability_issues,software_quality_security_issues,software_quality_maintainability_issues,duplicated_lines_density,security_hotspots" || echo "{}")
           
-          BUGS=$(echo "$METRICS_JSON" | jq -r '.component.measures[] | select(.metric=="bugs") | .value' 2>/dev/null || echo "0")
-          VULNS=$(echo "$METRICS_JSON" | jq -r '.component.measures[] | select(.metric=="vulnerabilities") | .value' 2>/dev/null || echo "0")
-          SMELLS=$(echo "$METRICS_JSON" | jq -r '.component.measures[] | select(.metric=="code_smells") | .value' 2>/dev/null || echo "0")
+          BUGS=$(echo "$METRICS_JSON" | jq -r '.component.measures[] | select(.metric=="software_quality_reliability_issues") | .value' 2>/dev/null || echo "0")
+          VULNS=$(echo "$METRICS_JSON" | jq -r '.component.measures[] | select(.metric=="software_quality_security_issues") | .value' 2>/dev/null || echo "0")
+          SMELLS=$(echo "$METRICS_JSON" | jq -r '.component.measures[] | select(.metric=="software_quality_maintainability_issues") | .value' 2>/dev/null || echo "0")
           HOTSPOTS=$(echo "$METRICS_JSON" | jq -r '.component.measures[] | select(.metric=="security_hotspots") | .value' 2>/dev/null || echo "0")
           DUP_PERCENT=$(echo "$METRICS_JSON" | jq -r '.component.measures[] | select(.metric=="duplicated_lines_density") | .value' 2>/dev/null || echo "0.0")
 
-          # Sanitize fallback values if missing
+          # Sanitize fallbacks
           [ -z "$BUGS" ] || [ "$BUGS" = "null" ] && BUGS="0"
           [ -z "$VULNS" ] || [ "$VULNS" = "null" ] && VULNS="0"
           [ -z "$SMELLS" ] || [ "$SMELLS" = "null" ] && SMELLS="0"
@@ -54,40 +54,41 @@ jobs:
           echo "| Quality Pillar | Target Category / Structural Module | Detected Value Count |" >> $GITHUB_STEP_SUMMARY
           echo "| :--- | :--- | :--- |" >> $GITHUB_STEP_SUMMARY
           echo "| 🔴 **Reliability / Core Errors** | Functional Logic Bugs & Code Errors | **$BUGS** |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🛡️ **Vulnerabilities** | Known Security Holes & Flaws | **$VULNS** |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🛡️ **Security Vulnerabilities** | Known Security Holes & Flaws | **$VULNS** |" >> $GITHUB_STEP_SUMMARY
           echo "| ⚡ **Security Hotspots** | Unverified Risk Code Sections | **$HOTSPOTS** |" >> $GITHUB_STEP_SUMMARY
           echo "| 🟢 **Maintainability** | Structural Code Smells & Debt | **$SMELLS** |" >> $GITHUB_STEP_SUMMARY
           echo "| 🔵 **Duplication Density** | Repeated Code Fragments & Lines | **$DUP_PERCENT%** |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          # 3. Fetch detailed list of issues
-          echo "### 🔍 Itemized Code Defects & Errors List" >> $GITHUB_STEP_SUMMARY
+          # 3. Fetch itemized detailed list of active bugs/vulnerabilities
+          echo "### 🔍 Itemized Code Defects & Errors List (Top 100)" >> $GITHUB_STEP_SUMMARY
           ISSUES_JSON=$(curl -sL -u "${{ secrets.SONAR_TOKEN }}:" "https://sonarcloud.io{PROJECT_KEY}&resolved=false&ps=100" || echo "{\"total\":0,\"issues\":[]}")
           
           TOTAL_ISSUES_FOUND=$(echo "$ISSUES_JSON" | jq -r '.total // 0' 2>/dev/null || echo "0")
 
           if [ "$TOTAL_ISSUES_FOUND" -eq "0" ] || [ "$TOTAL_ISSUES_FOUND" = "null" ]; then
-            echo "✅ **Flawless Scan:** No unresolved bugs, vulnerabilities, or code smells found inside this project branch configuration!" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **Flawless Scan:** No unresolved software quality issues found inside this project branch configuration!" >> $GITHUB_STEP_SUMMARY
           else
-            echo "The scanner isolated the following unresolved code defects inside your source folders:" >> $GITHUB_STEP_SUMMARY
+            echo "The scanner isolated unresolved code defects inside your microservices folders:" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "| Type | Severity | Component File Path (Line Number) | Description Error Message |" >> $GITHUB_STEP_SUMMARY
+            echo "| Impact Type | Severity | Component File Path (Line Number) | Description Error Message |" >> $GITHUB_STEP_SUMMARY
             echo "| :--- | :--- | :--- | :--- |" >> $GITHUB_STEP_SUMMARY
             
-            # Read and parse array loops safely inside a subshell to neutralize bash exit-on-error behaviors
+            # Safely loop through issues array
             echo "$ISSUES_JSON" | jq -c '.issues[]' 2>/dev/null | while read -r issue; do
               if [ -n "$issue" ]; then
-                TYPE=$(echo "$issue" | jq -r '.type // "SMELL"' 2>/dev/null)
-                SEVERITY=$(echo "$issue" | jq -r '.severity // "INFO"' 2>/dev/null)
+                # Parse both new taxonomy quality types and legacy type strings cleanly
+                TYPE=$(echo "$issue" | jq -r '.impacts[0].softwareQuality // .type // "MAINTAINABILITY"' 2>/dev/null)
+                SEVERITY=$(echo "$issue" | jq -r '.impacts[0].severity // .severity // "MEDIUM"' 2>/dev/null)
                 COMPONENT=$(echo "$issue" | jq -r '.component // ""' 2>/dev/null | sed "s/^${PROJECT_KEY}://")
                 LINE=$(echo "$issue" | jq -r '.line // "N/A"' 2>/dev/null)
                 MESSAGE=$(echo "$issue" | jq -r '.message // ""' 2>/dev/null)
                 
-                TYPE_EMOJI="🟢 SMELL"
-                if [ "$TYPE" = "BUG" ]; then
-                  TYPE_EMOJI="🔴 BUG"
-                elif [ "$TYPE" = "VULNERABILITY" ]; then
-                  TYPE_EMOJI="🛡️ VULN"
+                TYPE_EMOJI="🟢 MAINTAINABILITY"
+                if [ "$TYPE" = "RELIABILITY" ] || [ "$TYPE" = "BUG" ]; then
+                  TYPE_EMOJI="🔴 RELIABILITY"
+                elif [ "$TYPE" = "SECURITY" ] || [ "$TYPE" = "VULNERABILITY" ]; then
+                  TYPE_EMOJI="🛡️ SECURITY"
                 fi
                 
                 echo "| $TYPE_EMOJI | $SEVERITY | \`$COMPONENT\` (Line: $LINE) | $MESSAGE |" >> $GITHUB_STEP_SUMMARY
