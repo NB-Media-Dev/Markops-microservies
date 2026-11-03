@@ -1,0 +1,155 @@
+name: SonarCloud Scan Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  sonarcloud:
+    name: Code Analysis Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Clone the repository into the environment
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Step 2: Run the official SonarSource scanner step
+      - name: Execute SonarCloud Analysis
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      # Step 3: Fetch Live Metrics and Full Issues List using tester's Node script style
+      - name: Fetch Metrics and Generate Detailed Summary
+        if: always()
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_PROJECT_KEY: NB-Media-Dev_Markops-microservies
+          SONAR_ORG_KEY: nb-media-dev
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          node <<'NODE'
+          const fs = require("fs");
+
+          const token = process.env.SONAR_TOKEN || "";
+          const project = process.env.SONAR_PROJECT_KEY;
+          const organization = process.env.SONAR_ORG_KEY;
+          const summary = process.env.GITHUB_STEP_SUMMARY;
+
+          function md(value) {
+            return String(value ?? "-")
+              .replace(/\r?\n/g, " ")
+              .replace(/\|/g, "\\|")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;");
+          }
+
+          function append(text) {
+            fs.appendFileSync(summary, text);
+          }
+
+          async function sonarCloudFetch(path, params = {}) {
+            if (!token) {
+              throw new Error("SonarCloud token is missing.");
+            }
+
+            const url = new URL("https://sonarcloud.io" + path);
+            for (const [key, value] of Object.entries(params)) {
+              url.searchParams.set(key, String(value));
+            }
+
+            const response = await fetch(url, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "User-Agent": "GitHub-Actions-SonarCloud-Report"
+              },
+              signal: AbortSignal.timeout(60000)
+            });
+
+            if (!response.ok) {
+              throw new Error(`${path} returned HTTP ${response.status}`);
+            }
+
+            return response.json();
+          }
+
+          async function main() {
+            append("### 📊 Live SonarCloud Quality Metrics Table\n\n");
+
+            try {
+              // Fetch metrics data using SonarCloud preferred parameters
+              const metricsResult = await sonarCloudFetch("/api/measures/component", {
+                component: project,
+                metricKeys: "bugs,vulnerabilities,code_smells,duplicated_lines_density,security_hotspots"
+              });
+
+              const measures = metricsResult.component?.measures || [];
+              const getMetric = (key) => measures.find(m => m.metric === key)?.value || "0";
+
+              append("| Quality Pillar | Target Category / Structural Module | Detected Value Count |\n");
+              append("| :--- | :--- | :--- |\n");
+              append(`| 🔴 **Reliability / Core Errors** | Functional Logic Bugs & Code Errors | **${getMetric("bugs")}** |\n`);
+              append(`| 🛡️ **Security Vulnerabilities** | Known Security Holes & Flaws | **${getMetric("vulnerabilities")}** |\n`);
+              append(`| ⚡ **Security Hotspots** | Unverified Risk Code Sections | **${getMetric("security_hotspots")}** |\n`);
+              append(`| 🟢 **Maintainability** | Structural Code Smells & Debt | **${getMetric("code_smells")}** |\n`);
+              append(`| 🔵 **Duplication Density** | Repeated Code Fragments & Lines | **${getMetric("duplicated_lines_density")}%** |\n\n`);
+
+            } catch (err) {
+              append(`**Failed to load summary metric counts table:** ${md(err.message)}\n\n`);
+            }
+
+            append("### 🔍 Itemized Code Defects & Errors List (Top 100)\n\n");
+
+            try {
+              const result = await sonarCloudFetch("/api/issues/search", {
+                projectKeys: project,
+                resolved: "false",
+                ps: 100,
+                p: 1
+              });
+
+              const issues = result.issues || [];
+              const total = result.total ?? issues.length;
+
+              if (total === 0) {
+                append("✅ **Flawless Scan:** No unresolved software quality issues found inside this project branch configuration!\n");
+              } else {
+                append(`The scanner isolated unresolved code defects inside your microservices folders (Total: **${total}**):\n\n`);
+                append("| Impact Type | Severity | Component File Path (Line Number) | Description Error Message |\n");
+                append("| :--- | :--- | :--- | :--- |\n");
+
+                for (const issue of issues) {
+                  let typeEmoji = "🟢 SMELL";
+                  if (issue.type === "BUG") typeEmoji = "🔴 BUG";
+                  if (issue.type === "VULNERABILITY") typeEmoji = "🛡️ VULN";
+
+                  const fileClean = md(issue.component).replace(project + ":", "");
+
+                  append(
+                    `| ${typeEmoji} | ${md(issue.severity)} ` +
+                    `| \`${fileClean}\` (Line: ${issue.line ?? "N/A"}) ` +
+                    `| ${md(issue.message)} |\n`
+                  );
+                }
+              }
+            } catch (error) {
+              append(`**Issue report table unavailable:** ${md(error.message)}\n`);
+            }
+          }
+
+          main().catch(error => {
+            console.error(error);
+          });
+          NODE

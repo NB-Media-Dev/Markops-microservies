@@ -218,55 +218,55 @@ async function initializeDatabase() {
     console.log("✅ Tables verified and created successfully!");
 
     // 3. Insert Sample Campaign
-    console.log("📥 Checking and inserting sample campaigns...");
-    const [existingCampaigns] = await connection.query("SELECT COUNT(*) as count FROM campaigns;");
-    if (existingCampaigns[0]?.count === 0) {
-      const sampleCampaignsQuery = `
-        INSERT INTO campaigns (id, name, objective, product_id, package_id, status, start_date, budget, spend, leads_count, paid_leads, conversions, owner_id)
-        VALUES 
-          (1, 'Digital Brand Awareness 2026', 'LEAD_GENERATION', 'prod-1', 'pkg-1', 'ACTIVE', '2026-01-15', 50000.00, 18500.00, 145, 18, 12, 1),
-          (2, 'Summer Product Launch Ad Blitz', 'CONVERSIONS', 'prod-2', 'pkg-3', 'ACTIVE', '2026-03-01', 75000.00, 32000.00, 210, 35, 28, 1),
-          (3, 'Meta Retargeting Campaign', 'RE_ENGAGEMENT', 'prod-1', 'pkg-2', 'PAUSED', '2026-02-10', 25000.00, 8900.00, 65, 9, 7, 2);
-      `;
-      await connection.query(sampleCampaignsQuery);
-      console.log("✅ Sample campaigns inserted successfully!");
-    } else {
-      console.log(`ℹ️  campaigns table already contains ${existingCampaigns[0].count} records.`);
-    }
+    // console.log("📥 Checking and inserting sample campaigns...");
+    // const [existingCampaigns] = await connection.query("SELECT COUNT(*) as count FROM campaigns;");
+    // if (existingCampaigns[0]?.count === 0) {
+    //   const sampleCampaignsQuery = `
+    //     INSERT INTO campaigns (id, name, objective, product_id, package_id, status, start_date, budget, spend, leads_count, paid_leads, conversions, owner_id)
+    //     VALUES 
+    //       (1, 'Digital Brand Awareness 2026', 'LEAD_GENERATION', 'prod-1', 'pkg-1', 'ACTIVE', '2026-01-15', 50000.00, 18500.00, 145, 18, 12, 1),
+    //       (2, 'Summer Product Launch Ad Blitz', 'CONVERSIONS', 'prod-2', 'pkg-3', 'ACTIVE', '2026-03-01', 75000.00, 32000.00, 210, 35, 28, 1),
+    //       (3, 'Meta Retargeting Campaign', 'RE_ENGAGEMENT', 'prod-1', 'pkg-2', 'PAUSED', '2026-02-10', 25000.00, 8900.00, 65, 9, 7, 2);
+    //   `;
+    //   await connection.query(sampleCampaignsQuery);
+    //   console.log("✅ Sample campaigns inserted successfully!");
+    // } else {
+    //   console.log(`ℹ️  campaigns table already contains ${existingCampaigns[0].count} records.`);
+    // }
 
     // 4. Insert Sample Ads
-    const [existingAds] = await connection.query("SELECT COUNT(*) as count FROM ads;");
-    if (existingAds[0]?.count === 0) {
-      console.log("📥 Inserting sample ads...");
-      const sampleAdsQuery = `
-        INSERT INTO ads (id, campaign_id, product_id, package_id, name, platform, spend, impressions, clicks, leads_count, status, task_type)
-        VALUES 
-          (1, 1, 'prod-1', 'pkg-1', 'Banner Ad - Starter Package Promo', 'Meta', 6500.00, 45000, 1200, 48, 'ACTIVE', 'BANNER_DESIGN'),
-          (2, 1, 'prod-1', 'pkg-1', 'Video Ad - Customer Success Story', 'Meta', 12000.00, 92000, 3100, 97, 'ACTIVE', 'VIDEO'),
-          (3, 2, 'prod-2', 'pkg-3', 'Poster Ad - Flash Sale 25% Off', 'Meta', 15000.00, 80000, 2400, 110, 'ACTIVE', 'POST_DESIGN');
-      `;
-      await connection.query(sampleAdsQuery);
-      console.log("✅ Sample ads inserted successfully!");
-    } else {
-      console.log(`ℹ️  ads table already contains ${existingAds[0].count} records.`);
-    }
+    // const [existingAds] = await connection.query("SELECT COUNT(*) as count FROM ads;");
+    // if (existingAds[0]?.count === 0) {
+    //   console.log("📥 Inserting sample ads...");
+    //   const sampleAdsQuery = `
+    //     INSERT INTO ads (id, campaign_id, product_id, package_id, name, platform, spend, impressions, clicks, leads_count, status, task_type)
+    //     VALUES 
+    //       (1, 1, 'prod-1', 'pkg-1', 'Banner Ad - Starter Package Promo', 'Meta', 6500.00, 45000, 1200, 48, 'ACTIVE', 'BANNER_DESIGN'),
+    //       (2, 1, 'prod-1', 'pkg-1', 'Video Ad - Customer Success Story', 'Meta', 12000.00, 92000, 3100, 97, 'ACTIVE', 'VIDEO'),
+    //       (3, 2, 'prod-2', 'pkg-3', 'Poster Ad - Flash Sale 25% Off', 'Meta', 15000.00, 80000, 2400, 110, 'ACTIVE', 'POST_DESIGN');
+    //   `;
+    //   await connection.query(sampleAdsQuery);
+    //   console.log("✅ Sample ads inserted successfully!");
+    // } else {
+    //   console.log(`ℹ️  ads table already contains ${existingAds[0].count} records.`);
+    // }
 
     // 5. Insert Sample Leads
-    const [existingLeads] = await connection.query("SELECT COUNT(*) as count FROM leads;");
-    if (existingLeads[0]?.count === 0) {
-      console.log("📥 Inserting sample leads...");
-      const sampleLeadsQuery = `
-        INSERT INTO leads (first_name, last_name, email, phone, source, campaign, ad, product_id, package_id, call_disposition, status, assignment_status, assigned_telecaller_id)
-        VALUES 
-          ('Arun', 'Kumar', 'arun.k@gmail.com', '+919876543210', 'META', 'Digital Brand Awareness 2026', 'Banner Ad - Starter Package Promo', 'prod-1', 'pkg-1', 'INTERESTED', 'INTERESTED', 'ASSIGNED', 1),
-          ('Priya Ananth', 'Sharma', 'priya.s@yahoo.com', '+919988776655', 'INSTAGRAM', 'Summer Product Launch Ad Blitz', 'Poster Ad - Flash Sale 25% Off', 'prod-2', 'pkg-3', 'CALLBACK_REQUESTED', 'FOLLOW_UP', 'ASSIGNED', 2),
-          ('Rahul', 'Verma', 'rahul.v@outlook.com', '+919911223344', 'FACEBOOK', 'Digital Brand Awareness 2026', 'Video Ad - Customer Success Story', 'prod-1', 'pkg-1', 'NONE', 'ASSIGNED', 'ASSIGNED', 1);
-      `;
-      await connection.query(sampleLeadsQuery);
-      console.log("✅ Sample leads inserted successfully!");
-    } else {
-      console.log(`ℹ️  leads table already contains ${existingLeads[0].count} records.`);
-    }
+    // const [existingLeads] = await connection.query("SELECT COUNT(*) as count FROM leads;");
+    // if (existingLeads[0]?.count === 0) {
+    //   console.log("📥 Inserting sample leads...");
+    //   const sampleLeadsQuery = `
+    //     INSERT INTO leads (first_name, last_name, email, phone, source, campaign, ad, product_id, package_id, call_disposition, status, assignment_status, assigned_telecaller_id)
+    //     VALUES 
+    //       ('Arun', 'Kumar', 'arun.k@gmail.com', '+919876543210', 'META', 'Digital Brand Awareness 2026', 'Banner Ad - Starter Package Promo', 'prod-1', 'pkg-1', 'INTERESTED', 'INTERESTED', 'ASSIGNED', 1),
+    //       ('Priya Ananth', 'Sharma', 'priya.s@yahoo.com', '+919988776655', 'INSTAGRAM', 'Summer Product Launch Ad Blitz', 'Poster Ad - Flash Sale 25% Off', 'prod-2', 'pkg-3', 'CALLBACK_REQUESTED', 'FOLLOW_UP', 'ASSIGNED', 2),
+    //       ('Rahul', 'Verma', 'rahul.v@outlook.com', '+919911223344', 'FACEBOOK', 'Digital Brand Awareness 2026', 'Video Ad - Customer Success Story', 'prod-1', 'pkg-1', 'NONE', 'ASSIGNED', 'ASSIGNED', 1);
+    //   `;
+    //   await connection.query(sampleLeadsQuery);
+    //   console.log("✅ Sample leads inserted successfully!");
+    // } else {
+    //   console.log(`ℹ️  leads table already contains ${existingLeads[0].count} records.`);
+    // }
 
     console.log("================================================================");
     console.log(" 🎉 Campaign & Digital database initialization completed!");
