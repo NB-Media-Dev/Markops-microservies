@@ -41,11 +41,11 @@
       <div class="header-titles-group header-titles-block">
         <h1 class="page-main-orange-title">Telecalling</h1>
         <div class="page-breadcrumb-subrow">
-          <span class="bc-link">Careermate</span>
+          <a (click)="onBreadcrumbNavigate('dashboard', $event)" class="bc-link" href="javascript:void(0)">{{ activeProductName() }}</a>
           <span class="bc-sep">&gt;</span>
-          <span class="bc-link">Available Package</span>
+          <a (click)="onBreadcrumbNavigate('packages', $event)" class="bc-link" href="javascript:void(0)">Available Package</a>
           <span class="bc-sep">&gt;</span>
-          <span class="bc-link">Department Operations</span>
+          <a (click)="onBreadcrumbNavigate('operations', $event)" class="bc-link" href="javascript:void(0)">Department Operations</a>
           <span class="bc-sep">&gt;</span>
           <span class="bc-current">Telecalling</span>
         </div>
@@ -114,6 +114,7 @@
         [getFollowUpTimeLabelFn]="getFollowUpTimeLabelFn"
         [isFollowUpDueFn]="isFollowUpDueFn"
         [getLeadCreatorNameFn]="getLeadCreatorNameFn"
+        [getLeadAssigneeNameFn]="getLeadAssigneeNameFn"
         [getLeadMetricsFn]="getLeadMetricsFn"
         [currentPage]="currentPage()"
         [pageSize]="pageSize()"

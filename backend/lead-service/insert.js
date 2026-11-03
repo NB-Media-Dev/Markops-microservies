@@ -16,11 +16,7 @@ async function initializeDatabase() {
   console.log(" 📞 MarkOps Lead & Telecalling Service Database Setup");
   console.log("================================================================");
 
-<<<<<<< HEAD
-  const connectionString = process.env.DATABASE_URL || "mysql://Ratheesh@17@localhost:3303/digital_db";
-=======
-  const connectionString = process.env.DATABASE_URL || "mysql://Ratheesh@17@localhost:3303/digital_db";
->>>>>>> f1f6db5be22570188d950de5fa2d49d227647a47
+  const connectionString = process.env.DATABASE_URL || "mysql://nb123@localhost:3306/digital_db";
   let connection;
 
   try {
@@ -32,7 +28,7 @@ async function initializeDatabase() {
       targetDatabase = dbUrl.pathname.replace(/^\//, '') || "digital_db";
       connectionOptions = {
         host: dbUrl.hostname,
-        port: dbUrl.port ? parseInt(dbUrl.port, 10) : 3303,
+        port: dbUrl.port ? parseInt(dbUrl.port, 10) : 3306,
         user: dbUrl.username || "root",
         password: decodeURIComponent(dbUrl.password || ""),
         multipleStatements: true
@@ -40,7 +36,7 @@ async function initializeDatabase() {
     } catch {
       connectionOptions = {
         host: "localhost",
-        port: 3303,
+        port: 3306,
         user: "root",
         password: "password",
         multipleStatements: true

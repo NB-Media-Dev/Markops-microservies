@@ -21,6 +21,16 @@
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   border: 1px solid rgba(226, 232, 240, 0.8);
 
+  @media (min-width: 2560px) {
+    max-width: 720px;
+    border-radius: 26px;
+  }
+
+  @media (min-width: 3840px) {
+    max-width: 920px;
+    border-radius: 32px;
+  }
+
   @media (max-width: 640px) {
     max-width: 95vw !important;
     width: 95vw !important;
@@ -34,6 +44,14 @@
     display: flex;
     flex-direction: column;
     max-height: 88vh;
+
+    @media (min-width: 2560px) {
+      max-width: 760px;
+    }
+
+    @media (min-width: 3840px) {
+      max-width: 980px;
+    }
 
     @media (max-width: 640px) {
       max-width: 95vw !important;

@@ -17,7 +17,7 @@ const dbUrl = new URL(databaseUrl);
 
 export const pool: Pool = mysql.createPool({
   host: dbUrl.hostname,
-  port: Number(dbUrl.port || 3303),
+  port: Number(dbUrl.port || 3306),
   user: decodeURIComponent(dbUrl.username),
   password: decodeURIComponent(dbUrl.password),
   database: dbUrl.pathname.slice(1),

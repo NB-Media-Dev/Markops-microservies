@@ -268,7 +268,7 @@ export class LeadTelecallingService {
     return this.http.get<any>('/api/leads').pipe(
       tap({
         next: (res) => {
-          const list: any[] = Array.isArray(res) ? res : (res?.data || res?.leads || []);
+          const list: any[] = Array.isArray(res) ? res : (res?.data || res?.leads || res?.value || []);
           const normalized: LeadItem[] = list.map((l: any) => ({
             ...l,
             id: String(l.id),
@@ -281,11 +281,18 @@ export class LeadTelecallingService {
             campaignName: l.campaignName || l.campaign || '',
             adId: l.adId || l.ad_id,
             adName: l.adName || l.ad,
+            productId: l.productId || l.product_id || '',
+            productName: l.productName || l.product_name || '',
+            packageName: l.packageName || l.package_name || l.packageId || l.package_id || '',
+            package: l.package || l.package_name || l.packageId || l.package_id || '',
             status: l.status === 'QUALIFIED' ? 'PAID' : (l.status || 'NEW'),
-            assignedTo: l.assignedTo ?? l.assigned_telecaller_id ?? null,
+            assignedTo: l.assignedTo ?? l.assignedTelecallerId ?? l.assigned_telecaller_id ?? null,
             assigneeName: l.assigneeName || l.assignedToName || '',
-            remarks: l.remarks || l.call_disposition || '',
-            notes: l.notes || l.remarks || '',
+            creatorId: l.creatorId || l.creator_id || l.uploaderId || '',
+            creatorName: l.creatorName || l.creator_name || '',
+            creatorEmail: l.creatorEmail || l.creator_email || '',
+            remarks: l.remarks || l.call_disposition || l.callDisposition || '',
+            notes: l.notes || l.remarks || l.callDisposition || '',
             createdAt: l.createdAt || l.created_at || new Date().toISOString(),
             updatedAt: l.updatedAt || l.updated_at || new Date().toISOString()
           }));
@@ -402,7 +409,7 @@ export class LeadTelecallingService {
     return this.http.get<any>('/api/calls').pipe(
       tap({
         next: (res) => {
-          const rawList: any[] = Array.isArray(res) ? res : (res?.data || []);
+          const rawList: any[] = Array.isArray(res) ? res : (res?.data || res?.calls || res?.callLogs || res?.value || []);
           const unique: CallActivityItem[] = [];
           for (const rawItem of (rawList || [])) {
             const rawOutcome = (rawItem.outcome || rawItem.callOutcome || rawItem.call_outcome || 'CONNECTED');
@@ -543,7 +550,7 @@ export class LeadTelecallingService {
     return this.http.get<any>('/api/follow-ups').pipe(
       tap({
         next: (res) => {
-          const rawList = Array.isArray(res) ? res : (res?.data || []);
+          const rawList = Array.isArray(res) ? res : (res?.data || res?.followUps || res?.value || []);
           const normalized: FollowUpItem[] = rawList.map((f: any) => ({
             id: String(f.callLogId || f.id),
             leadId: String(f.leadId || f.lead_id),
@@ -565,9 +572,12 @@ export class LeadTelecallingService {
   }
 
   loadSummary() {
-    return this.http.get<TelecallingSummary>('/api/leads/telecalling-summary').pipe(
+    return this.http.get<any>('/api/leads/telecalling-summary').pipe(
       tap({
-        next: (data) => this.summary.set(data),
+        next: (res) => {
+          const summaryData = res?.data || res;
+          this.summary.set(summaryData);
+        },
       }),
       catchError(() => of(null))
     );
@@ -577,7 +587,7 @@ export class LeadTelecallingService {
     return this.http.get<any>('/api/targets').pipe(
       tap({
         next: (res) => {
-          const rawList: any[] = Array.isArray(res) ? res : (res?.data || []);
+          const rawList: any[] = Array.isArray(res) ? res : (res?.data || res?.targets || res?.value || []);
           const normalized: TelecallerTarget[] = rawList.map((t: any) => ({
             telecallerId: String(t.telecallerId || t.telecaller_id || ''),
             telecallerName: t.telecallerName || t.telecaller_name || 'Telecaller',

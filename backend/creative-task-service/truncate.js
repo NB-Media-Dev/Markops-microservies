@@ -2,18 +2,14 @@ import mysql from 'mysql2/promise';
 import 'dotenv/config';
 
 async function truncateDatabase() {
-<<<<<<< HEAD
-  const connectionString = process.env.DATABASE_URL || "mysql://Ratheesh@17@localhost:3303/designer_db";
-=======
-  const connectionString = process.env.DATABASE_URL || "mysql://Ratheesh@17@localhost:3303/designer_db";
->>>>>>> f1f6db5be22570188d950de5fa2d49d227647a47
+  const connectionString = process.env.DATABASE_URL || "mysql://nb123@localhost:3306/designer_db";
   let connection;
 
   try {
     const dbUrl = new URL(connectionString);
     const connectionOptions = {
       host: dbUrl.hostname,
-      port: dbUrl.port ? parseInt(dbUrl.port, 10) : 3303,
+      port: dbUrl.port ? parseInt(dbUrl.port, 10) : 3306,
       user: dbUrl.username,
       password: decodeURIComponent(dbUrl.password),
       multipleStatements: true

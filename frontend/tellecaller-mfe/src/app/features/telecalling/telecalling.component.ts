@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, OnDestroy, signal, computed, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { LeadTelecallingService, LeadItem, CallActivityItem, FollowUpItem, isClientDuplicateCall } from '../../core/services/lead-telecalling.service';
 import { UserManagementService } from '../../core/services/user-management.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -257,6 +257,59 @@ export class TelecallingComponent implements OnInit, OnDestroy {
   readonly authService = inject(AuthService);
   readonly campaignService = inject(CampaignService);
   readonly packageService = inject(PackageService);
+  private readonly router = inject(Router);
+
+  readonly resolvedActiveProduct = computed<string | null>(() => {
+    const prod = this.productFilterSignal()?.trim();
+    if (prod && prod.toLowerCase() !== 'all') return prod;
+
+    const pkgFilter = this.packageFilterSignal()?.trim();
+    if (pkgFilter) {
+      const dbPkgs = this.packageService.packages();
+      const match = dbPkgs.find((p) => p.name.toLowerCase().trim() === pkgFilter.toLowerCase());
+      if (match && match.productId) {
+        return match.productId;
+      }
+    }
+    return 'Careermate';
+  });
+
+  readonly activeProductName = computed<string>(() => {
+    return this.resolvedActiveProduct() || 'Careermate';
+  });
+
+  onBreadcrumbNavigate(target: 'dashboard' | 'packages' | 'operations', event?: Event): void {
+    if (event) {
+      event.preventDefault();
+    }
+    if (typeof window !== 'undefined') {
+      const host = window.location.hostname || 'localhost';
+      const protocol = window.location.protocol || 'http:';
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'MARKOPS_NAVIGATE', route: target }, '*');
+        return;
+      }
+      if (target === 'dashboard') {
+        window.location.href = `${protocol}//${host}:4200`;
+      } else if (target === 'packages') {
+        window.location.href = `${protocol}//${host}:4200#packages`;
+      } else {
+        window.location.href = `${protocol}//${host}:4200#operations`;
+      }
+    }
+  }
+
+  getLeadAssigneeName(lead: LeadItem): string {
+    if (lead?.assigneeName?.trim()) return lead.assigneeName.trim();
+    const assignedId = String(lead?.assignedTo || '').trim();
+    if (!assignedId) return '';
+    const users = this.userService.users();
+    const match = users.find((u) => String(u.id).trim() === assignedId || u.email.toLowerCase() === assignedId.toLowerCase());
+    if (match) return match.fullName || (match as any).name || match.email;
+    return `Telecaller ${assignedId}`;
+  }
+
+  readonly getLeadAssigneeNameFn = (lead: LeadItem) => this.getLeadAssigneeName(lead);
 
   readonly selectedLeadForCall = signal<LeadItem | null>(null);
   readonly selectedLeadForHistory = signal<LeadItem | null>(null);
@@ -310,9 +363,14 @@ export class TelecallingComponent implements OnInit, OnDestroy {
     }
 
     const allUsers = this.userService.users();
-    const telecallers = allUsers.filter((u) => u.role === 'TELECALLER');
+    let telecallers = allUsers.filter((u) => u.role === 'TELECALLER');
     const allLeads = this.leadService.leads();
     const allCalls = this.leadService.calls();
+
+    if (telecallers.length === 0) {
+      const assignedIds = new Set(allLeads.map((l) => String(l.assignedTo || '')).filter(Boolean));
+      telecallers = allUsers.filter((u) => assignedIds.has(String(u.id)));
+    }
 
     const telecallerList = telecallers.length > 0 ? telecallers : [];
 
@@ -501,7 +559,10 @@ export class TelecallingComponent implements OnInit, OnDestroy {
     const prod = this.productFilterSignal()?.trim();
     const dbPkgs = this.packageService.packages();
 
-    if ((pkg && pkg.toLowerCase() !== 'all') || (prod && prod.toLowerCase() !== 'all')) {
+    const isAllPkg = !pkg || pkg.toLowerCase() === 'all' || pkg.toLowerCase().includes('available package') || pkg.toLowerCase().includes('all package');
+    const isAllProd = !prod || prod.toLowerCase() === 'all';
+
+    if (!isAllPkg || !isAllProd) {
       const filtered = leads.filter((l) => isItemForPackage(l, pkg, prod, dbPkgs));
       if (filtered.length > 0) {
         leads = filtered;
@@ -516,31 +577,33 @@ export class TelecallingComponent implements OnInit, OnDestroy {
     const pkg = this.packageFilterSignal()?.trim();
     const prod = this.productFilterSignal()?.trim();
     const dbPkgs = this.packageService.packages();
-    const scopedCampaigns = ((pkg && pkg.toLowerCase() !== 'all') || (prod && prod.toLowerCase() !== 'all'))
+    const isAllPkg = !pkg || pkg.toLowerCase() === 'all' || pkg.toLowerCase().includes('available package') || pkg.toLowerCase().includes('all package');
+    const isAllProd = !prod || prod.toLowerCase() === 'all';
+
+    const scopedCampaigns = (!isAllPkg || !isAllProd)
       ? portfolioCampaigns.filter((c) => isItemForPackage(c, pkg, prod, dbPkgs))
       : portfolioCampaigns;
 
     const leads = this.assignedLeads();
+    const campaignMap = new Map<string, { id?: string; name: string; count: number }>();
 
-    if (scopedCampaigns.length > 0) {
-      return scopedCampaigns.map((cmp) => {
+    for (const cmp of scopedCampaigns) {
+      if (cmp?.name?.trim()) {
+        const cName = cmp.name.trim();
         const count = leads.filter((l) => isLeadInCampaign(l, cmp)).length;
-        return {
-          id: cmp.id,
-          name: cmp.name,
-          count,
-        };
-      });
+        campaignMap.set(cName.toLowerCase(), { id: String(cmp.id), name: cName, count });
+      }
     }
 
-    const map = new Map<string, number>();
-    leads.forEach((l) => {
+    for (const l of leads) {
       const name = (l.campaignName || '').trim();
-      if (name) {
-        map.set(name, (map.get(name) || 0) + 1);
+      if (name && !campaignMap.has(name.toLowerCase())) {
+        const count = leads.filter((item) => (item.campaignName || '').trim().toLowerCase() === name.toLowerCase()).length;
+        campaignMap.set(name.toLowerCase(), { id: l.campaignId || undefined, name, count });
       }
-    });
-    return Array.from(map.entries()).map(([name, count]) => ({ name, count }));
+    }
+
+    return Array.from(campaignMap.values());
   });
 
   readonly campaignFilteredLeads = computed(() => {

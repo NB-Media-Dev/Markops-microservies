@@ -8,11 +8,7 @@ dotenv.config({ path: path.resolve(__dirname, '.env') });
 dotenv.config();
 
 async function run() {
-<<<<<<< HEAD
-  const conn = await mysql.createConnection(process.env.DATABASE_URL || 'mysql://Ratheesh@17@localhost:3303/auth_db');
-=======
-  const conn = await mysql.createConnection(process.env.DATABASE_URL || 'mysql://Ratheesh@17@localhost:3303/auth_db');
->>>>>>> f1f6db5be22570188d950de5fa2d49d227647a47
+  const conn = await mysql.createConnection(process.env.DATABASE_URL || 'mysql://nb123@localhost:3306/auth_db');
   console.log('Connected to auth_db');
 
   const [cols] = await conn.query('SHOW COLUMNS FROM User LIKE ?', ['department']);

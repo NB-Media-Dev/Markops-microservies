@@ -112,7 +112,7 @@ export class UserManagementService {
     avatarUrl: '/uploads/avatars/avatar_1_1791895994639.png',
   };
 
-  private readonly _users = signal<ManagedUser[]>([this.PRIMARY_ADMIN]);
+  private readonly _users = signal<ManagedUser[]>([]);
 
   readonly users = computed(() => this._users());
   readonly activeUsersCount = computed(() => this._users().filter((u) => u.isActive).length);
@@ -135,7 +135,8 @@ export class UserManagementService {
         const text = await res.text();
         const trimmed = text?.trim() ?? '';
         if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
-          const data = JSON.parse(text);
+          const raw = JSON.parse(text);
+          const data: any[] = Array.isArray(raw) ? raw : (raw?.value || raw?.data || raw?.users || []);
           if (Array.isArray(data) && data.length > 0) {
             const normalizedUsers: ManagedUser[] = data.map((u: any) => {
               const rawRole = String(u.roleName || u.role || '').toUpperCase();

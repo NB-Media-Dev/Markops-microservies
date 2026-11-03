@@ -216,13 +216,12 @@
             </td>
 
             <td class="col-assignee">
-              @if (lead.assigneeName) {
+              @if (getLeadAssigneeName(lead)) {
                 <div class="assignee-badge-chip">
-                  <div class="assignee-mini-avatar">{{ lead.assigneeName[0] | uppercase }}</div>
-                  <span class="assignee-name-txt">{{ lead.assigneeName }}</span>
+                  <div class="assignee-mini-avatar">{{ getLeadAssigneeName(lead)[0] | uppercase }}</div>
+                  <span class="assignee-name-txt">{{ getLeadAssigneeName(lead) }}</span>
                 </div>
-              }
-              @if (!lead.assigneeName) {
+              } @else {
                 <span class="unassigned-pill">Unassigned</span>
               }
             </td>

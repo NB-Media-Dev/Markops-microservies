@@ -24,6 +24,18 @@ $color-bg-panel: #F8FAFC;     /* Light Grey Inner Panel */
   gap: 16px;
   transition: all 0.2s ease;
 
+  @media (min-width: 2560px) {
+    border-radius: 18px;
+    padding: 24px 32px;
+    gap: 22px;
+  }
+
+  @media (min-width: 3840px) {
+    border-radius: 24px;
+    padding: 32px 44px;
+    gap: 28px;
+  }
+
   @media (max-width: 768px) {
     padding: 12px 14px;
     gap: 12px;
@@ -35,6 +47,14 @@ $color-bg-panel: #F8FAFC;     /* Light Grey Inner Panel */
     align-items: center;
     flex-wrap: wrap;
     gap: 12px;
+
+    @media (min-width: 2560px) {
+      gap: 18px;
+    }
+
+    @media (min-width: 3840px) {
+      gap: 24px;
+    }
 
     @media (max-width: 768px) {
       flex-direction: column;
@@ -48,6 +68,14 @@ $color-bg-panel: #F8FAFC;     /* Light Grey Inner Panel */
       gap: 8px;
       flex-wrap: wrap;
 
+      @media (min-width: 2560px) {
+        gap: 12px;
+      }
+
+      @media (min-width: 3840px) {
+        gap: 16px;
+      }
+
       .cluster-label {
         display: inline-flex;
         align-items: center;
@@ -58,9 +86,27 @@ $color-bg-panel: #F8FAFC;     /* Light Grey Inner Panel */
         letter-spacing: 0.04em;
         color: $color-text-muted;
 
+        @media (min-width: 2560px) {
+          font-size: 0.95rem;
+          gap: 6px;
+        }
+
+        @media (min-width: 3840px) {
+          font-size: 1.25rem;
+          gap: 8px;
+        }
+
         .icon-lead-filter {
           font-size: 16px;
           color: $color-blue;
+
+          @media (min-width: 2560px) {
+            font-size: 22px;
+          }
+
+          @media (min-width: 3840px) {
+            font-size: 28px;
+          }
         }
 
         .text-amber {
@@ -79,6 +125,18 @@ $color-bg-panel: #F8FAFC;     /* Light Grey Inner Panel */
       border-radius: 8px;
       padding: 3px;
 
+      @media (min-width: 2560px) {
+        border-radius: 12px;
+        padding: 5px;
+        gap: 6px;
+      }
+
+      @media (min-width: 3840px) {
+        border-radius: 16px;
+        padding: 7px;
+        gap: 8px;
+      }
+
       .date-filter-btn {
         all: unset;
         box-sizing: border-box;
@@ -92,6 +150,20 @@ $color-bg-panel: #F8FAFC;     /* Light Grey Inner Panel */
         border: none;
         cursor: pointer;
         transition: all 0.15s ease;
+
+        @media (min-width: 2560px) {
+          height: 44px;
+          padding: 0 18px;
+          font-size: 1.05rem;
+          border-radius: 9px;
+        }
+
+        @media (min-width: 3840px) {
+          height: 56px;
+          padding: 0 24px;
+          font-size: 1.3rem;
+          border-radius: 12px;
+        }
 
         &:hover {
           background: #FFF5E6;
@@ -123,10 +195,34 @@ $color-bg-panel: #F8FAFC;     /* Light Grey Inner Panel */
       cursor: pointer;
       transition: all 0.15s ease;
 
+      @media (min-width: 2560px) {
+        height: 44px;
+        padding: 0 16px;
+        font-size: 1.05rem;
+        border-radius: 9px;
+        gap: 8px;
+      }
+
+      @media (min-width: 3840px) {
+        height: 56px;
+        padding: 0 22px;
+        font-size: 1.3rem;
+        border-radius: 12px;
+        gap: 10px;
+      }
+
       .cal-icon {
         font-size: 16px;
         color: $color-text-muted;
         transition: color 0.15s ease;
+
+        @media (min-width: 2560px) {
+          font-size: 22px;
+        }
+
+        @media (min-width: 3840px) {
+          font-size: 28px;
+        }
       }
 
       .cal-active-date {
@@ -196,6 +292,22 @@ $color-bg-panel: #F8FAFC;     /* Light Grey Inner Panel */
         transition: all 0.18s ease;
         min-width: 180px;
 
+        @media (min-width: 2560px) {
+          height: 46px;
+          padding: 0 38px 0 18px;
+          font-size: 1.05rem;
+          min-width: 260px;
+          border-radius: 10px;
+        }
+
+        @media (min-width: 3840px) {
+          height: 58px;
+          padding: 0 48px 0 24px;
+          font-size: 1.3rem;
+          min-width: 340px;
+          border-radius: 14px;
+        }
+
         &:hover {
           border-color: $color-primary;
         }
@@ -219,6 +331,16 @@ $color-bg-panel: #F8FAFC;     /* Light Grey Inner Panel */
         pointer-events: none;
         font-size: 18px;
         color: $color-primary;
+
+        @media (min-width: 2560px) {
+          font-size: 24px;
+          right: 12px;
+        }
+
+        @media (min-width: 3840px) {
+          font-size: 32px;
+          right: 16px;
+        }
       }
     }
   }
@@ -237,11 +359,31 @@ $color-bg-panel: #F8FAFC;     /* Light Grey Inner Panel */
     border-radius: 8px;
     padding: 8px 12px;
 
+    @media (min-width: 2560px) {
+      border-radius: 12px;
+      padding: 12px 18px;
+      gap: 12px;
+    }
+
+    @media (min-width: 3840px) {
+      border-radius: 16px;
+      padding: 16px 24px;
+      gap: 16px;
+    }
+
     .active-tags-list {
       display: flex;
       align-items: center;
       gap: 8px;
       flex-wrap: wrap;
+
+      @media (min-width: 2560px) {
+        gap: 12px;
+      }
+
+      @media (min-width: 3840px) {
+        gap: 16px;
+      }
 
       .tags-prefix {
         font-size: 0.7rem;
@@ -249,6 +391,14 @@ $color-bg-panel: #F8FAFC;     /* Light Grey Inner Panel */
         color: $color-text-muted;
         text-transform: uppercase;
         letter-spacing: 0.03em;
+
+        @media (min-width: 2560px) {
+          font-size: 0.95rem;
+        }
+
+        @media (min-width: 3840px) {
+          font-size: 1.2rem;
+        }
       }
 
       .filter-active-tag {
@@ -263,8 +413,30 @@ $color-bg-panel: #F8FAFC;     /* Light Grey Inner Panel */
         border: 1px solid $color-border;
         color: $color-text-main;
 
+        @media (min-width: 2560px) {
+          font-size: 0.95rem;
+          padding: 6px 12px;
+          border-radius: 6px;
+          gap: 8px;
+        }
+
+        @media (min-width: 3840px) {
+          font-size: 1.25rem;
+          padding: 8px 16px;
+          border-radius: 8px;
+          gap: 10px;
+        }
+
         .fs-12 {
           font-size: 12px;
+
+          @media (min-width: 2560px) {
+            font-size: 16px;
+          }
+
+          @media (min-width: 3840px) {
+            font-size: 22px;
+          }
         }
 
         &.tag-campaign {
@@ -287,6 +459,14 @@ $color-bg-panel: #F8FAFC;     /* Light Grey Inner Panel */
           margin-left: 2px;
           line-height: 1;
 
+          @media (min-width: 2560px) {
+            font-size: 1rem;
+          }
+
+          @media (min-width: 3840px) {
+            font-size: 1.25rem;
+          }
+
           &:hover {
             color: #B91C1C;
           }
@@ -307,8 +487,28 @@ $color-bg-panel: #F8FAFC;     /* Light Grey Inner Panel */
       border-radius: 6px;
       transition: all 0.2s ease;
 
+      @media (min-width: 2560px) {
+        font-size: 0.95rem;
+        padding: 6px 12px;
+        border-radius: 8px;
+      }
+
+      @media (min-width: 3840px) {
+        font-size: 1.25rem;
+        padding: 8px 16px;
+        border-radius: 10px;
+      }
+
       .fs-14 {
         font-size: 14px;
+
+        @media (min-width: 2560px) {
+          font-size: 18px;
+        }
+
+        @media (min-width: 3840px) {
+          font-size: 24px;
+        }
       }
 
       &:hover {
@@ -326,6 +526,14 @@ $color-bg-panel: #F8FAFC;     /* Light Grey Inner Panel */
     grid-template-columns: repeat(5, 1fr);
     gap: 1.15rem;
     width: 100%;
+
+    @media (min-width: 2560px) {
+      gap: 1.5rem;
+    }
+
+    @media (min-width: 3840px) {
+      gap: 2rem;
+    }
 
     @media (max-width: 1200px) {
       grid-template-columns: repeat(3, 1fr);
@@ -355,6 +563,18 @@ $color-bg-panel: #F8FAFC;     /* Light Grey Inner Panel */
       transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s ease;
       width: 100%;
 
+      @media (min-width: 2560px) {
+        border-radius: 18px;
+        padding: 1.25rem 1.6rem;
+        gap: 1.2rem;
+      }
+
+      @media (min-width: 3840px) {
+        border-radius: 24px;
+        padding: 1.75rem 2.2rem;
+        gap: 1.6rem;
+      }
+
       &:hover {
         transform: translateY(-2px);
         box-shadow: 0 6px 16px rgba(245, 158, 11, 0.18);
@@ -377,9 +597,31 @@ $color-bg-panel: #F8FAFC;     /* Light Grey Inner Panel */
         flex-shrink: 0;
         color: #FFFFFF;
 
+        @media (min-width: 2560px) {
+          width: 52px;
+          height: 52px;
+          min-width: 52px;
+          border-radius: 14px;
+        }
+
+        @media (min-width: 3840px) {
+          width: 68px;
+          height: 68px;
+          min-width: 68px;
+          border-radius: 18px;
+        }
+
         .material-symbols-outlined {
           font-size: 20px;
           color: #FFFFFF;
+
+          @media (min-width: 2560px) {
+            font-size: 30px;
+          }
+
+          @media (min-width: 3840px) {
+            font-size: 40px;
+          }
         }
       }
 
@@ -390,6 +632,14 @@ $color-bg-panel: #F8FAFC;     /* Light Grey Inner Panel */
         flex: 1;
         min-width: 0;
         gap: 0.05rem;
+
+        @media (min-width: 2560px) {
+          gap: 0.25rem;
+        }
+
+        @media (min-width: 3840px) {
+          gap: 0.4rem;
+        }
 
         .kpi-top-row {
           display: flex;
@@ -408,6 +658,14 @@ $color-bg-panel: #F8FAFC;     /* Light Grey Inner Panel */
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+
+            @media (min-width: 2560px) {
+              font-size: 0.85rem;
+            }
+
+            @media (min-width: 3840px) {
+              font-size: 1.1rem;
+            }
           }
         }
 
@@ -419,6 +677,14 @@ $color-bg-panel: #F8FAFC;     /* Light Grey Inner Panel */
           letter-spacing: -0.02em;
           color: #1C1917;
           margin: 0;
+
+          @media (min-width: 2560px) {
+            font-size: 2.15rem;
+          }
+
+          @media (min-width: 3840px) {
+            font-size: 2.95rem;
+          }
         }
       }
 

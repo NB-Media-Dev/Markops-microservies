@@ -35,6 +35,7 @@ export class TelecallingQueueTableComponent {
   @Input() getFollowUpTimeLabelFn!: (lead: LeadItem) => string | null;
   @Input() isFollowUpDueFn!: (lead: LeadItem) => boolean;
   @Input() getLeadCreatorNameFn!: (lead: LeadItem) => string;
+  @Input() getLeadAssigneeNameFn?: (lead: LeadItem) => string;
   @Input() getLeadMetricsFn!: (lead: LeadItem) => any;
 
 
@@ -96,6 +97,13 @@ export class TelecallingQueueTableComponent {
 
   mathMin(a: number, b: number): number {
     return Math.min(a, b);
+  }
+
+  getLeadAssigneeName(lead: LeadItem): string {
+    if (this.getLeadAssigneeNameFn) {
+      return this.getLeadAssigneeNameFn(lead);
+    }
+    return lead.assigneeName || '';
   }
 
   formatStatus(status?: string): string {
