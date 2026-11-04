@@ -22,20 +22,21 @@ jobs:
         with:
           fetch-depth: 0
 
-      # 2. Run the exact universal scanner step used by your tester
+      # 2. Run the official scanner step, disabling the broken JRE download lookups
       - name: Execute SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v3
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: "https://sonarcloud.io" # Change to ${{ secrets.SONAR_HOST_URL }} if using an internal corporate server URL
+          SONAR_HOST_URL: "https://sonarcloud.io"
         with:
           args: >
             -Dsonar.projectKey=NB-Media-Dev_Markops-microservies
             -Dsonar.organization=nb-media-dev
             -Dsonar.sources=backend,frontend
             -Dsonar.sourceEncoding=UTF-8
+            -Dsonar.scanner.skipJreProvisioning=true
 
-      # 3. Fetch Live Metrics and Full Issues List using Node.js
+      # 3. Fetch Live Metrics and Full Issues List directly using Node.js
       - name: Fetch Live Metrics and Generate Detailed Summary
         if: always()
         env:
@@ -74,7 +75,7 @@ jobs:
               url.searchParams.set(key, String(value));
             }
 
-            // Fallback authorization check handler supporting both token schemas
+            // Authentication mapper supporting both server token types natively
             const authHeader = token.startsWith("sqa_") 
               ? `Basic ${Buffer.from(token + ":").toString("base64")}`
               : `Bearer ${token}`;
