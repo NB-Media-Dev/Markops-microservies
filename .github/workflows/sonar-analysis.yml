@@ -1,4 +1,4 @@
-name: SonarQube Local Report Viewer
+name: Local SonarQube Report Viewer
 
 on:
   push:
@@ -8,25 +8,24 @@ on:
 
 jobs:
   render-report:
-    name: Parse Uploaded Local Scan
+    name: Parse Local Scan Report
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Clone the repository (the report file will be inside it)
+      # Step 1: Clone the repository (the report file is now inside it)
       - name: Checkout Code Repository
         uses: actions/checkout@v4
 
-      # Step 2: Read the JSON file and print the table into GitHub summary
+      # Step 2: Read the JSON file and unroll the data tables into GitHub Actions
       - name: Generate Metric Summary Table
         run: |
-          # If the file doesn't exist yet in the repo, print a friendly message instead of failing
           if [ ! -f "sonar-report.json" ]; then
             echo "### ⚠️ Awaiting Local Scan Run Data" >> $GITHUB_STEP_SUMMARY
-            echo "Please execute your local terminal command string on your PC to push the first report to this dashboard." >> $GITHUB_STEP_SUMMARY
+            echo "Please execute your local terminal command string on your PC to push your first report data file here." >> $GITHUB_STEP_SUMMARY
             exit 0
           fi
           
-          # Parse the local file values using jq natively
+          # Compute metrics out of the report json data structure
           BUGS=$(jq -r '.issues[] | select(.type=="BUG") | .key' sonar-report.json 2>/dev/null | wc -l || echo "0")
           VULNS=$(jq -r '.issues[] | select(.type=="VULNERABILITY") | .key' sonar-report.json 2>/dev/null | wc -l || echo "0")
           SMELLS=$(jq -r '.issues[] | select(.type=="CODE_SMELL") | .key' sonar-report.json 2>/dev/null | wc -l || echo "0")
@@ -44,9 +43,16 @@ jobs:
           echo "| :--- | :--- | :--- | :--- |" >> $GITHUB_STEP_SUMMARY
           
           jq -c '.issues[]' sonar-report.json 2>/dev/null | while read -r issue; do
-            TYPE=$(echo "$issue" | jq -r '.type')
-            SEV=$(echo "$issue" | jq -r '.severity')
-            FILE=$(echo "$issue" | jq -r '.component')
-            MSG=$(echo "$issue" | jq -r '.message')
-            echo "| $TYPE | $SEV | \`$FILE\` | $MSG |" >> $GITHUB_STEP_SUMMARY
-          done
+            if [ -n "$issue" ]; then
+              TYPE=$(echo "$issue" | jq -r '.type // "SMELL"')
+              SEV=$(echo "$issue" | jq -r '.severity // "MEDIUM"')
+              FILE=$(echo "$issue" | jq -r '.component // ""' | sed 's/^.*://')
+              MSG=$(echo "$issue" | jq -r '.message // ""')
+              
+              if [ "$TYPE" = "BUG" ]; then EMOJI="🔴 BUG";
+              elif [ "$TYPE" = "VULNERABILITY" ]; then EMOJI="🛡️ VULN";
+              else EMOJI="🟢 SMELL"; fi
+              
+              echo "| $EMOJI | $SEV | \`$FILE\` | $MSG |" >> $GITHUB_STEP_SUMMARY
+            fi
+          done || true
