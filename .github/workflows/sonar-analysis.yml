@@ -1,4 +1,4 @@
-name: SonarQube Artifact Report Pipeline
+name: SonarQube Local Report Viewer
 
 on:
   push:
@@ -12,23 +12,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Download the report package sent up by your local machine
-      - name: Download Local Scan Data
-        uses: actions/download-artifact@v4
-        with:
-          name: sonar-report-data
-          ignore-on-missing: true
+      # Step 1: Clone the repository (the report file will be inside it)
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
 
       # Step 2: Read the JSON file and print the table into GitHub summary
       - name: Generate Metric Summary Table
         run: |
+          # If the file doesn't exist yet in the repo, print a friendly message instead of failing
           if [ ! -f "sonar-report.json" ]; then
             echo "### ⚠️ Awaiting Local Scan Run Data" >> $GITHUB_STEP_SUMMARY
-            echo "Please run your local terminal command string on your PC to populate this dashboard dashboard metrics grid layout." >> $GITHUB_STEP_SUMMARY
+            echo "Please execute your local terminal command string on your PC to push the first report to this dashboard." >> $GITHUB_STEP_SUMMARY
             exit 0
           fi
           
-          # Parse the local artifact values natively 
+          # Parse the local file values using jq natively
           BUGS=$(jq -r '.issues[] | select(.type=="BUG") | .key' sonar-report.json 2>/dev/null | wc -l || echo "0")
           VULNS=$(jq -r '.issues[] | select(.type=="VULNERABILITY") | .key' sonar-report.json 2>/dev/null | wc -l || echo "0")
           SMELLS=$(jq -r '.issues[] | select(.type=="CODE_SMELL") | .key' sonar-report.json 2>/dev/null | wc -l || echo "0")
