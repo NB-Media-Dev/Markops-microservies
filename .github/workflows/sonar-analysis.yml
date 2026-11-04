@@ -1,4 +1,4 @@
-name: SonarCloud Direct Report Pipeline
+name: SonarQube Universal Report Pipeline
 
 on:
   push:
@@ -16,20 +16,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Clone the repository into the environment
+      # 1. Clone the repository into the runner environment
       - name: Checkout Code Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # 2. Run the official SonarSource cloud scanner step
-      - name: Execute SonarCloud Analysis
-        uses: SonarSource/sonarcloud-github-action@master
+      # 2. Run the exact universal scanner step used by your tester
+      - name: Execute SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v3
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: "https://sonarcloud.io" # Change to ${{ secrets.SONAR_HOST_URL }} if using an internal corporate server URL
+        with:
+          args: >
+            -Dsonar.projectKey=NB-Media-Dev_Markops-microservies
+            -Dsonar.organization=nb-media-dev
+            -Dsonar.sources=backend,frontend
+            -Dsonar.sourceEncoding=UTF-8
 
-      # 3. Fetch Live Metrics and Full Issues List directly using Node.js
+      # 3. Fetch Live Metrics and Full Issues List using Node.js
       - name: Fetch Live Metrics and Generate Detailed Summary
         if: always()
         env:
@@ -60,7 +66,7 @@ jobs:
 
           async function sonarCloudFetch(path, params = {}) {
             if (!token) {
-              throw new Error("SonarCloud verification token is missing.");
+              throw new Error("Token variable is missing.");
             }
 
             const url = new URL("https://sonarcloud.io" + path);
@@ -68,10 +74,15 @@ jobs:
               url.searchParams.set(key, String(value));
             }
 
+            // Fallback authorization check handler supporting both token schemas
+            const authHeader = token.startsWith("sqa_") 
+              ? `Basic ${Buffer.from(token + ":").toString("base64")}`
+              : `Bearer ${token}`;
+
             const response = await fetch(url, {
               headers: {
-                Authorization: `Bearer ${token}`,
-                "User-Agent": "GitHub-Actions-SonarCloud-Report"
+                Authorization: authHeader,
+                "User-Agent": "GitHub-Actions-Sonar-Report"
               },
               signal: AbortSignal.timeout(60000)
             });
