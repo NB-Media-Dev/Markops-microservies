@@ -22,7 +22,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      # 2. Run the official scanner step, disabling the broken JRE download lookups
+      # 2. Run the official scanner step, skipping JRE cloud download lookups
       - name: Execute SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v3
         env:
@@ -36,7 +36,7 @@ jobs:
             -Dsonar.sourceEncoding=UTF-8
             -Dsonar.scanner.skipJreProvisioning=true
 
-      # 3. Fetch Live Metrics and Full Issues List directly using Node.js
+      # 3. Fetch Live Metrics and Full Issues List using Dual-Auth Token Handler
       - name: Fetch Live Metrics and Generate Detailed Summary
         if: always()
         env:
@@ -75,10 +75,14 @@ jobs:
               url.searchParams.set(key, String(value));
             }
 
-            // Authentication mapper supporting both server token types natively
-            const authHeader = token.startsWith("sqa_") 
-              ? `Basic ${Buffer.from(token + ":").toString("base64")}`
-              : `Bearer ${token}`;
+            // FIX: Generate the strict Basic header layout required if an 'sqa_' server token is detected
+            let authHeader;
+            if (token.startsWith("sqa_")) {
+              const base64Credentials = Buffer.from(token + ":").toString("base64");
+              authHeader = `Basic ${base64Credentials}`;
+            } else {
+              authHeader = `Bearer ${token}`;
+            }
 
             const response = await fetch(url, {
               headers: {
