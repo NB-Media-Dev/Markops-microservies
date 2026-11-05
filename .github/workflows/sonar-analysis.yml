@@ -1,4 +1,4 @@
-name: SonarCloud Scan Pipeline
+name: SonarQube Universal Report Pipeline
 
 on:
   push:
@@ -16,26 +16,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Clone the repository into the environment
+      # 1. Clone the repository into the runner environment
       - name: Checkout Code Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # Step 2: Run the official SonarSource scanner step
-      - name: Execute SonarCloud Analysis
-        uses: SonarSource/sonarcloud-github-action@master
+      # 2. Run the official scanner step, skipping JRE cloud download lookups
+      - name: Execute SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v3
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: "https://sonarcloud.io"
+        with:
+          args: >
+            -Dsonar.projectKey=NB-Media-Dev_Markops-microservies
+            -Dsonar.organization=nb-media-dev
+            -Dsonar.sources=backend,frontend
+            -Dsonar.sourceEncoding=UTF-8
+            -Dsonar.scanner.skipJreProvisioning=true
 
-      # Step 3: Fetch Live Metrics and Full Issues List using tester's Node script style
-      - name: Fetch Metrics and Generate Detailed Summary
+      # 3. Fetch Live Metrics and Full Issues List using Dual-Auth Token Handler
+      - name: Fetch Live Metrics and Generate Detailed Summary
         if: always()
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_PROJECT_KEY: NB-Media-Dev_Markops-microservies
-          SONAR_ORG_KEY: nb-media-dev
         shell: bash
         run: |
           set -euo pipefail
@@ -45,7 +51,6 @@ jobs:
 
           const token = process.env.SONAR_TOKEN || "";
           const project = process.env.SONAR_PROJECT_KEY;
-          const organization = process.env.SONAR_ORG_KEY;
           const summary = process.env.GITHUB_STEP_SUMMARY;
 
           function md(value) {
@@ -62,7 +67,7 @@ jobs:
 
           async function sonarCloudFetch(path, params = {}) {
             if (!token) {
-              throw new Error("SonarCloud token is missing.");
+              throw new Error("Token variable is missing.");
             }
 
             const url = new URL("https://sonarcloud.io" + path);
@@ -70,10 +75,19 @@ jobs:
               url.searchParams.set(key, String(value));
             }
 
+            // FIX: Generate the strict Basic header layout required if an 'sqa_' server token is detected
+            let authHeader;
+            if (token.startsWith("sqa_")) {
+              const base64Credentials = Buffer.from(token + ":").toString("base64");
+              authHeader = `Basic ${base64Credentials}`;
+            } else {
+              authHeader = `Bearer ${token}`;
+            }
+
             const response = await fetch(url, {
               headers: {
-                Authorization: `Bearer ${token}`,
-                "User-Agent": "GitHub-Actions-SonarCloud-Report"
+                Authorization: authHeader,
+                "User-Agent": "GitHub-Actions-Sonar-Report"
               },
               signal: AbortSignal.timeout(60000)
             });
@@ -89,7 +103,6 @@ jobs:
             append("### 📊 Live SonarCloud Quality Metrics Table\n\n");
 
             try {
-              // Fetch metrics data using SonarCloud preferred parameters
               const metricsResult = await sonarCloudFetch("/api/measures/component", {
                 component: project,
                 metricKeys: "bugs,vulnerabilities,code_smells,duplicated_lines_density,security_hotspots"
