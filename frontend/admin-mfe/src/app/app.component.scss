@@ -73,19 +73,19 @@
         width: 38px;
         height: 38px;
         border-radius: 50%;
-        border: 1px solid #E2E8F0;
-        background-color: #FFFFFF;
+        border: 1px solid #FFEDD5;
+        background-color: #FFF7ED;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #475569;
+        color: #EA580C;
         cursor: pointer;
         transition: all 0.2s ease;
 
         &:hover {
-          background-color: #F8FAFC;
-          border-color: #CBD5E1;
-          color: #0F172A;
+          background-color: #FFEDD5;
+          border-color: #FDBA74;
+          color: #C2410C;
         }
 
         .bell-icon {
@@ -107,8 +107,11 @@
       .header-user-pill {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
-        padding: 4px 14px 4px 6px;
+        gap: 0.65rem;
+        padding: 4px 16px 4px 5px;
+        border: 1px solid #E2E8F0;
+        border-radius: 9999px;
+        background: #FFFFFF;
         user-select: none;
 
         .user-avatar-dark {
@@ -187,7 +190,7 @@
       .header-logout-btn {
         width: 36px;
         height: 36px;
-        border-radius: 50%;
+        border-radius: 8px;
         border: 1px solid #E2E8F0;
         background-color: transparent;
         display: flex;

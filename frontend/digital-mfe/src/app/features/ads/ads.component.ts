@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal, computed, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, ActivatedRoute } from '@angular/router';
 import { CampaignService, AdItem } from '../../core/services/campaign.service';
 import { TaskManagementService } from '../../core/services/task-management.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -52,6 +52,7 @@ export class AdsComponent implements OnInit {
   readonly packageService = inject(PackageService);
   readonly taskService = inject(TaskManagementService);
   readonly authService = inject(AuthService);
+  private readonly route = inject(ActivatedRoute);
 
   readonly showModal = signal<boolean>(false);
   readonly isEditing = signal<boolean>(false);
@@ -129,10 +130,10 @@ export class AdsComponent implements OnInit {
   });
 
   readonly resolvedActiveProduct = computed<string | null>(() => {
-    const prod = this.productFilterSignal()?.trim();
+    const prod = this.productFilterSignal()?.trim() || this.authService.activeProduct()?.trim();
     if (prod && prod.toLowerCase() !== 'all') return prod;
 
-    const pkgFilter = this.packageFilterSignal()?.trim();
+    const pkgFilter = this.packageFilterSignal()?.trim() || this.authService.activePackage()?.trim();
     if (pkgFilter) {
       const dbPkgs = this.packageService.packages();
       const match = dbPkgs.find((p) => p.name.toLowerCase().trim() === pkgFilter.toLowerCase());
@@ -166,8 +167,8 @@ export class AdsComponent implements OnInit {
 
   readonly filteredCampaigns = computed(() => {
     const list = this.campaignService.campaigns();
-    const pkg = this.packageFilterSignal()?.trim();
-    const prod = this.productFilterSignal()?.trim();
+    const pkg = this.packageFilterSignal()?.trim() || this.authService.activePackage()?.trim();
+    const prod = this.productFilterSignal()?.trim() || this.authService.activeProduct()?.trim();
     const dbPkgs = this.packageService.packages();
     if ((!pkg || pkg.toLowerCase() === 'all') && (!prod || prod.toLowerCase() === 'all')) return list;
 
@@ -175,6 +176,14 @@ export class AdsComponent implements OnInit {
   });
 
   ngOnInit() {
+    this.route.queryParams.subscribe((params) => {
+      if (params['package'] && !this.packageFilterSignal()) {
+        this.packageFilterSignal.set(params['package']);
+      }
+      if (params['product'] && !this.productFilterSignal()) {
+        this.productFilterSignal.set(params['product']);
+      }
+    });
     this.campaignService.loadAds().subscribe();
     this.campaignService.loadCampaigns().subscribe();
     this.packageService.loadPackages().subscribe();
@@ -214,13 +223,14 @@ export class AdsComponent implements OnInit {
     const campaigns = this.filteredCampaigns();
     const defaultCmp = campaigns.length > 0 ? campaigns[0] : (this.campaignService.campaigns()[0] || null);
 
-    const defaultPrefix = this.packageFilter ? `${this.packageFilter} - ` : '';
+    const activePkg = this.packageFilterSignal()?.trim() || this.authService.activePackage()?.trim();
+    const defaultPrefix = activePkg ? `${activePkg} - ` : '';
 
     let defaultCampaignName = 'General Digital Funnel';
     if (defaultCmp) {
       defaultCampaignName = defaultCmp.name;
-    } else if (this.packageFilter) {
-      defaultCampaignName = `${this.packageFilter} Funnel`;
+    } else if (activePkg) {
+      defaultCampaignName = `${activePkg} Funnel`;
     }
 
     this.formModel = {
@@ -316,8 +326,8 @@ export class AdsComponent implements OnInit {
     const computedCtr = impressions > 0 ? Number(((clicks / impressions) * 100).toFixed(2)) : Number(this.formModel.ctr || 0);
     const computedCpc = clicks > 0 ? Number((spend / clicks).toFixed(2)) : Number(this.formModel.cpc || 0);
 
-    const pkg = this.packageFilterSignal()?.trim();
-    const prod = this.productFilterSignal()?.trim();
+    const pkg = this.packageFilterSignal()?.trim() || this.authService.activePackage()?.trim();
+    const prod = this.productFilterSignal()?.trim() || this.authService.activeProduct()?.trim();
     const dbPkgs = this.packageService.packages();
     const resolved = resolveProductContext(pkg, prod, dbPkgs);
 
@@ -328,6 +338,7 @@ export class AdsComponent implements OnInit {
       campaignId: this.formModel.campaignId,
       campaignName: this.formModel.campaignName || 'General Digital Funnel',
       productId: resolved.productId,
+      packageId: activePkg,
       packageName: activePkg,
       platform: this.formModel.platform,
       status: this.formModel.status,
@@ -441,8 +452,8 @@ export class AdsComponent implements OnInit {
     let list = this.campaignService.ads();
     const plat = this.filterPlatform();
     const q = this.searchQuery().trim().toLowerCase();
-    const pkg = this.packageFilterSignal()?.trim();
-    const prod = this.productFilterSignal()?.trim();
+    const pkg = this.packageFilterSignal()?.trim() || this.authService.activePackage()?.trim();
+    const prod = this.productFilterSignal()?.trim() || this.authService.activeProduct()?.trim();
     const dbPkgs = this.packageService.packages();
 
     if ((pkg && pkg.toLowerCase() !== 'all') || (prod && prod.toLowerCase() !== 'all')) {

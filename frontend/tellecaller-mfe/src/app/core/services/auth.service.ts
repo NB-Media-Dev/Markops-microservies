@@ -46,11 +46,15 @@ export class AuthService {
   private readonly _currentUser = signal<User | null>(null);
   private readonly _accessToken = signal<string | null>(null);
   private readonly _isInitialized = signal(false);
+  private readonly _activeProduct = signal<string | null>(null);
+  private readonly _activePackage = signal<string | null>(null);
 
   readonly currentUser = computed(() => this._currentUser());
   readonly accessToken = computed(() => this._accessToken());
   readonly isAuthenticated = computed(() => !!this._currentUser() && !!this._accessToken());
   readonly isInitialized = computed(() => this._isInitialized());
+  readonly activeProduct = computed(() => this._activeProduct());
+  readonly activePackage = computed(() => this._activePackage());
 
   constructor() {
     if (this.isBrowser) {
@@ -64,11 +68,15 @@ export class AuthService {
         console.log('[Auth URL Cleanup]:', e);
       }
 
-      // Check query parameters for token/user
+      // Check query parameters for token/user/package/product
       try {
         const urlParams = new URLSearchParams(window.location.search);
         const qToken = urlParams.get('token');
         const qUser = urlParams.get('user');
+        const qProd = urlParams.get('product');
+        const qPkg = urlParams.get('package');
+        if (qProd) this._activeProduct.set(qProd);
+        if (qPkg) this._activePackage.set(qPkg);
         if (qToken) {
           let userObj: User | null = null;
           if (qUser) {
@@ -93,6 +101,12 @@ export class AuthService {
           const token = event.data.token || getAuthToken() || 'mo_jwt_default';
           const user = event.data.user || this.parseJwt(token) || DEMO_ACCOUNTS['ADMINISTRATOR'].user;
           this.setSession(user, token);
+          if (event.data.product) {
+            this._activeProduct.set(event.data.product);
+          }
+          if (event.data.package) {
+            this._activePackage.set(event.data.package);
+          }
         }
       });
 

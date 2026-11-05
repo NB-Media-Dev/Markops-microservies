@@ -61,6 +61,14 @@ export class AuthService {
   private readonly _isLoading = signal<boolean>(false);
   private readonly _isInitialized = signal<boolean>(false);
   private readonly _authError = signal<string | null>(null);
+  private readonly _activeProduct = signal<string>(
+    typeof localStorage !== 'undefined' ? (localStorage.getItem('markops_product') || 'Careermate') : 'Careermate'
+  );
+  private readonly _activePackage = signal<string>(
+    typeof localStorage !== 'undefined' ? (localStorage.getItem('markops_package') || 'Standard Package') : 'Standard Package'
+  );
+  readonly activeProduct = computed(() => this._activeProduct());
+  readonly activePackage = computed(() => this._activePackage());
   setAuthError(msg: string | null): void { this._authError.set(msg); }
 
   private initPromise: Promise<boolean> | null = null;
@@ -99,9 +107,11 @@ export class AuthService {
 
           if (event.data.product) {
             try { localStorage.setItem('markops_product', event.data.product); } catch {}
+            this._activeProduct.set(event.data.product);
           }
           if (event.data.package) {
             try { localStorage.setItem('markops_package', event.data.package); } catch {}
+            this._activePackage.set(event.data.package);
           }
           if (event.data.route && typeof event.data.route === 'string') {
             this.router.navigate([event.data.route]);

@@ -28,7 +28,10 @@ export interface LeadItem {
   uploaderId?: string;
   uploaderEmail?: string;
   productId?: string;
+  product_id?: string;
   productName?: string;
+  packageId?: string;
+  package_id?: string;
   packageName?: string;
   package?: string;
   createdAt: string;
@@ -283,6 +286,7 @@ export class LeadTelecallingService {
             adName: l.adName || l.ad,
             productId: l.productId || l.product_id || '',
             productName: l.productName || l.product_name || '',
+            packageId: l.packageId || l.package_id || l.packageName || l.package_name || l.package || '',
             packageName: l.packageName || l.package_name || l.packageId || l.package_id || '',
             package: l.package || l.package_name || l.packageId || l.package_id || '',
             status: l.status === 'QUALIFIED' ? 'PAID' : (l.status || 'NEW'),

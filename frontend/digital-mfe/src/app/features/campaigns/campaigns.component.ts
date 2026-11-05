@@ -141,8 +141,8 @@ export class CampaignsComponent implements OnInit {
 
   readonly totalClicks = computed(() => {
     const allAds = this.campaignService.ads();
-    const pkg = this.packageFilterSignal()?.trim();
-    const prod = this.productFilterSignal()?.trim();
+    const pkg = this.packageFilterSignal()?.trim() || this.authService.activePackage()?.trim();
+    const prod = this.productFilterSignal()?.trim() || this.authService.activeProduct()?.trim();
     const dbPkgs = this.packageService.packages();
     const filtered = allAds.filter((a) => isItemForPackage(a, pkg, prod, dbPkgs));
     return filtered.reduce((sum, a) => sum + (a.clicks || 0), 0);
@@ -153,10 +153,10 @@ export class CampaignsComponent implements OnInit {
   });
 
   readonly resolvedActiveProduct = computed<string | null>(() => {
-    const prod = this.productFilterSignal()?.trim();
+    const prod = this.productFilterSignal()?.trim() || this.authService.activeProduct()?.trim();
     if (prod && prod.toLowerCase() !== 'all') return prod;
 
-    const pkgFilter = this.packageFilterSignal()?.trim();
+    const pkgFilter = this.packageFilterSignal()?.trim() || this.authService.activePackage()?.trim();
     if (pkgFilter) {
       const dbPkgs = this.packageService.packages();
       const match = dbPkgs.find((p) => p.name.toLowerCase().trim() === pkgFilter.toLowerCase());
@@ -250,7 +250,16 @@ export class CampaignsComponent implements OnInit {
     if (v === 'campaigns' || v === 'table') {
       this.activeSubView.set('CAMPAIGNS');
     }
+    const qPkg = this.route.snapshot.queryParamMap.get('package');
+    if (qPkg && !this.packageFilterSignal()) {
+      this.packageFilterSignal.set(qPkg);
+    }
+    const qProd = this.route.snapshot.queryParamMap.get('product');
+    if (qProd && !this.productFilterSignal()) {
+      this.productFilterSignal.set(qProd);
+    }
     this.campaignService.loadCampaigns().subscribe();
+    this.campaignService.loadAds().subscribe();
     this.packageService.loadPackages().subscribe();
   }
 
@@ -273,7 +282,8 @@ export class CampaignsComponent implements OnInit {
     }
     this.isEditing.set(false);
     this.editingCampaignId.set(null);
-    const defaultPrefix = this.packageFilter ? `${this.packageFilter} - ` : '';
+    const activePkg = this.packageFilterSignal()?.trim() || this.authService.activePackage()?.trim() || '';
+    const defaultPrefix = activePkg && activePkg.toLowerCase() !== 'all' ? `${activePkg} - ` : '';
     this.formModel = {
       name: defaultPrefix,
       status: 'ACTIVE',
@@ -351,19 +361,20 @@ export class CampaignsComponent implements OnInit {
     const computedCpl = leads > 0 ? Number((spend / leads).toFixed(2)) : 0;
     const computedConvRate = leads > 0 ? Number(((conversions / leads) * 100).toFixed(1)) : 0;
 
-    const pkg = this.packageFilterSignal()?.trim();
-    const prod = this.productFilterSignal()?.trim();
+    const pkg = this.packageFilterSignal()?.trim() || this.authService.activePackage()?.trim();
+    const prod = this.productFilterSignal()?.trim() || this.authService.activeProduct()?.trim();
     const dbPkgs = this.packageService.packages();
     const resolved = resolveProductContext(pkg, prod, dbPkgs);
 
     const activePkg = pkg || resolved.productName;
 
-    const payload: Partial<CampaignItem> & { creatorRole?: string; userRole?: string } = {
+    const payload: Partial<CampaignItem> & { creatorRole?: string; userRole?: string; packageId?: string } = {
       name: this.formModel.name.trim(),
       status: this.formModel.status,
       objective: this.formModel.objective,
       productId: resolved.productId,
       packageName: activePkg,
+      packageId: activePkg,
       spend: spend,
       leadsCount: leads,
       cpl: computedCpl,
@@ -457,8 +468,8 @@ export class CampaignsComponent implements OnInit {
     let list = this.campaignService.campaigns();
     const st = this.filterStatus();
     const q = this.searchQuery().trim().toLowerCase();
-    const pkg = this.packageFilterSignal()?.trim();
-    const prod = this.productFilterSignal()?.trim();
+    const pkg = this.packageFilterSignal()?.trim() || this.authService.activePackage()?.trim();
+    const prod = this.productFilterSignal()?.trim() || this.authService.activeProduct()?.trim();
     const dbPkgs = this.packageService.packages();
 
     if ((pkg && pkg.toLowerCase() !== 'all') || (prod && prod.toLowerCase() !== 'all')) {

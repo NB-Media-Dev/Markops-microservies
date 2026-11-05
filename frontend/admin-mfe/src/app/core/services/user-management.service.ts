@@ -18,7 +18,52 @@ export class UserManagementService {
   private readonly isBrowser = isPlatformBrowser(this.platformId);
 
   // Live state signals populated 100% from MySQL Database
-  private readonly _users = signal<ManagedUser[]>([]);
+  private readonly _users = signal<ManagedUser[]>([
+    {
+      id: '1',
+      fullName: 'System Administrator',
+      email: 'admin@markops.io',
+      role: 'ADMINISTRATOR',
+      roleName: 'Administrator',
+      department: 'Executive Leadership',
+      isActive: true,
+      lastLoginAt: 'Recently',
+      createdAt: '2026-10-15',
+    },
+    {
+      id: '2',
+      fullName: 'deepak',
+      email: 'deepak@markops.io',
+      role: 'DESIGNER',
+      roleName: 'Designer',
+      department: 'Creative Studio',
+      isActive: true,
+      lastLoginAt: 'Recently',
+      createdAt: '2026-10-26',
+    },
+    {
+      id: '3',
+      fullName: 'virun',
+      email: 'virun@gmail.com',
+      role: 'BDM',
+      roleName: 'BDM',
+      department: 'Business Development',
+      isActive: true,
+      lastLoginAt: 'Recently',
+      createdAt: '2026-10-26',
+    },
+    {
+      id: '4',
+      fullName: 'Vasanthan',
+      email: 'vasanth@markops.io',
+      role: 'TELECALLER',
+      roleName: 'Telecaller',
+      department: 'Inside Sales',
+      isActive: true,
+      lastLoginAt: 'Recently',
+      createdAt: '2026-10-28',
+    },
+  ]);
   private readonly _roles = signal<any[]>([]);
   private readonly _metrics = signal<AdminMetrics | null>(null);
   private readonly _isLoading = signal<boolean>(false);

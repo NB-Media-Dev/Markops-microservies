@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, OnDestroy, signal, computed, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { LeadTelecallingService, LeadItem, CallActivityItem, FollowUpItem, isClientDuplicateCall } from '../../core/services/lead-telecalling.service';
 import { UserManagementService } from '../../core/services/user-management.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -258,12 +258,13 @@ export class TelecallingComponent implements OnInit, OnDestroy {
   readonly campaignService = inject(CampaignService);
   readonly packageService = inject(PackageService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   readonly resolvedActiveProduct = computed<string | null>(() => {
-    const prod = this.productFilterSignal()?.trim();
+    const prod = this.productFilterSignal()?.trim() || this.authService.activeProduct()?.trim();
     if (prod && prod.toLowerCase() !== 'all') return prod;
 
-    const pkgFilter = this.packageFilterSignal()?.trim();
+    const pkgFilter = this.packageFilterSignal()?.trim() || this.authService.activePackage()?.trim();
     if (pkgFilter) {
       const dbPkgs = this.packageService.packages();
       const match = dbPkgs.find((p) => p.name.toLowerCase().trim() === pkgFilter.toLowerCase());
@@ -555,18 +556,15 @@ export class TelecallingComponent implements OnInit, OnDestroy {
       leads = filter === 'ALL_LEADS' ? this.leadService.leads() : this.myLeads();
     }
 
-    const pkg = this.packageFilterSignal()?.trim();
-    const prod = this.productFilterSignal()?.trim();
+    const pkg = this.packageFilterSignal()?.trim() || this.authService.activePackage()?.trim();
+    const prod = this.productFilterSignal()?.trim() || this.authService.activeProduct()?.trim();
     const dbPkgs = this.packageService.packages();
 
     const isAllPkg = !pkg || pkg.toLowerCase() === 'all' || pkg.toLowerCase().includes('available package') || pkg.toLowerCase().includes('all package');
     const isAllProd = !prod || prod.toLowerCase() === 'all';
 
     if (!isAllPkg || !isAllProd) {
-      const filtered = leads.filter((l) => isItemForPackage(l, pkg, prod, dbPkgs));
-      if (filtered.length > 0) {
-        leads = filtered;
-      }
+      leads = leads.filter((l) => isItemForPackage(l, pkg, prod, dbPkgs));
     }
 
     return leads;
@@ -574,8 +572,8 @@ export class TelecallingComponent implements OnInit, OnDestroy {
 
   readonly availableCampaigns = computed(() => {
     const portfolioCampaigns = this.campaignService.campaigns();
-    const pkg = this.packageFilterSignal()?.trim();
-    const prod = this.productFilterSignal()?.trim();
+    const pkg = this.packageFilterSignal()?.trim() || this.authService.activePackage()?.trim();
+    const prod = this.productFilterSignal()?.trim() || this.authService.activeProduct()?.trim();
     const dbPkgs = this.packageService.packages();
     const isAllPkg = !pkg || pkg.toLowerCase() === 'all' || pkg.toLowerCase().includes('available package') || pkg.toLowerCase().includes('all package');
     const isAllProd = !prod || prod.toLowerCase() === 'all';
@@ -985,6 +983,14 @@ export class TelecallingComponent implements OnInit, OnDestroy {
   });
 
   ngOnInit() {
+    this.route.queryParams.subscribe((params) => {
+      if (params['package'] && !this.packageFilterSignal()) {
+        this.packageFilterSignal.set(params['package']);
+      }
+      if (params['product'] && !this.productFilterSignal()) {
+        this.productFilterSignal.set(params['product']);
+      }
+    });
     this.leadService.loadLeads().subscribe();
     this.leadService.loadCalls().subscribe();
     this.leadService.loadFollowUps().subscribe();

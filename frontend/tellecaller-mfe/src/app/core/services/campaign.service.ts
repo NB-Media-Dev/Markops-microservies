@@ -7,7 +7,11 @@ export interface CampaignItem {
   name: string;
   objective: string;
   productId?: string;
+  product_id?: string;
+  packageId?: string;
+  package_id?: string;
   packageName?: string;
+  package?: string;
   status: 'PLANNING' | 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'ARCHIVED';
   startDate: string;
   endDate?: string | null;
@@ -36,7 +40,11 @@ export interface AdItem {
   name: string;
   platform: 'Meta' | 'Google Ads' | 'Instagram' | 'LinkedIn' | 'YouTube' | (string & {});
   productId?: string;
+  product_id?: string;
+  packageId?: string;
+  package_id?: string;
   packageName?: string;
+  package?: string;
   status: 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'DRAFT' | (string & {});
   spend: number;
   impressions: number;
@@ -71,7 +79,16 @@ export class CampaignService {
       tap({
         next: (res) => {
           const list: any[] = Array.isArray(res) ? res : (res?.data || res?.campaigns || []);
-          this.campaigns.set(list);
+          const normalized = list.map((c) => {
+            const pkg = c.packageName || c.packageId || c.package_id || c.package;
+            const prod = c.productId || c.product_id || c.product;
+            return {
+              ...c,
+              ...(pkg ? { packageName: pkg, packageId: pkg } : {}),
+              ...(prod ? { productId: prod } : {}),
+            };
+          });
+          this.campaigns.set(normalized);
           this.loading.set(false);
         },
         error: (err) => {
@@ -139,7 +156,16 @@ export class CampaignService {
       tap({
         next: (res) => {
           const list: any[] = Array.isArray(res) ? res : (res?.data || res?.ads || []);
-          this.ads.set(list);
+          const normalized = list.map((a) => {
+            const pkg = a.packageName || a.packageId || a.package_id || a.package;
+            const prod = a.productId || a.product_id || a.product;
+            return {
+              ...a,
+              ...(pkg ? { packageName: pkg, packageId: pkg } : {}),
+              ...(prod ? { productId: prod } : {}),
+            };
+          });
+          this.ads.set(normalized);
           this.loading.set(false);
         },
         error: (err) => {

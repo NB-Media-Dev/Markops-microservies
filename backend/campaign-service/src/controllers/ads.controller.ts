@@ -9,16 +9,18 @@ export async function getAds(req: Request, res: Response): Promise<Response> {
     product_id,
     packageId,
     package_id,
+    packageName,
+    package_name,
     status
   } = req.query;
 
   const targetCampaignId = campaignId || campaign_id;
   const targetProductId = productId || product_id;
-  const targetPackageId = packageId || package_id;
+  const targetPackageId = packageId || package_id || packageName || package_name;
 
   try {
     let query = `
-      SELECT id, campaign_id as campaignId, product_id as productId, package_id as packageId,
+      SELECT id, campaign_id as campaignId, product_id as productId, package_id as packageId, package_id as packageName,
              meta_connection_id as metaConnectionId, created_by as createdBy, task_type as taskType,
              design_id as designId, platform_ad_id as platformAdId, platform_adset_id as platformAdsetId,
              platform_campaign_id as platformCampaignId, name, platform, spend,
@@ -65,7 +67,7 @@ export async function getAdById(req: Request, res: Response): Promise<Response> 
 
   try {
     const [rows]: any = await dbPool.query(
-      `SELECT id, campaign_id as campaignId, product_id as productId, package_id as packageId,
+      `SELECT id, campaign_id as campaignId, product_id as productId, package_id as packageId, package_id as packageName,
               meta_connection_id as metaConnectionId, created_by as createdBy, task_type as taskType,
               design_id as designId, platform_ad_id as platformAdId, platform_adset_id as platformAdsetId,
               platform_campaign_id as platformCampaignId, name, platform, spend,
@@ -117,8 +119,8 @@ export async function createAd(req: Request, res: Response): Promise<Response> {
     return res.status(400).json({ success: false, error: "Ad 'name' is required" });
   }
 
-  let finalProductId = productId || product_id || null;
-  let finalPackageId = packageId || package_id || null;
+  let finalProductId = productId || product_id || req.body.productName || null;
+  let finalPackageId = packageId || package_id || req.body.packageName || req.body.package_name || null;
 
   // Auto-inherit from parent campaign if not explicitly specified
   if ((!finalProductId || !finalPackageId) && targetCampaignId) {
@@ -167,7 +169,7 @@ export async function createAd(req: Request, res: Response): Promise<Response> {
     const newId = result.insertId;
 
     const [created]: any = await dbPool.query(
-      `SELECT id, campaign_id as campaignId, product_id as productId, package_id as packageId,
+      `SELECT id, campaign_id as campaignId, product_id as productId, package_id as packageId, package_id as packageName,
               meta_connection_id as metaConnectionId, created_by as createdBy, task_type as taskType,
               design_id as designId, name, platform, spend, impressions, clicks, leads_count as leadsCount,
               status, auto_cpl as autoCpl, auto_ctr as autoCtr, created_at as createdAt, updated_at as updatedAt
@@ -206,13 +208,13 @@ export async function updateAd(req: Request, res: Response): Promise<Response> {
       updates.push("name = ?");
       params.push(name.trim());
     }
-    if (productId !== undefined || product_id !== undefined) {
+    if (productId !== undefined || product_id !== undefined || req.body.productName !== undefined) {
       updates.push("product_id = ?");
-      params.push(productId !== undefined ? productId : product_id);
+      params.push(productId !== undefined ? productId : (product_id !== undefined ? product_id : req.body.productName));
     }
-    if (packageId !== undefined || package_id !== undefined) {
+    if (packageId !== undefined || package_id !== undefined || req.body.packageName !== undefined || req.body.package_name !== undefined) {
       updates.push("package_id = ?");
-      params.push(packageId !== undefined ? packageId : package_id);
+      params.push(packageId !== undefined ? packageId : (package_id !== undefined ? package_id : (req.body.packageName !== undefined ? req.body.packageName : req.body.package_name)));
     }
     if (status !== undefined) {
       updates.push("status = ?");

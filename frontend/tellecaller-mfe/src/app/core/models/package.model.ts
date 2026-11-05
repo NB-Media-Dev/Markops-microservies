@@ -318,25 +318,44 @@ export function resolveProductContext(
 }
 
 function matchesPackageName(
-  item: { packageName?: string | null; campaignName?: string | null; name?: string | null; source?: string | null; title?: string | null },
+  item: { productId?: string | null; packageName?: string | null; packageId?: string | null; package?: string | null; campaignName?: string | null; name?: string | null; source?: string | null; title?: string | null },
   cleanPkg: string
 ): boolean {
-  const itemPkg = (item.packageName || '').toLowerCase().trim();
+  const itemPkg = (item.packageName || (item as any).packageId || (item as any).package || '').toLowerCase().trim();
   const itemName = (item.name || item.title || '').toLowerCase().trim();
   const itemCamp = (item.campaignName || '').toLowerCase().trim();
   const itemSrc = (item.source || '').toLowerCase().trim();
 
-  if (itemPkg === cleanPkg || (itemPkg.length >= 3 && cleanPkg.includes(itemPkg)) || (cleanPkg.length >= 3 && itemPkg.includes(cleanPkg))) {
-    return true;
+  // If item has an explicit package assigned, strictly match against cleanPkg:
+  if (itemPkg) {
+    if (itemPkg === cleanPkg) return true;
+    const normItemPkg = itemPkg.replace(/[-_\s]+/g, ' ').trim();
+    const normCleanPkg = cleanPkg.replace(/[-_\s]+/g, ' ').trim();
+    if (normItemPkg === normCleanPkg) return true;
+    if (normItemPkg.length >= 3 && normCleanPkg.includes(normItemPkg)) return true;
+    if (normCleanPkg.length >= 3 && normItemPkg.includes(normCleanPkg)) return true;
+    // Explicitly belongs to another package, so do NOT match
+    return false;
   }
-  return itemName.includes(cleanPkg) || itemCamp.includes(cleanPkg) || itemSrc.includes(cleanPkg);
+
+  // Fallback for legacy items without an explicit package:
+  const normCleanPkg = cleanPkg.replace(/[-_\s]+/g, ' ').trim();
+  const normItemName = itemName.replace(/[-_\s]+/g, ' ').trim();
+  const normItemCamp = itemCamp.replace(/[-_\s]+/g, ' ').trim();
+  const normItemSrc = itemSrc.replace(/[-_\s]+/g, ' ').trim();
+
+  return (
+    (normItemName.length >= 3 && normItemName.includes(normCleanPkg)) ||
+    (normItemCamp.length >= 3 && normItemCamp.includes(normCleanPkg)) ||
+    (normItemSrc.length >= 3 && normItemSrc.includes(normCleanPkg))
+  );
 }
 
 function matchesProductCategory(
-  item: { productId?: string | null; packageName?: string | null; campaignName?: string | null; name?: string | null; source?: string | null; title?: string | null },
+  item: { productId?: string | null; packageName?: string | null; packageId?: string | null; package?: string | null; campaignName?: string | null; name?: string | null; source?: string | null; title?: string | null },
   targetProdId: string
 ): boolean {
-  const itemPkg = (item.packageName || '').toLowerCase().trim();
+  const itemPkg = (item.packageName || (item as any).packageId || (item as any).package || '').toLowerCase().trim();
   const itemProd = (item.productId || '').toLowerCase().trim();
   const itemName = (item.name || item.title || '').toLowerCase().trim();
   const itemCamp = (item.campaignName || '').toLowerCase().trim();
@@ -358,7 +377,7 @@ function matchesProductCategory(
 }
 
 export function isItemForPackage(
-  item: { productId?: string | null; packageName?: string | null; campaignName?: string | null; name?: string | null; source?: string | null; title?: string | null },
+  item: { productId?: string | null; packageId?: string | null; packageName?: string | null; package?: string | null; campaignName?: string | null; name?: string | null; source?: string | null; title?: string | null },
   targetPackage?: string,
   targetProduct?: string,
   dbPackages: ProductPackage[] = []
@@ -368,10 +387,20 @@ export function isItemForPackage(
   const cleanProd = (targetProduct || '').toLowerCase().trim();
   if ((!cleanPkg || cleanPkg === 'all') && (!cleanProd || cleanProd === 'all')) return true;
 
-  if (cleanPkg && cleanPkg !== 'all' && matchesPackageName(item, cleanPkg)) {
-    return true;
+  const resolved = resolveProductContext(targetPackage, targetProduct, dbPackages);
+
+  // If product filter is specified, verify product boundary
+  if (cleanProd && cleanProd !== 'all') {
+    if (!matchesProductCategory(item, resolved.productId.toLowerCase())) {
+      return false;
+    }
   }
 
-  const resolved = resolveProductContext(targetPackage, targetProduct, dbPackages);
+  // If viewing a specific package inside the product, ONLY show items belonging to this package
+  if (resolved.isSpecificPackage && cleanPkg && cleanPkg !== 'all') {
+    return matchesPackageName(item, cleanPkg);
+  }
+
+  // If viewing at the entire product level (all packages of this product)
   return matchesProductCategory(item, resolved.productId.toLowerCase());
 }

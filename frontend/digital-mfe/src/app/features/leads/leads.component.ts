@@ -49,7 +49,7 @@ import { Component, inject, OnInit, signal, computed, Input } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, ActivatedRoute } from '@angular/router';
 import { LeadTelecallingService, LeadItem, CallActivityItem } from '../../core/services/lead-telecalling.service';
 import { UserManagementService } from '../../core/services/user-management.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -110,6 +110,7 @@ export class LeadsComponent implements OnInit {
   readonly authService = inject(AuthService);
   readonly campaignService = inject(CampaignService);
   readonly packageService = inject(PackageService);
+  readonly route = inject(ActivatedRoute);
 
   readonly activeTab = signal<'LEADS_LIST' | 'TELECALLING_MONITOR'>('LEADS_LIST');
   readonly showModal = signal<boolean>(false);
@@ -152,10 +153,10 @@ export class LeadsComponent implements OnInit {
   });
 
   readonly resolvedActiveProduct = computed<string | null>(() => {
-    const prod = this.productFilterSignal()?.trim();
+    const prod = this.productFilterSignal()?.trim() || this.authService.activeProduct()?.trim();
     if (prod && prod.toLowerCase() !== 'all') return prod;
 
-    const pkgFilter = this.packageFilterSignal()?.trim();
+    const pkgFilter = this.packageFilterSignal()?.trim() || this.authService.activePackage()?.trim();
     if (pkgFilter) {
       const dbPkgs = this.packageService.packages();
       const match = dbPkgs.find((p) => p.name.toLowerCase().trim() === pkgFilter.toLowerCase());
@@ -243,8 +244,8 @@ export class LeadsComponent implements OnInit {
     const list: { id: string; name: string }[] = [];
     const seenNames = new Set<string>();
 
-    const pkg = this.packageFilterSignal()?.trim();
-    const prod = this.productFilterSignal()?.trim();
+    const pkg = this.packageFilterSignal()?.trim() || this.authService.activePackage()?.trim();
+    const prod = this.productFilterSignal()?.trim() || this.authService.activeProduct()?.trim();
     const dbPkgs = this.packageService.packages();
 
     let all = this.campaignService.campaigns();
@@ -267,8 +268,8 @@ export class LeadsComponent implements OnInit {
 
   readonly availableAds = computed(() => {
     let allAds = this.campaignService.ads() || [];
-    const pkg = this.packageFilterSignal()?.trim();
-    const prod = this.productFilterSignal()?.trim();
+    const pkg = this.packageFilterSignal()?.trim() || this.authService.activePackage()?.trim();
+    const prod = this.productFilterSignal()?.trim() || this.authService.activeProduct()?.trim();
     const dbPkgs = this.packageService.packages();
     if ((pkg && pkg.toLowerCase() !== 'all') || (prod && prod.toLowerCase() !== 'all')) {
       allAds = allAds.filter((a) => isItemForPackage(a, pkg, prod, dbPkgs));
@@ -376,6 +377,14 @@ export class LeadsComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.route.queryParams.subscribe((params) => {
+      if (params['package'] && !this.packageFilterSignal()) {
+        this.packageFilterSignal.set(params['package']);
+      }
+      if (params['product'] && !this.productFilterSignal()) {
+        this.productFilterSignal.set(params['product']);
+      }
+    });
     this.leadService.loadLeads().subscribe();
     this.leadService.loadCalls().subscribe();
     this.leadService.loadSummary().subscribe();
@@ -493,9 +502,13 @@ private assignCampaignsToImportedLeads(
       const campaigns = this.availableCampaigns();
       const campaign = campaigns[0];
       const defaultCampaignId = campaign?.id || 'cmp_default';
-      const defaultCampaignName = this.packageFilterSignal()?.trim() || campaign?.name || 'Excel Lead Upload';
+      const activePkg = this.packageFilterSignal()?.trim() || this.authService.activePackage()?.trim();
+      const defaultCampaignName = activePkg || campaign?.name || 'Excel Lead Upload';
 
       this.assignCampaignsToImportedLeads(leads, campaigns, defaultCampaignName, defaultCampaignId);
+
+      const activeProd = this.productFilterSignal()?.trim() || this.authService.activeProduct()?.trim();
+      const resolved = resolveProductContext(activePkg, activeProd, this.packageService.packages());
 
       const response = await firstValueFrom(this.leadService.importLeadBatch({
         leads,
@@ -506,6 +519,11 @@ private assignCampaignsToImportedLeads(
         creatorEmail: user.email,
         creatorName: user.fullName,
         uploaderRole: user.role,
+        packageId: activePkg,
+        packageName: activePkg,
+        package: activePkg,
+        productId: resolved.productId,
+        productName: resolved.productName,
       }));
 
       this.resetFilters();
@@ -598,8 +616,8 @@ private assignCampaignsToImportedLeads(
     const assignedTc = this.activeTelecallers().find((t) => String(t.id).trim() === String(this.newAssignedTelecallerId).trim());
 
     const user = this.authService.currentUser();
-    const pkg = this.packageFilterSignal()?.trim();
-    const prod = this.productFilterSignal()?.trim();
+    const pkg = this.packageFilterSignal()?.trim() || this.authService.activePackage()?.trim();
+    const prod = this.productFilterSignal()?.trim() || this.authService.activeProduct()?.trim();
     const dbPkgs = this.packageService.packages();
     const resolved = resolveProductContext(pkg, prod, dbPkgs);
 
@@ -622,8 +640,11 @@ private assignCampaignsToImportedLeads(
       creatorId: user?.id,
       creatorEmail: user?.email,
       creatorName: user?.fullName || (user?.role === 'DIGITAL_MARKETING' ? 'Digital Marketing' : 'System Administrator'),
+      productId: resolved.productId,
       productName: prodName,
+      packageId: pkgName,
       packageName: pkgName,
+      package: pkgName,
     };
 
     this.leadService.createLead(payload).subscribe({
@@ -680,18 +701,19 @@ private assignCampaignsToImportedLeads(
     const foundUser = this.realUsersList().find((u) => String(u.id).trim() === targetUserId);
     const targetName = foundUser ? foundUser.fullName : (this.assigneeName || 'Assigned Telecaller');
     const user = this.authService.currentUser();
-    const pkg = this.packageFilterSignal()?.trim();
-    const prod = this.productFilterSignal()?.trim();
+    const pkg = this.packageFilterSignal()?.trim() || this.authService.activePackage()?.trim();
+    const prod = this.productFilterSignal()?.trim() || this.authService.activeProduct()?.trim();
     const dbPkgs = this.packageService.packages();
     const resolved = resolveProductContext(pkg, prod, dbPkgs);
 
-    const pkgName = this.selectedLeadForAssign.campaignName || pkg || resolved.productName;
+    const pkgName = this.selectedLeadForAssign.packageName || this.selectedLeadForAssign.packageId || this.selectedLeadForAssign.campaignName || pkg || resolved.productName;
     const prodName = resolved.productName;
 
     this.leadService.assignLead(this.selectedLeadForAssign.id, targetUserId, targetName, {
       creatorName: user?.fullName || 'System Administrator',
       productName: prodName,
       packageName: pkgName,
+      packageId: pkgName,
     }).subscribe({
       next: () => {
         this.selectedLeadForAssign = null;
@@ -706,8 +728,8 @@ private assignCampaignsToImportedLeads(
   readonly myLeadsList = computed(() => {
     let list = this.leadService.leads();
     const user = this.authService.currentUser();
-    const pkg = this.packageFilterSignal()?.trim();
-    const prod = this.productFilterSignal()?.trim();
+    const pkg = this.packageFilterSignal()?.trim() || this.authService.activePackage()?.trim();
+    const prod = this.productFilterSignal()?.trim() || this.authService.activeProduct()?.trim();
     const dbPkgs = this.packageService.packages();
 
     if (user?.role === 'TELECALLER') {

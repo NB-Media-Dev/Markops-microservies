@@ -269,8 +269,8 @@
 
 .kpi-card {
   background: #FFFFFF;
-  border-radius: 18px;
-  border: 1.5px solid #FDBA74 !important;
+  border-radius: 16px;
+  border: 1.5px solid #F97316 !important;
   padding: 1.25rem 1.75rem;
   display: flex !important;
   align-items: center !important;
@@ -467,7 +467,7 @@
 .table-card {
   background: #FFFFFF;
   border-radius: 16px;
-  border: 1px solid #F1F5F9;
+  border: 1px solid #E2E8F0;
   overflow: hidden;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
 
@@ -485,10 +485,10 @@
     font-size: 0.82rem;
 
     thead {
-      background: #FFF7ED !important;
+      background: #FFF5ED !important;
 
       tr, th {
-        background-color: #FFF7ED !important;
+        background-color: #FFF5ED !important;
         color: #C2410C !important;
         font-weight: 800 !important;
         font-size: 0.72rem !important;
@@ -644,8 +644,8 @@
   transition: all 0.2s ease;
 
   &.is-active {
-    background-color: #DCFCE7;
-    color: #15803D;
+    background-color: #D1FAE5;
+    color: #047857;
   }
 
   &:hover {

@@ -7,6 +7,9 @@ export interface CampaignItem {
   name: string;
   objective: string;
   productId?: string;
+  product_id?: string;
+  packageId?: string;
+  package_id?: string;
   packageName?: string;
   status: 'PLANNING' | 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'ARCHIVED';
   startDate: string;
@@ -36,6 +39,9 @@ export interface AdItem {
   name: string;
   platform: 'Meta' | 'Google Ads' | 'Instagram' | 'LinkedIn' | 'YouTube' | (string & {});
   productId?: string;
+  product_id?: string;
+  packageId?: string;
+  package_id?: string;
   packageName?: string;
   status: 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'DRAFT' | (string & {});
   spend: number;
@@ -70,7 +76,13 @@ export class CampaignService {
     return this.http.get<any>('/api/campaigns').pipe(
       tap({
         next: (res) => {
-          const data = Array.isArray(res) ? res : (res?.data || []);
+          const raw = Array.isArray(res) ? res : (res?.data || []);
+          const data = raw.map((c: any) => ({
+            ...c,
+            packageName: c.packageName || c.packageId || c.package_id || c.package || '',
+            packageId: c.packageId || c.package_id || c.packageName || '',
+            productId: c.productId || c.product_id || '',
+          }));
           this.campaigns.set(data);
           this.loading.set(false);
         },
@@ -140,7 +152,13 @@ export class CampaignService {
     return this.http.get<any>('/api/ads').pipe(
       tap({
         next: (res) => {
-          const data = Array.isArray(res) ? res : (res?.data || []);
+          const raw = Array.isArray(res) ? res : (res?.data || []);
+          const data = raw.map((a: any) => ({
+            ...a,
+            packageName: a.packageName || a.packageId || a.package_id || a.package || '',
+            packageId: a.packageId || a.package_id || a.packageName || '',
+            productId: a.productId || a.product_id || '',
+          }));
           this.ads.set(data);
           this.loading.set(false);
         },

@@ -8,7 +8,8 @@ import {
   uploadLeadsFromExcel,
   reassignTelecallerLeads,
   getTelecallingSummary,
-  assignLead
+  assignLead,
+  batchImportLeads
 } from "../controllers/leads.controller.js";
 import { uploadExcelMiddleware } from "../middleware/upload.middleware.js";
 
@@ -19,6 +20,7 @@ router.get("/leads", getLeads);
 router.get("/leads/:id", getLeadById);
 router.post("/leads", createLead);
 router.post("/leads/upload-excel", uploadExcelMiddleware, uploadLeadsFromExcel);
+router.post("/leads/batch-import", batchImportLeads);
 router.post("/leads/reassign", reassignTelecallerLeads);
 router.post("/leads/:id/assign", assignLead);
 

@@ -18,6 +18,8 @@ export async function getLeads(req: Request, res: Response): Promise<Response> {
     product_id,
     packageId,
     package_id,
+    packageName,
+    package_name,
     status,
     assignmentStatus,
     assignment_status,
@@ -31,7 +33,7 @@ export async function getLeads(req: Request, res: Response): Promise<Response> {
   const targetAd = (ad || adName || ad_name) as string | undefined;
   const targetAdId = adId || ad_id;
   const targetProductId = productId || product_id;
-  const targetPackageId = packageId || package_id;
+  const targetPackageId = packageId || package_id || packageName || package_name;
   const targetAssignmentStatus = assignmentStatus || assignment_status;
   const targetTelecallerId = telecallerId || assigned_telecaller_id;
 
@@ -41,7 +43,8 @@ export async function getLeads(req: Request, res: Response): Promise<Response> {
              l.email, l.phone, l.source,
              l.campaign, l.campaign as campaignName,
              l.ad, l.ad as adName,
-             l.product_id as productId, l.package_id as packageId,
+             l.product_id as productId, l.product_id as productName,
+             l.package_id as packageId, l.package_id as packageName, l.package_id as package,
              l.call_disposition as callDisposition,
              l.status, l.assignment_status as assignmentStatus,
              l.assigned_telecaller_id as assignedTelecallerId,
@@ -123,7 +126,8 @@ export async function getLeadById(req: Request, res: Response): Promise<Response
               l.email, l.phone, l.source,
               l.campaign, l.campaign as campaignName,
               l.ad, l.ad as adName,
-              l.product_id as productId, l.package_id as packageId,
+              l.product_id as productId, l.product_id as productName,
+              l.package_id as packageId, l.package_id as packageName, l.package_id as package,
               l.call_disposition as callDisposition,
               l.status, l.assignment_status as assignmentStatus,
               l.assigned_telecaller_id as assignedTelecallerId,
@@ -210,8 +214,8 @@ export async function createLead(req: Request, res: Response): Promise<Response>
 
   let finalCampaign: string | null = campaign || campaignName || campaign_name || null;
   let finalAd: string | null = ad || adName || ad_name || null;
-  let finalProductId = productId || product_id || null;
-  let finalPackageId = packageId || package_id || null;
+  let finalProductId = productId || product_id || req.body.productName || null;
+  let finalPackageId = packageId || package_id || req.body.packageName || req.body.package_name || req.body.package || null;
 
   // Resolve ad name / inherit product & package if adId / ad name provided
   const inputAdId = adId || ad_id ? parseInt(String(adId || ad_id), 10) : null;
@@ -321,7 +325,8 @@ export async function createLead(req: Request, res: Response): Promise<Response>
               l.email, l.phone, l.source,
               l.campaign, l.campaign as campaignName,
               l.ad, l.ad as adName,
-              l.product_id as productId, l.package_id as packageId,
+              l.product_id as productId, l.product_id as productName,
+              l.package_id as packageId, l.package_id as packageName, l.package_id as package,
               l.call_disposition as callDisposition,
               l.status, l.assignment_status as assignmentStatus,
               l.assigned_telecaller_id as assignedTelecallerId,
@@ -626,7 +631,8 @@ export async function updateLead(req: Request, res: Response): Promise<Response>
               l.email, l.phone, l.source,
               l.campaign, l.campaign as campaignName,
               l.ad, l.ad as adName,
-              l.product_id as productId, l.package_id as packageId,
+              l.product_id as productId, l.product_id as productName,
+              l.package_id as packageId, l.package_id as packageName, l.package_id as package,
               l.call_disposition as callDisposition,
               l.status, l.assignment_status as assignmentStatus,
               l.assigned_telecaller_id as assignedTelecallerId,
@@ -839,17 +845,162 @@ export async function getTelecallingSummary(_req: Request, res: Response): Promi
 
 export async function assignLead(req: Request, res: Response): Promise<Response> {
   const { id } = req.params;
-  const { assignedTo, assignedTelecallerId, assigneeName } = req.body;
+  const { assignedTo, assignedTelecallerId, assigneeName, packageId, packageName, package: pkg, productId } = req.body;
   const telecallerId = parseInt(String(assignedTo || assignedTelecallerId), 10) || null;
+  const targetPackageId = packageId || packageName || pkg || null;
+  const targetProductId = productId || null;
   try {
-    await dbPool.query(
-      "UPDATE leads SET assigned_telecaller_id = ?, assignment_status = ?, updated_at = NOW() WHERE id = ?",
-      [telecallerId, telecallerId ? "ASSIGNED" : "UNASSIGNED", id]
+    const updates = ["assigned_telecaller_id = ?", "assignment_status = ?", "updated_at = NOW()"];
+    const params: any[] = [telecallerId, telecallerId ? "ASSIGNED" : "UNASSIGNED"];
+    if (targetPackageId) {
+      updates.push("package_id = COALESCE(package_id, ?)");
+      params.push(targetPackageId);
+    }
+    if (targetProductId) {
+      updates.push("product_id = COALESCE(product_id, ?)");
+      params.push(targetProductId);
+    }
+    params.push(id);
+    await dbPool.query(`UPDATE leads SET ${updates.join(", ")} WHERE id = ?`, params);
+    const [rows]: any = await dbPool.query(
+      `SELECT l.id, l.first_name as firstName, l.last_name as lastName,
+              l.email, l.phone, l.source,
+              l.campaign, l.campaign as campaignName,
+              l.ad, l.ad as adName,
+              l.product_id as productId, l.product_id as productName,
+              l.package_id as packageId, l.package_id as packageName, l.package_id as package,
+              l.call_disposition as callDisposition,
+              l.status, l.assignment_status as assignmentStatus,
+              l.assigned_telecaller_id as assignedTelecallerId,
+              l.meta_lead_id as metaLeadId,
+              l.created_at as createdAt, l.updated_at as updatedAt
+       FROM leads l WHERE l.id = ? LIMIT 1`,
+      [id]
     );
-    const [rows]: any = await dbPool.query("SELECT * FROM leads WHERE id = ? LIMIT 1", [id]);
     return res.json({ success: true, lead: rows?.[0], data: rows?.[0] });
   } catch (err: any) {
     console.error("[assignLead Error]:", err?.message || err);
     return res.status(500).json({ success: false, error: "Failed to assign lead" });
+  }
+}
+
+export async function batchImportLeads(req: Request, res: Response): Promise<Response> {
+  try {
+    const {
+      leads = [],
+      campaignId,
+      campaignName,
+      source = "Excel Upload",
+      packageId,
+      packageName,
+      package: pkg,
+      productId,
+      productName
+    } = req.body;
+
+    if (!Array.isArray(leads) || leads.length === 0) {
+      return res.status(400).json({ success: false, error: "No leads provided to import" });
+    }
+
+    const finalProductId = productId || productName || null;
+    const finalPackageId = packageId || packageName || pkg || null;
+
+    let telecallers: any[] = [];
+    try {
+      const [tRows]: any = await dbPool.query(`
+        SELECT u.id, u.fullName, u.email
+        FROM auth_db.User u
+        JOIN auth_db.Role r ON u.roleId = r.id
+        WHERE (r.name = 'TELECALLER' OR u.roleId = 'telecaller') AND u.isActive = 1
+        ORDER BY u.id ASC
+      `);
+      telecallers = tRows || [];
+    } catch {
+      telecallers = [];
+    }
+
+    const hasTelecallers = telecallers.length > 0;
+    let telecallerIndex = 0;
+    const allocationSummaryMap = new Map<string, { id: string; fullName: string; email: string; count: number }>();
+
+    for (const tc of telecallers) {
+      allocationSummaryMap.set(String(tc.id), {
+        id: String(tc.id),
+        fullName: tc.fullName || `Telecaller ${tc.id}`,
+        email: tc.email || '',
+        count: 0
+      });
+    }
+
+    const insertedLeads: any[] = [];
+
+    for (const item of leads) {
+      const firstName = item.firstName || item.first_name || '';
+      const lastName = item.lastName !== undefined ? item.lastName : (item.last_name || '');
+      const phone = item.phone || '';
+      const email = item.email || '';
+      const leadSource = item.source || source || 'Excel Upload';
+      const cName = item.campaignName || campaignName || 'General Digital Ads Campaign';
+
+      let assignedTcId: number | null = null;
+      let assigneeName = 'Unassigned';
+
+      if (hasTelecallers) {
+        const tc = telecallers[telecallerIndex];
+        assignedTcId = tc.id;
+        assigneeName = tc.fullName || `Telecaller ${tc.id}`;
+        const sumRecord = allocationSummaryMap.get(String(tc.id));
+        if (sumRecord) sumRecord.count++;
+        telecallerIndex = (telecallerIndex + 1) % telecallers.length;
+      }
+
+      const [insertRes]: any = await dbPool.query(
+        `INSERT INTO leads (first_name, last_name, email, phone, source, campaign, product_id, package_id, status, assignment_status, assigned_telecaller_id, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+        [
+          firstName.trim(),
+          lastName.trim(),
+          email.trim(),
+          phone.trim(),
+          leadSource,
+          cName,
+          finalProductId,
+          finalPackageId,
+          assignedTcId ? 'ASSIGNED' : 'NEW',
+          assignedTcId ? 'ASSIGNED' : 'UNASSIGNED',
+          assignedTcId
+        ]
+      );
+
+      insertedLeads.push({
+        id: insertRes.insertId,
+        firstName,
+        lastName,
+        email,
+        phone,
+        source: leadSource,
+        campaign: cName,
+        campaignName: cName,
+        productId: finalProductId,
+        packageId: finalPackageId,
+        packageName: finalPackageId,
+        assignedTo: assignedTcId,
+        assigneeName,
+        status: assignedTcId ? 'ASSIGNED' : 'NEW'
+      });
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: `Successfully imported ${insertedLeads.length} leads`,
+      totalUploaded: insertedLeads.length,
+      telecallersCount: telecallers.length,
+      leadsPerTelecaller: telecallers.length > 0 ? Math.ceil(insertedLeads.length / telecallers.length) : 0,
+      allocationSummary: Array.from(allocationSummaryMap.values()),
+      leads: insertedLeads
+    });
+  } catch (err: any) {
+    console.error("[batchImportLeads Error]:", err?.message || err);
+    return res.status(500).json({ success: false, error: err?.message || "Failed to batch import leads" });
   }
 }

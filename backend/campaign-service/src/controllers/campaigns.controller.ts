@@ -2,13 +2,13 @@ import type { Request, Response } from "express";
 import { dbPool } from "../config/database.js";
 
 export async function getCampaigns(req: Request, res: Response): Promise<Response> {
-  const { status, ownerId, search, productId, product_id, packageId, package_id } = req.query;
+  const { status, ownerId, search, productId, product_id, packageId, package_id, packageName, package_name } = req.query;
   const targetProductId = productId || product_id;
-  const targetPackageId = packageId || package_id;
+  const targetPackageId = packageId || package_id || packageName || package_name;
 
   try {
     let query = `
-      SELECT id, name, objective, product_id as productId, package_id as packageId,
+      SELECT id, name, objective, product_id as productId, package_id as packageId, package_id as packageName,
              status, start_date as startDate, budget, spend,
              leads_count as leadsCount, paid_leads as paidLeads, conversions,
              auto_cpl as autoCpl, auto_conversion_pct as autoConversionPct,
@@ -58,7 +58,7 @@ export async function getCampaignById(req: Request, res: Response): Promise<Resp
 
   try {
     const [rows]: any = await dbPool.query(
-      `SELECT id, name, objective, product_id as productId, package_id as packageId,
+      `SELECT id, name, objective, product_id as productId, package_id as packageId, package_id as packageName,
               status, start_date as startDate, budget, spend,
               leads_count as leadsCount, paid_leads as paidLeads, conversions,
               auto_cpl as autoCpl, auto_conversion_pct as autoConversionPct,
@@ -76,7 +76,7 @@ export async function getCampaignById(req: Request, res: Response): Promise<Resp
 
     // Fetch related Ads
     const [ads]: any = await dbPool.query(
-      `SELECT id, campaign_id as campaignId, product_id as productId, package_id as packageId,
+      `SELECT id, campaign_id as campaignId, product_id as productId, package_id as packageId, package_id as packageName,
               meta_connection_id as metaConnectionId, name, platform, task_type as taskType,
               design_id as designId, spend, impressions, clicks, leads_count as leadsCount,
               status, auto_cpl as autoCpl, auto_ctr as autoCtr, created_at as createdAt
@@ -103,6 +103,8 @@ export async function createCampaign(req: Request, res: Response): Promise<Respo
     product_id,
     packageId,
     package_id,
+    packageName,
+    package_name,
     status = "PLANNING",
     startDate,
     start_date,
@@ -122,8 +124,8 @@ export async function createCampaign(req: Request, res: Response): Promise<Respo
   const user = (req as any).user;
   const targetOwnerId = ownerId || owner_id || user?.id || 1;
   const targetStartDate = startDate || start_date || new Date().toISOString().split("T")[0];
-  const targetProductId = productId || product_id || null;
-  const targetPackageId = packageId || package_id || null;
+  const targetProductId = productId || product_id || req.body.productName || null;
+  const targetPackageId = packageId || package_id || packageName || package_name || null;
 
   try {
     const [result]: any = await dbPool.query(
@@ -145,7 +147,7 @@ export async function createCampaign(req: Request, res: Response): Promise<Respo
     const newId = result.insertId;
 
     const [created]: any = await dbPool.query(
-      `SELECT id, name, objective, product_id as productId, package_id as packageId,
+      `SELECT id, name, objective, product_id as productId, package_id as packageId, package_id as packageName,
               status, start_date as startDate, budget, spend,
               leads_count as leadsCount, paid_leads as paidLeads, conversions,
               auto_cpl as autoCpl, auto_conversion_pct as autoConversionPct,
@@ -156,7 +158,7 @@ export async function createCampaign(req: Request, res: Response): Promise<Respo
 
     return res.status(201).json({
       success: true,
-      data: created?.[0] || { id: newId, name, objective, productId: targetProductId, packageId: targetPackageId, status }
+      data: created?.[0] || { id: newId, name, objective, productId: targetProductId, packageId: targetPackageId, packageName: targetPackageId, status }
     });
   } catch (e: any) {
     console.error("[createCampaign DB Error]:", e?.message || e);
@@ -202,13 +204,13 @@ export async function updateCampaign(req: Request, res: Response): Promise<Respo
       updates.push("objective = ?");
       params.push(objective.trim());
     }
-    if (productId !== undefined || product_id !== undefined) {
+    if (productId !== undefined || product_id !== undefined || req.body.productName !== undefined) {
       updates.push("product_id = ?");
-      params.push(productId !== undefined ? productId : product_id);
+      params.push(productId !== undefined ? productId : (product_id !== undefined ? product_id : req.body.productName));
     }
-    if (packageId !== undefined || package_id !== undefined) {
+    if (packageId !== undefined || package_id !== undefined || req.body.packageName !== undefined || req.body.package_name !== undefined) {
       updates.push("package_id = ?");
-      params.push(packageId !== undefined ? packageId : package_id);
+      params.push(packageId !== undefined ? packageId : (package_id !== undefined ? package_id : (req.body.packageName !== undefined ? req.body.packageName : req.body.package_name)));
     }
     if (status !== undefined) {
       updates.push("status = ?");

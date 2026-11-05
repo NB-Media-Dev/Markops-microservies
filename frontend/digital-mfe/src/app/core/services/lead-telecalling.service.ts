@@ -27,7 +27,10 @@ export interface LeadItem {
   uploaderId?: string;
   uploaderEmail?: string;
   productId?: string;
+  product_id?: string;
   productName?: string;
+  packageId?: string;
+  package_id?: string;
   packageName?: string;
   package?: string;
   createdAt: string;
@@ -258,6 +261,10 @@ export class LeadTelecallingService {
           const list: any[] = Array.isArray(res) ? res : (res?.data || []);
           const normalized = list.map((l) => ({
             ...l,
+            packageName: l.packageName || l.packageId || l.package_id || l.package || '',
+            packageId: l.packageId || l.package_id || l.packageName || l.package || '',
+            package: l.package || l.packageName || l.packageId || l.package_id || '',
+            productId: l.productId || l.product_id || '',
             status: l.status === 'QUALIFIED' ? 'PAID' : l.status,
           }));
           this.leads.set(normalized);
@@ -297,6 +304,11 @@ export class LeadTelecallingService {
     creatorEmail: string;
     creatorName: string;
     uploaderRole: string;
+    packageId?: string;
+    packageName?: string;
+    package?: string;
+    productId?: string;
+    productName?: string;
   }) {
     return this.http.post<LeadBatchImportResponse>('/api/leads/batch-import', payload).pipe(
       tap({
@@ -308,7 +320,7 @@ export class LeadTelecallingService {
     );
   }
 
-  assignLead(leadId: string, assignedTo: string, assigneeName: string, meta?: { creatorName?: string; productName?: string; packageName?: string }) {
+  assignLead(leadId: string, assignedTo: string, assigneeName: string, meta?: { creatorName?: string; productName?: string; packageName?: string; packageId?: string }) {
     return this.http.post<LeadItem>(`/api/leads/${leadId}/assign`, { assignedTo, assigneeName, ...meta }).pipe(
       tap({
         next: (updatedLead) => {
